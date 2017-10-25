@@ -1,3 +1,4 @@
+import os
 import copy
 import time
 import numpy as np
@@ -142,6 +143,15 @@ print 'ML Algorithm: AdaBoost with Decision Trees as base learner.'
 filename_int     = 'input/inputs_game_test.dat'
 filename_err     = 'input/errors_game_test.dat'
 filename_library = 'input/labels_game_test.dat'
+###########################################
+# Create output directory if not existing #
+###########################################
+dir_path = 'output/'
+directory = os.path.dirname(dir_path)
+try:
+	os.stat(directory)
+except:
+	os.mkdir(directory)
 ##################################
 # Creation of the optional files #
 ################################## 
