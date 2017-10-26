@@ -1,6 +1,8 @@
 import os
 import copy
 import time
+import urllib
+import tarfile
 import numpy as np
 import multiprocessing
 from itertools import chain
@@ -9,6 +11,21 @@ from sklearn.preprocessing import Normalizer
 from sklearn.ensemble import AdaBoostRegressor
 #from sklearn.model_selection import cross_val_score
 from sklearn.cross_validation import cross_val_score
+
+
+############################################
+# Create library directory if not existing #
+############################################
+dir_path = 'library/'
+directory = os.path.dirname(dir_path)
+try:
+	os.stat(directory)
+except:
+	urllib.urlretrieve("http://cosmology.sns.it/library_game/library.tar.gz", filename="library.tar.gz")
+	tar = tarfile.open("library.tar.gz")
+	tar.extractall()
+	tar.close()
+	os.remove("library.tar.gz")
 
 
 #####################################################
