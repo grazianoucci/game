@@ -136,6 +136,19 @@ def machine_learning(feat, lab, physical_p, ml_regr):
   return copy.copy(model), importances, np.mean(score), np.std(score)
 
 
+#----------
+# SETTINGS
+#----------
+# to be commented by Bruce
+manual_input     = False
+
+filename_int     = 'input/inputs_game_test.dat'
+filename_err     = 'input/errors_game_test.dat'
+filename_library = 'input/labels_game_test.dat'
+
+choice_rep       = 'y'
+n_proc           = 2
+
 ########################
 # Start of the program #
 ########################
@@ -154,12 +167,10 @@ print 'ML Algorithm: AdaBoost with Decision Trees as base learner.'
 ######################
 # Input file reading #
 ######################
-#filename_int     = raw_input('Insert input file name (line intensities): ')
-#filename_err     = raw_input('Insert input file name (errors on line intensities): ')
-#filename_library = raw_input('Insert name of file containing the labels: ')
-filename_int     = 'input/inputs_game_test.dat'
-filename_err     = 'input/errors_game_test.dat'
-filename_library = 'input/labels_game_test.dat'
+if(manual_input):
+  filename_int     = raw_input('Insert input file name (line intensities): ')
+  filename_err     = raw_input('Insert input file name (errors on line intensities): ')
+  filename_library = raw_input('Insert name of file containing the labels: ')
 ###########################################
 # Create output directory if not existing #
 ###########################################
@@ -172,13 +183,13 @@ except:
 ##################################
 # Creation of the optional files #
 ################################## 
-#choice_rep       = raw_input('Do you want to create the optional files [y/n]?: ')
-choice_rep       = 'y'
+if(manual_input):
+  choice_rep       = raw_input('Do you want to create the optional files [y/n]?: ')
 ########################
 # Number of processors #
 ########################
-#n_proc           = raw_input('Choose the number of processors: ')
-n_proc = 2
+if(manual_input):
+  n_proc           = raw_input('Choose the number of processors: ')
 print ''
 print 'Program started...'
 ###################################################
