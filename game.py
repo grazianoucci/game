@@ -13,7 +13,6 @@ from sklearn.ensemble import AdaBoostRegressor
 #from sklearn.model_selection import cross_val_score
 from sklearn.cross_validation import cross_val_score
 
-
 ############################################
 # Create library directory if not existing #
 ############################################
@@ -227,7 +226,7 @@ def main_algorithm_additional_to_pool(i
     ,importances_AV,importances_fesc
     ,filename_int,filename_err,n_repetition,choice_rep
     ):
-  # I would recomend merging it with the main algorithm, by passing dictionary of features to be searched for, instead of AV,fesc (and n,... in the main)
+  # AP: I would recomend merging it with the main algorithm, by passing dictionary of features to be searched for, instead of AV,fesc (and n,... in the main)
 
   mask    = np.where(models==unique_id[i-1])
   # matrix_mms is useful to save physical properties
@@ -292,19 +291,22 @@ def run_game(
   ,filename_err     = 'input/errors_game_test.dat'
   ,filename_library = 'input/labels_game_test.dat'
   ,choice_rep       = 'y'
+  # AP: choice_rep should be asserted to be among the allowed values (even when inputed via raw_input).
   ,n_proc           =  2
   ,n_repetition     =  10000
   ,dir_path         = 'output/'
+  ,verbose          = True
   ):
 
   ########################
   # Start of the program #
   ########################
-  print '--------------------------------------------------------'
-  print '--- GAME (GAlaxy Machine learning for Emission lines) --'
-  print '------- see Ucci G. et al. (2017a,b) for details -------'
-  print '--------------------------------------------------------'
-  print ''
+  if(verbose): 
+    print '--------------------------------------------------------'
+    print '--- GAME (GAlaxy Machine learning for Emission lines) --'
+    print '------- see Ucci G. et al. (2017a,b) for details -------'
+    print '--------------------------------------------------------'
+    print ''
   # ref1: http://adsabs.harvard.edu/abs/2017MNRAS.465.1144U
   # Definition of algorithm for Machine Learning
   regr = AdaBoostRegressor(tree.DecisionTreeRegressor(criterion='mse',
@@ -312,7 +314,8 @@ def run_game(
                                                       max_features=None),
                            n_estimators=2,
                            random_state=0)
-  print 'ML Algorithm: AdaBoost with Decision Trees as base learner.'
+  if(verbose): 
+    print 'ML Algorithm: AdaBoost with Decision Trees as base learner.'
   ######################
   # Input file reading #
   ######################
@@ -338,8 +341,9 @@ def run_game(
   ########################
   if(manual_input):
     n_proc           = raw_input('Choose the number of processors: ')
-  print ''
-  print 'Program started...'
+  if(verbose): 
+    print ''
+    print 'Program started...'
   ###################################################
   # Number of repetition for the PDFs determination #
   ###################################################
@@ -361,10 +365,11 @@ def run_game(
   # Testing, test_size is the percentage of the library to use as testing set to determine the PDFs #
   ###################################################################################################
   test_size = 0.10
-  print '# of input  models                     :', len(data[1:])
-  print '# of unique models for Machine Learning:', int(np.max(unique_id))
-  print ''
-  print 'Starting of Machine Learning algorithm for the default labels...'
+  if(verbose): 
+    print '# of input  models                     :', len(data[1:])
+    print '# of unique models for Machine Learning:', int(np.max(unique_id))
+    print ''
+    print 'Starting of Machine Learning algorithm for the default labels...'
   start_time  = time.time()
   ##########################################################
   # Definition of features and labels for Machine Learning #
@@ -405,10 +410,10 @@ def run_game(
   pool.close()
   pool.join()
   end_time = time.time()
-  print 'Elapsed time for ML:', (end_time - start_time)
-  print ''
-  print 'Writing output files for the default labels...'
-  
+  if(verbose): 
+    print 'Elapsed time for ML:', (end_time - start_time)
+    print ''
+    print 'Writing output files for the default labels...'
   
   ###########################################
   # Rearrange based on the find_ids indexes #
@@ -441,7 +446,7 @@ def run_game(
   #########################################
   # Write information on different models #
   #########################################
-  f = open('output/model_ids.dat', 'w+')
+  f = open(dir_path+'model_ids.dat', 'w+')
   for i in xrange(len(sigmas)):
     f.write('##############################\n')
     f.write('Id model: %d\n' %(i+1))
@@ -480,38 +485,38 @@ def run_game(
                                                 np.std(                matrix_ml[:,4], axis=1)) ).T
   if choice_rep == 'n':
     write_output = np.column_stack( (model_ids, matrix_ml) )
-  np.savetxt('output/output_ml.dat', write_output, header="id_model mean[Log(G0)] median[Log(G0)] sigma[Log(G0)] mean[Log(n)] median[Log(n)] sigma[Log(n)] mean[Log(NH)] median[Log(NH)] sigma[Log(NH)] mean[Log(U)] median[Log(U)] sigma[Log(U)] mean[Log(Z)] median[Log(Z)] sigma[Log(Z)]", fmt='%.5f')
+  np.savetxt(dir_path+'output_ml.dat', write_output, header="id_model mean[Log(G0)] median[Log(G0)] sigma[Log(G0)] mean[Log(n)] median[Log(n)] sigma[Log(n)] mean[Log(NH)] median[Log(NH)] sigma[Log(NH)] mean[Log(U)] median[Log(U)] sigma[Log(U)] mean[Log(Z)] median[Log(Z)] sigma[Log(Z)]", fmt='%.5f')
   ########################################
   # Outputs with the feature importances #
   ########################################
-  np.savetxt('output/output_feature_importances_G0.dat', np.vstack( (data[0], importances[0::5,:]) ), fmt='%.5f')
-  np.savetxt('output/output_feature_importances_n.dat',  np.vstack( (data[0], importances[1::5,:]) ), fmt='%.5f')
-  np.savetxt('output/output_feature_importances_NH.dat', np.vstack( (data[0], importances[2::5,:]) ), fmt='%.5f')
-  np.savetxt('output/output_feature_importances_U.dat',  np.vstack( (data[0], importances[3::5,:]) ), fmt='%.5f')
-  np.savetxt('output/output_feature_importances_Z.dat',  np.vstack( (data[0], importances[4::5,:]) ), fmt='%.5f')
+  np.savetxt(dir_path+'output_feature_importances_G0.dat', np.vstack( (data[0], importances[0::5,:]) ), fmt='%.5f')
+  np.savetxt(dir_path+'output_feature_importances_n.dat',  np.vstack( (data[0], importances[1::5,:]) ), fmt='%.5f')
+  np.savetxt(dir_path+'output_feature_importances_NH.dat', np.vstack( (data[0], importances[2::5,:]) ), fmt='%.5f')
+  np.savetxt(dir_path+'output_feature_importances_U.dat',  np.vstack( (data[0], importances[3::5,:]) ), fmt='%.5f')
+  np.savetxt(dir_path+'output_feature_importances_Z.dat',  np.vstack( (data[0], importances[4::5,:]) ), fmt='%.5f')
   ##################
   # Optional files #
   ##################
   if choice_rep == 'y':
     # This writes down the output relative to the predicted and true value of the library
-    np.savetxt('output/output_pred_G0.dat', preds[0::5,:], fmt='%.5f')
-    np.savetxt('output/output_pred_n.dat',  preds[1::5,:],  fmt='%.5f')
-    np.savetxt('output/output_pred_NH.dat', preds[2::5,:], fmt='%.5f')
-    np.savetxt('output/output_pred_U.dat',  preds[3::5,:],  fmt='%.5f')
-    np.savetxt('output/output_pred_Z.dat',  preds[4::5,:],  fmt='%.5f')
-    np.savetxt('output/output_true_G0.dat', trues[0::5,:], fmt='%.5f')
-    np.savetxt('output/output_true_n.dat',  trues[1::5,:],  fmt='%.5f')
-    np.savetxt('output/output_true_NH.dat', trues[2::5,:], fmt='%.5f')
-    np.savetxt('output/output_true_U.dat',  trues[3::5,:],  fmt='%.5f')
-    np.savetxt('output/output_true_Z.dat',  trues[4::5,:],  fmt='%.5f')
+    np.savetxt(dir_path+'output_pred_G0.dat', preds[0::5,:], fmt='%.5f')
+    np.savetxt(dir_path+'output_pred_n.dat',  preds[1::5,:],  fmt='%.5f')
+    np.savetxt(dir_path+'output_pred_NH.dat', preds[2::5,:], fmt='%.5f')
+    np.savetxt(dir_path+'output_pred_U.dat',  preds[3::5,:],  fmt='%.5f')
+    np.savetxt(dir_path+'output_pred_Z.dat',  preds[4::5,:],  fmt='%.5f')
+    np.savetxt(dir_path+'output_true_G0.dat', trues[0::5,:], fmt='%.5f')
+    np.savetxt(dir_path+'output_true_n.dat',  trues[1::5,:],  fmt='%.5f')
+    np.savetxt(dir_path+'output_true_NH.dat', trues[2::5,:], fmt='%.5f')
+    np.savetxt(dir_path+'output_true_U.dat',  trues[3::5,:],  fmt='%.5f')
+    np.savetxt(dir_path+'output_true_Z.dat',  trues[4::5,:],  fmt='%.5f')
     # This writes down the output relative to the PDFs of the physical properties
-    np.savetxt('output/output_pdf_G0.dat', matrix_ml[:,0], fmt='%.5f')
-    np.savetxt('output/output_pdf_n.dat',  matrix_ml[:,1],  fmt='%.5f')
-    np.savetxt('output/output_pdf_NH.dat', matrix_ml[:,2], fmt='%.5f')
-    np.savetxt('output/output_pdf_U.dat',  matrix_ml[:,3],  fmt='%.5f')
-    np.savetxt('output/output_pdf_Z.dat',  matrix_ml[:,4],  fmt='%.5f')
-  print ''
-  
+    np.savetxt(dir_path+'output_pdf_G0.dat', matrix_ml[:,0], fmt='%.5f')
+    np.savetxt(dir_path+'output_pdf_n.dat',  matrix_ml[:,1],  fmt='%.5f')
+    np.savetxt(dir_path+'output_pdf_NH.dat', matrix_ml[:,2], fmt='%.5f')
+    np.savetxt(dir_path+'output_pdf_U.dat',  matrix_ml[:,3],  fmt='%.5f')
+    np.savetxt(dir_path+'output_pdf_Z.dat',  matrix_ml[:,4],  fmt='%.5f')
+  if(verbose): 
+    print ''
   
   #####################
   # Additional labels #
@@ -519,7 +524,8 @@ def run_game(
   # This creates arrays useful to save the output for the feature importances of the 'additional labels'
   importances_AV    = np.zeros(len(data[0]))
   importances_fesc  = np.zeros(len(data[0]))
-  print 'Starting of Machine Learning algorithm for the additional labels...'
+  if(verbose): 
+    print 'Starting of Machine Learning algorithm for the additional labels...'
   start_time  = time.time()
   ########################################################
   # Definition of additional labels for Machine Learning #
@@ -580,10 +586,10 @@ def run_game(
   pool.close()
   pool.join()
   end_time = time.time()
-  print 'Elapsed time for ML:', (end_time - start_time)
-  print ''
-  print 'Writing output files for the additional labels...'
-  
+  if(verbose): 
+    print 'Elapsed time for ML:', (end_time - start_time)
+    print ''
+    print 'Writing output files for the additional labels...'
   ###########################################
   # Rearrange based on the find_ids indexes #
   ###########################################
@@ -617,7 +623,7 @@ def run_game(
   #########################################
   # Write information on different models #
   #########################################
-  f = open('output/model_ids_additional.dat', 'w+')
+  f = open(dir_path+'model_ids_additional.dat', 'w+')
   for i in xrange(len(sigmas)):
     f.write('##############################\n')
     f.write('Id model: %d\n' %(i+1))
@@ -641,26 +647,27 @@ def run_game(
                                                 np.std(   matrix_ml[:,1], axis=1) )).T
   if choice_rep == 'n':
     write_output = np.column_stack( (model_ids, matrix_ml) )
-  np.savetxt('output/output_ml_additional.dat', write_output, header="id_model mean[Av] median[Av] sigma[Av] mean[fesc] median[fesc] sigma[fesc]", fmt='%.5f')
+  np.savetxt(dir_path+'output_ml_additional.dat', write_output, header="id_model mean[Av] median[Av] sigma[Av] mean[fesc] median[fesc] sigma[fesc]", fmt='%.5f')
   ########################################
   # Outputs with the feature importances #
   ########################################
-  np.savetxt('output/output_feature_importances_Av.dat',   np.vstack( (data[0], importances[0::2,:]) ), fmt='%.5f')
-  np.savetxt('output/output_feature_importances_fesc.dat', np.vstack( (data[0], importances[1::2,:]) ), fmt='%.5f')
+  np.savetxt(dir_path+'output_feature_importances_Av.dat',   np.vstack( (data[0], importances[0::2,:]) ), fmt='%.5f')
+  np.savetxt(dir_path+'output_feature_importances_fesc.dat', np.vstack( (data[0], importances[1::2,:]) ), fmt='%.5f')
   ##################
   # Optional files #
   ##################
   if choice_rep == 'y':
     # This writes down the output relative to the predicted and true value of the library
-    np.savetxt('output/output_pred_Av.dat',   preds[0::2,:], fmt='%.5f')
-    np.savetxt('output/output_pred_fesc.dat', preds[1::2,:], fmt='%.5f')
-    np.savetxt('output/output_true_Av.dat',   trues[0::2,:], fmt='%.5f')
-    np.savetxt('output/output_true_fesc.dat', trues[1::2,:], fmt='%.5f')
+    np.savetxt(dir_path+'output_pred_Av.dat',   preds[0::2,:], fmt='%.5f')
+    np.savetxt(dir_path+'output_pred_fesc.dat', preds[1::2,:], fmt='%.5f')
+    np.savetxt(dir_path+'output_true_Av.dat',   trues[0::2,:], fmt='%.5f')
+    np.savetxt(dir_path+'output_true_fesc.dat', trues[1::2,:], fmt='%.5f')
     # This writes down the output relative to the PDFs of the physical properties
-    np.savetxt('output/output_pdf_Av.dat',   matrix_ml[:,0], fmt='%.5f')
-    np.savetxt('output/output_pdf_fesc.dat', matrix_ml[:,1], fmt='%.5f')
-  print ''
-  print 'End of program!'
+    np.savetxt(dir_path+'output_pdf_Av.dat',   matrix_ml[:,0], fmt='%.5f')
+    np.savetxt(dir_path+'output_pdf_fesc.dat', matrix_ml[:,1], fmt='%.5f')
+  if(verbose): 
+    print ''
+    print 'End of program!'
   
 if __name__ == "__main__":
   run_game()
