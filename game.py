@@ -363,19 +363,44 @@ def main_algorithm_additional_to_pool(i
                                       , filename_int, filename_err,
                                       n_repetition, choice_rep
                                       ):
-    # AP: I would recomend merging it with the main algorithm, by passing dictionary of features to be searched for, instead of AV,fesc (and n,... in the main)
+    """ TODO all
+    :param i:
+    :param models:
+    :param unique_id:
+    :param initial:
+    :param limit:
+    :param features:
+    :param labels_train:
+    :param labels_test:
+    :param labels:
+    :param regr:
+    :param line_labels:
+    :param AV:
+    :param fesc:
+    :param importances_AV:
+    :param importances_fesc:
+    :param filename_int:
+    :param filename_err:
+    :param n_repetition:
+    :param choice_rep:
+    :return:
+    """
+    # TODO AP: I would recomend merging it with the main algorithm,
+    # by passing dictionary of features to be searched for, instead of AV,
+    # fesc (and n,... in the main)
 
-    mask = np.where(models == unique_id[i - 1])
-    # matrix_mms is useful to save physical properties
-    matrix_mms = []
-    # index_find helps to keep trace of the indexes
+    mask = np.where(models == unique_id[i - 1])  # matrix_mms is useful to
+    # save physical properties
+    matrix_mms = []  # index_find helps to keep trace of the indexes
     index_find = []
     id_model = []
+
     # Indexes for the additional labels:
     # AV: 3, fesc: 4
     # Definition of training / testing
     features_train = features[:, initial[mask][0]][:limit, :]
     features_test = features[:, initial[mask][0]][limit:, :]
+
     # ML error estimation
     [AV_true, AV_pred, sigma_AV] = error_estimation(features_train,
                                                     features_test,
@@ -391,11 +416,13 @@ def main_algorithm_additional_to_pool(i
         features[:, initial[mask][0]], labels, 3, regr)
     [model_fesc, imp_fesc, score_fesc, std_fesc] = machine_learning(
         features[:, initial[mask][0]], labels, 4, regr)
+
     # Bootstrap
     new_data = realization(filename_int, filename_err, n_repetition, mask)[:,
                initial[mask][0]]
+
     # Prediction of the physical properties
-    if choice_rep == 'y':
+    if choice_rep == YES:
         for el in xrange(len(mask[0])):
             AV[mask[0][el], :] = model_AV.predict(new_data[el::len(mask[0])])
             fesc[mask[0][el], :] = model_fesc.predict(
@@ -405,7 +432,7 @@ def main_algorithm_additional_to_pool(i
             index_find.append(mask[0][el])
             matrix_mms.append([AV[mask[0][el], :],
                                fesc[mask[0][el], :]])
-    if choice_rep == 'n':
+    if choice_rep == NO:
         for el in xrange(len(mask[0])):
             result = np.zeros((len(new_data[el::len(mask[0])]), 2))
             result[:, 0] = model_AV.predict(new_data[el::len(mask[0])])
@@ -419,12 +446,15 @@ def main_algorithm_additional_to_pool(i
             vector_mms[1::3] = np.median(result, axis=0)
             vector_mms[2::3] = np.std(result, axis=0)
             matrix_mms.append(vector_mms)
+
     # Importance matrixes
     importances_AV[initial[mask][0]] = imp_AV
     importances_fesc[initial[mask][0]] = imp_fesc
+
     # Print message
     print 'Model', str(int(i)) + '/' + str(
         int(np.max(unique_id))), 'completed...'
+
     # Returns for the parallelization
     return [sigma_AV, sigma_fesc], \
            [i, score_AV, std_AV, score_fesc, std_fesc], \
