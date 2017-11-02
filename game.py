@@ -15,6 +15,10 @@ from sklearn.ensemble import AdaBoostRegressor
 from sklearn.preprocessing import Normalizer
 
 YES, NO = "y", "n"
+INTRO = '--------------------------------------------------------\n' + \
+        '--- GAME (GAlaxy Machine learning for Emission lines) --\n' + \
+        '------- see Ucci G. et al. (2017a,b) for details -------\n' + \
+        '--------------------------------------------------------\n\n'
 
 
 def create_library_folder():
@@ -470,116 +474,115 @@ def run_game(
         , filename_int='input/inputs_game_test.dat'
         , filename_err='input/errors_game_test.dat'
         , filename_library='input/labels_game_test.dat'
-        , choice_rep='y'
-        # AP: choice_rep should be asserted to be among the allowed values (even when inputed via raw_input).
-        , n_proc=2
+        , choice_rep=YES
+        # AP: choice_rep should be asserted to be among the allowed values (
+        # even when input via raw_input).
+        , n_process=2
         , n_repetition=10000
         , dir_path='output/'
         , verbose=True
 ):
-    ########################
-    # Start of the program #
-    ########################
-    if (verbose):
-        print '--------------------------------------------------------'
-        print '--- GAME (GAlaxy Machine learning for Emission lines) --'
-        print '------- see Ucci G. et al. (2017a,b) for details -------'
-        print '--------------------------------------------------------'
-        print ''
+    # Start of the program
+
+    if verbose:
+        print INTRO
+
     # ref1: http://adsabs.harvard.edu/abs/2017MNRAS.465.1144U
     # Definition of algorithm for Machine Learning
-    regr = AdaBoostRegressor(tree.DecisionTreeRegressor(criterion='mse',
-                                                        splitter='best',
-                                                        max_features=None),
-                             n_estimators=2,
-                             random_state=0)
-    if (verbose):
+    regr = AdaBoostRegressor(
+        tree.DecisionTreeRegressor(
+            criterion='mse',
+            splitter='best',
+            max_features=None),
+        n_estimators=2,
+        random_state=0
+    )
+
+    if verbose:
         print 'ML Algorithm: AdaBoost with Decision Trees as base learner.'
-    ######################
-    # Input file reading #
-    ######################
-    if (manual_input):
-        filename_int = raw_input('Insert input file name (line intensities): ')
+
+    # Input file reading
+    if manual_input:
+        filename_int = raw_input(
+            'Insert input file name (line intensities): '
+        )
         filename_err = raw_input(
-            'Insert input file name (errors on line intensities): ')
+            'Insert input file name (errors on line intensities): '
+        )
         filename_library = raw_input(
-            'Insert name of file containing the labels: ')
-    ###########################################
-    # Create output directory if not existing #
-    ###########################################
+            'Insert name of file containing the labels: '
+        )
+
+    # Create output directory if not existing
     directory = os.path.dirname(dir_path)
-    try:
-        os.stat(directory)
-    except:
+    if not os.path.exists(directory):
         os.mkdir(directory)
-    ##################################
-    # Creation of the optional files #
-    ##################################
-    if (manual_input):
+
+    # Creation of the optional files
+    if manual_input:
         choice_rep = raw_input(
-            'Do you want to create the optional files [y/n]?: ')
-    ########################
-    # Number of processors #
-    ########################
-    if (manual_input):
-        n_proc = raw_input('Choose the number of processors: ')
-    if (verbose):
-        print ''
-        print 'Program started...'
-    ###################################################
-    # Number of repetition for the PDFs determination #
-    ###################################################
+            'Do you want to create the optional files [y/n]?: '
+        )
+
+    # Number of processors
+    if manual_input:
+        n_process = raw_input('Choose the number of processors: ')
+
+    if verbose:
+        print '\nProgram started...'
+
+    # Number of repetition for the PDFs determination
     # Input file reading
     data, lower, upper = read_emission_line_file(filename_int)
+
     # Library file reading
     output, line_labels = read_library_file(filename_library)
+
     # Determination of unique models based on the missing data
     # In this case missing data are values with zero intensities
     # Be careful because the first row in data there are wavelengths!
     initial, models, unique_id = determination_models(data[1:])
+
     # This creates arrays useful to save the output for the feature importances
     importances_g0 = np.zeros(len(data[0]))
     importances_n = np.zeros(len(data[0]))
     importances_NH = np.zeros(len(data[0]))
     importances_U = np.zeros(len(data[0]))
     importances_Z = np.zeros(len(data[0]))
-    ###################################################################################################
-    # Testing, test_size is the percentage of the library to use as testing set to determine the PDFs #
-    ###################################################################################################
+
+    # Testing, test_size is the percentage of the library to use as testing
+    # set to determine the PDFs
+
     test_size = 0.10
-    if (verbose):
+    if verbose:
         print '# of input  models                     :', len(data[1:])
         print '# of unique models for Machine Learning:', int(
             np.max(unique_id))
-        print ''
-        print 'Starting of Machine Learning algorithm for the default labels...'
+        print '\nStarting of Machine Learning algorithm for the default ' \
+              'labels... '
+
     start_time = time.time()
-    ##########################################################
-    # Definition of features and labels for Machine Learning #
-    #      (for metallicity logarithm has been used)         #
-    ##########################################################
+
+    # Definition of features and labels for Machine Learning
+    # (for metallicity logarithm has been used)
     features = output[:, :-5]
     labels = np.double(output[:, len(output[0]) - 5:len(output[0])])
     labels[:, -1] = np.log10(labels[:, -1])
     limit = int((1. - test_size) * len(features))
     labels_train = labels[:limit, :]
     labels_test = labels[limit:, :]
-    ######################################
-    # Initialization of arrays and lists #
-    ######################################
-    if choice_rep == 'y':
+
+    # Initialization of arrays and lists
+    if choice_rep == YES:
         g0 = np.zeros(shape=(len(data[1:]), n_repetition))
         n = np.zeros(shape=(len(data[1:]), n_repetition))
         NH = np.zeros(shape=(len(data[1:]), n_repetition))
         U = np.zeros(shape=(len(data[1:]), n_repetition))
         Z = np.zeros(shape=(len(data[1:]), n_repetition))
-    ###################################################
-    # Searching for values of the physical properties #
-    ###################################################
 
-    ################
-    # Pool calling #
-    ################
+    # Searching for values of the physical properties
+
+    # Pool calling
     main_algorithm = partial(main_algorithm_to_pool,
                              models=models, unique_id=unique_id,
                              initial=initial, limit=limit
@@ -597,56 +600,64 @@ def run_game(
                              filename_err=filename_err,
                              n_repetition=n_repetition, choice_rep=choice_rep
                              )
-    pool = multiprocessing.Pool(processes=n_proc)
-    results = pool.map(main_algorithm,
-                       np.arange(1, np.max(unique_id.astype(int)) + 1, 1))
+    pool = multiprocessing.Pool(processes=n_process)
+    results = pool.map(
+        main_algorithm,
+        np.arange(1, np.max(unique_id.astype(int)) + 1, 1)
+    )
     pool.close()
     pool.join()
     end_time = time.time()
-    if (verbose):
+    if verbose:
         print 'Elapsed time for ML:', (end_time - start_time)
-        print ''
-        print 'Writing output files for the default labels...'
+        print '\nWriting output files for the default labels...'
 
-    ###########################################
-    # Rearrange based on the find_ids indexes #
-    ###########################################
+    # Rearrange based on the find_ids indexes
     sigmas = np.array(
         list(chain.from_iterable(np.array(results)[:, 0]))).reshape(
         len(unique_id.astype(int)), 5)
+
     scores = np.array(
         list(chain.from_iterable(np.array(results)[:, 1]))).reshape(
         len(unique_id.astype(int)), 11)
+
     importances = np.array(list(chain.from_iterable(np.array(results)[:, 6])))
     trues = np.array(list(chain.from_iterable(np.array(results)[:, 7])))
     preds = np.array(list(chain.from_iterable(np.array(results)[:, 8])))
     list_of_lines = np.array(results)[:, 2]
+
     # find_ids are usefult to reorder the matrix with the ML determinations
     find_ids = list(chain.from_iterable(np.array(results)[:, 3]))
     temp_model_ids = list(chain.from_iterable(np.array(results)[:, 4]))
-    if choice_rep == 'y':
+
+    if choice_rep == YES:
         temp_matrix_ml = np.array(
             list(chain.from_iterable(np.array(results)[:, 5])))
+
     # Rearrange the matrix based on the find_ids indexes
     matrix_ml = np.zeros(shape=temp_matrix_ml.shape)
+
     for i in xrange(len(matrix_ml)):
         matrix_ml[find_ids[i], :] = temp_matrix_ml[i, :]
-    if choice_rep == 'n':
+
+    if choice_rep == NO:
         temp_matrix_ml = np.array(
             list(chain.from_iterable(np.array(results)[:, 5]))).reshape(
             len(data[1:]), 15)
+
         # Rearrange the matrix based on the find_ids indexes
         matrix_ml = np.zeros(shape=temp_matrix_ml.shape)
         for i in xrange(len(matrix_ml)):
             matrix_ml[find_ids[i], :] = temp_matrix_ml[i, :]
+
     # Rearrange the model_ids based on the find_ids indexes
     model_ids = np.zeros(len(temp_model_ids))
     for i in xrange(len(temp_model_ids)):
         model_ids[find_ids[i]] = temp_model_ids[i]
-    #########################################
-    # Write information on different models #
-    #########################################
+
+    # Write information on different models
     f = open(dir_path + 'model_ids.dat', 'w+')
+
     for i in xrange(len(sigmas)):
         f.write('##############################\n')
         f.write('Id model: %d\n' % (i + 1))
@@ -669,10 +680,9 @@ def run_game(
         f.write('%s\n' % list_of_lines[i])
     f.write('##############################\n')
     f.close()
-    ##########################################################
-    # Outputs relative to the Machine Learning determination #
-    ##########################################################
-    if choice_rep == 'y':
+
+    # Outputs relative to the Machine Learning determination
+    if choice_rep == YES:
         write_output = np.vstack(
             (model_ids, np.log10(np.mean(10 ** matrix_ml[:, 0], axis=1)),
              np.log10(np.median(10 ** matrix_ml[:, 0], axis=1)),
@@ -689,14 +699,18 @@ def run_game(
              np.log10(np.mean(10 ** matrix_ml[:, 4], axis=1)),
              np.log10(np.median(10 ** matrix_ml[:, 4], axis=1)),
              np.std(matrix_ml[:, 4], axis=1))).T
-    if choice_rep == 'n':
+
+    if choice_rep == NO:
         write_output = np.column_stack((model_ids, matrix_ml))
     np.savetxt(dir_path + 'output_ml.dat', write_output,
-               header="id_model mean[Log(G0)] median[Log(G0)] sigma[Log(G0)] mean[Log(n)] median[Log(n)] sigma[Log(n)] mean[Log(NH)] median[Log(NH)] sigma[Log(NH)] mean[Log(U)] median[Log(U)] sigma[Log(U)] mean[Log(Z)] median[Log(Z)] sigma[Log(Z)]",
+               header="id_model mean[Log(G0)] median[Log(G0)] sigma[Log(G0)] "
+                      "mean[Log(n)] median[Log(n)] sigma[Log(n)] mean[Log("
+                      "NH)] median[Log(NH)] sigma[Log(NH)] mean[Log(U)] "
+                      "median[Log(U)] sigma[Log(U)] mean[Log(Z)] median[Log("
+                      "Z)] sigma[Log(Z)]",
                fmt='%.5f')
-    ########################################
-    # Outputs with the feature importances #
-    ########################################
+
+    # Outputs with the feature importances
     np.savetxt(dir_path + 'output_feature_importances_G0.dat',
                np.vstack((data[0], importances[0::5, :])), fmt='%.5f')
     np.savetxt(dir_path + 'output_feature_importances_n.dat',
@@ -707,11 +721,12 @@ def run_game(
                np.vstack((data[0], importances[3::5, :])), fmt='%.5f')
     np.savetxt(dir_path + 'output_feature_importances_Z.dat',
                np.vstack((data[0], importances[4::5, :])), fmt='%.5f')
-    ##################
-    # Optional files #
-    ##################
+
+    # Optional files
     if choice_rep == 'y':
-        # This writes down the output relative to the predicted and true value of the library
+        # This writes down the output relative to the predicted and true
+        # value of the library
+        # TODO: method needed
         np.savetxt(dir_path + 'output_pred_G0.dat', preds[0::5, :], fmt='%.5f')
         np.savetxt(dir_path + 'output_pred_n.dat', preds[1::5, :], fmt='%.5f')
         np.savetxt(dir_path + 'output_pred_NH.dat', preds[2::5, :], fmt='%.5f')
@@ -722,29 +737,29 @@ def run_game(
         np.savetxt(dir_path + 'output_true_NH.dat', trues[2::5, :], fmt='%.5f')
         np.savetxt(dir_path + 'output_true_U.dat', trues[3::5, :], fmt='%.5f')
         np.savetxt(dir_path + 'output_true_Z.dat', trues[4::5, :], fmt='%.5f')
-        # This writes down the output relative to the PDFs of the physical properties
+
+        # This writes down the output relative to the PDFs of the physical
+        # properties
         np.savetxt(dir_path + 'output_pdf_G0.dat', matrix_ml[:, 0], fmt='%.5f')
         np.savetxt(dir_path + 'output_pdf_n.dat', matrix_ml[:, 1], fmt='%.5f')
         np.savetxt(dir_path + 'output_pdf_NH.dat', matrix_ml[:, 2], fmt='%.5f')
         np.savetxt(dir_path + 'output_pdf_U.dat', matrix_ml[:, 3], fmt='%.5f')
         np.savetxt(dir_path + 'output_pdf_Z.dat', matrix_ml[:, 4], fmt='%.5f')
-    if (verbose):
+    if verbose:
         print ''
 
-    #####################
-    # Additional labels #
-    #####################
-    # This creates arrays useful to save the output for the feature importances of the 'additional labels'
+    # Additional labels This creates arrays useful to save the output for
+    # the feature importances of the 'additional labels'
     importances_AV = np.zeros(len(data[0]))
     importances_fesc = np.zeros(len(data[0]))
-    if (verbose):
+    if verbose:
         print 'Starting of Machine Learning algorithm for the additional labels...'
+
     start_time = time.time()
-    ########################################################
-    # Definition of additional labels for Machine Learning #
-    #         (just change the last two of them)           #
-    ########################################################
+    # Definition of additional labels for Machine Learning
+    # (just change the last two of them)
     labels[:, -2:] = np.loadtxt('library/additional_labels.dat')
+
     # This code is inserted in order to work with logarithms!
     # If there is a zero, we substitute it with 1e-9
     labels[labels[:, -2] == 0, -2] = 1e-9
@@ -752,41 +767,18 @@ def run_game(
     labels[:, -2] = np.log10(labels[:, -2])
     labels[:, -1] = np.log10(labels[:, -1])
 
-    ############################################################
-    ## Reading labels in the library corresponding to the line #
-    ############################################################
-    # def read_library_file_line(filename_library, name_line):
-    #  # Reading the labels in the first row of the library
-    #  lines = np.array(open('library/library.csv').readline().split(','))
-    #  # Read the file containing the user-input labels
-    #  input_labels = open(filename_library).read().splitlines()
-    #  columns = []
-    #  for element in input_labels:
-    #    columns.append(np.where(lines==element)[0][0])
-    #  line    = [name_line]
-    #  # Add the labels indexes to columns
-    #  columns.append(np.where(lines==line)[0][0])
-    #  array = np.loadtxt('library/library.csv', skiprows=2, delimiter=',', usecols=columns)
-    #  # Normalization of the library for each row with respect to the maximum
-    #  # Be careful: in this case normalize also the labels!
-    #  mms         = Normalizer(norm='max')
-    #  array[0:,:] = mms.fit_transform(array[0:,:])
-    #  return array[0:,-1]
-    # labels[:,-1] = read_library_file_line(filename_library, 'TOTL  3727A')
-
+    # Reading labels in the library corresponding to the line
     labels_train = labels[:limit, :]
     labels_test = labels[limit:, :]
-    ######################################
-    # Initialization of arrays and lists #
-    ######################################
-    if choice_rep == 'y':
+
+    # Initialization of arrays and lists
+    if choice_rep == YES:
         AV = np.zeros(shape=(len(data[1:]), n_repetition))
         fesc = np.zeros(shape=(len(data[1:]), n_repetition))
-    ##############################################################
-    # Searching for values of the additional physical properties #
-    ##############################################################
 
-    pool = multiprocessing.Pool(processes=n_proc)
+    # Searching for values of the additional physical properties
+
+    pool = multiprocessing.Pool(processes=n_process)
     main_algorithm_additional = partial(main_algorithm_additional_to_pool,
                                         models=models, unique_id=unique_id,
                                         initial=initial, limit=limit
@@ -808,49 +800,50 @@ def run_game(
     pool.close()
     pool.join()
     end_time = time.time()
-    if (verbose):
+    if verbose:
         print 'Elapsed time for ML:', (end_time - start_time)
-        print ''
-        print 'Writing output files for the additional labels...'
-    ###########################################
-    # Rearrange based on the find_ids indexes #
-    ###########################################
+        print '\nWriting output files for the additional labels...'
+
+    # Rearrange based on the find_ids indexes
     sigmas = np.array(
         list(chain.from_iterable(np.array(results)[:, 0]))).reshape(
         len(unique_id.astype(int)), 2)
+
     scores = np.array(
         list(chain.from_iterable(np.array(results)[:, 1]))).reshape(
         len(unique_id.astype(int)), 5)
+
     importances = np.array(list(chain.from_iterable(np.array(results)[:, 6])))
     trues = np.array(list(chain.from_iterable(np.array(results)[:, 7])))
     preds = np.array(list(chain.from_iterable(np.array(results)[:, 8])))
     list_of_lines = np.array(results)[:, 2]
+
     # find_ids are usefult to reorder the matrix with the ML determinations
     find_ids = list(chain.from_iterable(np.array(results)[:, 3]))
     temp_model_ids = list(chain.from_iterable(np.array(results)[:, 4]))
-    if choice_rep == 'y':
+    if choice_rep == YES:
         temp_matrix_ml = np.array(
             list(chain.from_iterable(np.array(results)[:, 5])))
         # Rearrange the matrix based on the find_ids indexes
         matrix_ml = np.zeros(shape=temp_matrix_ml.shape)
         for i in xrange(len(matrix_ml)):
             matrix_ml[find_ids[i], :] = temp_matrix_ml[i, :]
-    if choice_rep == 'n':
+    if choice_rep == NO:
         temp_matrix_ml = np.array(
             list(chain.from_iterable(np.array(results)[:, 5]))).reshape(
             len(data[1:]), 6)
+
         # Rearrange the matrix based on the find_ids indexes
         matrix_ml = np.zeros(shape=temp_matrix_ml.shape)
         for i in xrange(len(matrix_ml)):
             matrix_ml[find_ids[i], :] = temp_matrix_ml[i, :]
+
     # Rearrange the model_ids based on the find_ids indexes
     model_ids = np.zeros(len(temp_model_ids))
     for i in xrange(len(temp_model_ids)):
         model_ids[find_ids[i]] = temp_model_ids[i]
 
-    #########################################
-    # Write information on different models #
-    #########################################
+    # Write information on different models
     f = open(dir_path + 'model_ids_additional.dat', 'w+')
     for i in xrange(len(sigmas)):
         f.write('##############################\n')
@@ -865,46 +858,44 @@ def run_game(
         f.write('%s\n' % list_of_lines[i])
     f.write('##############################\n')
     f.close()
-    ##########################################################
-    # Outputs relative to the Machine Learning determination #
-    ##########################################################
-    if choice_rep == 'y':
+
+    # Outputs relative to the Machine Learning determination
+    if choice_rep == YES:
         write_output = np.vstack((model_ids, np.mean(matrix_ml[:, 0], axis=1),
                                   np.median(matrix_ml[:, 0], axis=1),
                                   np.std(matrix_ml[:, 0], axis=1),
                                   np.mean(matrix_ml[:, 1], axis=1),
                                   np.median(matrix_ml[:, 1], axis=1),
                                   np.std(matrix_ml[:, 1], axis=1))).T
-    if choice_rep == 'n':
+    if choice_rep == NO:
         write_output = np.column_stack((model_ids, matrix_ml))
     np.savetxt(dir_path + 'output_ml_additional.dat', write_output,
                header="id_model mean[Av] median[Av] sigma[Av] mean[fesc] median[fesc] sigma[fesc]",
                fmt='%.5f')
-    ########################################
-    # Outputs with the feature importances #
-    ########################################
+
+    # Outputs with the feature importances
     np.savetxt(dir_path + 'output_feature_importances_Av.dat',
                np.vstack((data[0], importances[0::2, :])), fmt='%.5f')
     np.savetxt(dir_path + 'output_feature_importances_fesc.dat',
                np.vstack((data[0], importances[1::2, :])), fmt='%.5f')
-    ##################
-    # Optional files #
-    ##################
-    if choice_rep == 'y':
-        # This writes down the output relative to the predicted and true value of the library
+
+    # Optional files
+    if choice_rep == YES:
+        # This writes down the output relative to the predicted and true
+        # value of the library
         np.savetxt(dir_path + 'output_pred_Av.dat', preds[0::2, :], fmt='%.5f')
         np.savetxt(dir_path + 'output_pred_fesc.dat', preds[1::2, :],
                    fmt='%.5f')
         np.savetxt(dir_path + 'output_true_Av.dat', trues[0::2, :], fmt='%.5f')
         np.savetxt(dir_path + 'output_true_fesc.dat', trues[1::2, :],
                    fmt='%.5f')
-        # This writes down the output relative to the PDFs of the physical properties
+        # This writes down the output relative to the PDFs of the physical
+        # properties
         np.savetxt(dir_path + 'output_pdf_Av.dat', matrix_ml[:, 0], fmt='%.5f')
         np.savetxt(dir_path + 'output_pdf_fesc.dat', matrix_ml[:, 1],
                    fmt='%.5f')
-    if (verbose):
-        print ''
-        print 'End of program!'
+    if verbose:
+        print '\nEnd of program!'
 
 
 if __name__ == "__main__":
