@@ -6,6 +6,10 @@
 # YOUR COPYRIGHT HERE (IF YOU WANT IT)
 
 
+""" GAME (GAlaxy Machine learning for Emission lines) """
+# TODO add docs
+# TODO splitting into modules
+
 import copy
 import multiprocessing
 import os
@@ -310,26 +314,6 @@ def main_algorithm_to_pool(
         labels_train, labels_test, labels, regr, line_labels,
         filename_int, filename_err, n_repetition, choice_rep, to_predict=None
 ):
-    """ TODO all docs
-    :param i:
-    :param models:
-    :param unique_id:
-    :param initial:
-    :param limit:
-    :param features:
-    :param labels_train:
-    :param labels_test:
-    :param labels:
-    :param regr:
-    :param line_labels:
-    :param filename_int:
-    :param filename_err:
-    :param n_repetition:
-    :param choice_rep:
-    :param to_predict:
-    :return:
-    """
-
     fesc_AV_mode = "AV" and "fesc" in to_predict
 
     if fesc_AV_mode:
