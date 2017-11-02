@@ -184,16 +184,25 @@ def error_estimation(feat_train, feat_test, lab_train, lab_test, ml_regressor):
     return np.double(lab_test), y, sigma
 
 
-#################################
-# Function for Machine Learning #
-#################################
-def machine_learning(feat, lab, physical_p, ml_regr):
-    # Model
-    model = ml_regr.fit(feat, lab[:, physical_p])
-    # Feature importances
-    importances = model.feature_importances_
+def machine_learning(feat, lab, physical_p, ml_regressor):
+    """
+    :param feat: TODO
+        TODO
+    :param lab: TODO
+        TODO
+    :param physical_p: TODO
+        TODO
+    :param ml_regressor: TODO
+        TODO
+    :return:
+        Function for Machine Learning
+    """
+
+    model = ml_regressor.fit(feat, lab[:, physical_p])  # Model
+    importances = model.feature_importances_  # Feature importances
+
     # Cross-validation score
-    score = cross_val_score(ml_regr, feat, lab[:, physical_p], cv=5)
+    score = cross_val_score(ml_regressor, feat, lab[:, physical_p], cv=5)
     return copy.copy(model), importances, np.mean(score), np.std(score)
 
 
