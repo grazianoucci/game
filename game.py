@@ -31,6 +31,7 @@ REGRESSOR = AdaBoostRegressor(
     random_state=0
 )  # ref1: http://adsabs.harvard.edu/abs/2017MNRAS.465.1144U
 
+
 def create_library_folder():
     """
     :return: void
@@ -47,6 +48,19 @@ def create_library_folder():
         tar.extractall()
         tar.close()
         os.remove("library.tar.gz")
+
+
+def prepare_output_directory(dir_path):
+    """
+    :param dir_path: str
+        Path to output folder
+    :return: void
+        Creates folder if not existent
+    """
+
+    directory = os.path.dirname(dir_path)
+    if not os.path.exists(directory):
+        os.mkdir(directory)  # TODO why not mkdirs ??
 
 
 def read_emission_line_file(filename_int):
@@ -523,13 +537,12 @@ def run_game(
         , choice_rep=YES
         # AP: choice_rep should be asserted to be among the allowed values (
         # even when input via raw_input).
-        , n_process=2
+        , n_processes=2
         , n_repetition=10000
         , dir_path='output/'
         , verbose=True
 ):
-    # Start of the program
-
+    create_library_folder()
     if verbose:
         print INTRO
 
@@ -545,10 +558,8 @@ def run_game(
             'Insert name of file containing the labels: '
         )
 
-    # Create output directory if not existing
-    directory = os.path.dirname(dir_path)
-    if not os.path.exists(directory):
-        os.mkdir(directory)
+    prepare_output_directory(
+        dir_path)  # Create output directory if not existing
 
     # Creation of the optional files
     if manual_input:
@@ -558,7 +569,7 @@ def run_game(
 
     # Number of processors
     if manual_input:
-        n_process = raw_input('Choose the number of processors: ')
+        n_processes = raw_input('Choose the number of processors: ')
 
     if verbose:
         print '\nProgram started...'
@@ -584,8 +595,8 @@ def run_game(
 
     # Testing, test_size is the percentage of the library to use as testing
     # set to determine the PDFs
-
     test_size = 0.10
+
     if verbose:
         print '# of input  models                     :', len(data[1:])
         print '# of unique models for Machine Learning:', int(
@@ -613,7 +624,6 @@ def run_game(
         Z = np.zeros(shape=(len(data[1:]), n_repetition))
 
     # Searching for values of the physical properties
-
     # Pool calling
     main_algorithm = partial(main_algorithm_to_pool,
                              models=models, unique_id=unique_id,
@@ -632,7 +642,7 @@ def run_game(
                              filename_err=filename_err,
                              n_repetition=n_repetition, choice_rep=choice_rep
                              )
-    pool = multiprocessing.Pool(processes=n_process)
+    pool = multiprocessing.Pool(processes=n_processes)
     results = pool.map(
         main_algorithm,
         np.arange(1, np.max(unique_id.astype(int)) + 1, 1)
@@ -640,6 +650,7 @@ def run_game(
     pool.close()
     pool.join()
     end_time = time.time()
+
     if verbose:
         print 'Elapsed time for ML:', (end_time - start_time)
         print '\nWriting output files for the default labels...'
@@ -755,8 +766,9 @@ def run_game(
                np.vstack((data[0], importances[4::5, :])), fmt='%.5f')
 
     # Optional files
-    if choice_rep == 'y':
+    if choice_rep == YES:
         write_output_files(dir_path, preds, trues, matrix_ml)
+
     if verbose:
         print ''
 
@@ -769,6 +781,7 @@ def run_game(
               'labels... '
 
     start_time = time.time()
+
     # Definition of additional labels for Machine Learning
     # (just change the last two of them)
     labels[:, -2:] = np.loadtxt('library/additional_labels.dat')
@@ -790,8 +803,7 @@ def run_game(
         fesc = np.zeros(shape=(len(data[1:]), n_repetition))
 
     # Searching for values of the additional physical properties
-
-    pool = multiprocessing.Pool(processes=n_process)
+    pool = multiprocessing.Pool(processes=n_processes)
     main_algorithm_additional = partial(main_algorithm_additional_to_pool,
                                         models=models, unique_id=unique_id,
                                         initial=initial, limit=limit
@@ -883,7 +895,8 @@ def run_game(
     if choice_rep == NO:
         write_output = np.column_stack((model_ids, matrix_ml))
     np.savetxt(dir_path + 'output_ml_additional.dat', write_output,
-               header="id_model mean[Av] median[Av] sigma[Av] mean[fesc] median[fesc] sigma[fesc]",
+               header="id_model mean[Av] median[Av] sigma[Av] mean[fesc] "
+                      "median[fesc] sigma[fesc]",
                fmt='%.5f')
 
     # Outputs with the feature importances
@@ -912,5 +925,4 @@ def run_game(
 
 
 if __name__ == "__main__":
-    create_library_folder()
     run_game()
