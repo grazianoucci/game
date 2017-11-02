@@ -272,44 +272,35 @@ def machine_learning(feat, lab, physical_p, ml_regressor):
     return copy.copy(model), importances, np.mean(score), np.std(score)
 
 
-def main_algorithm_to_pool(i
-                           , models, unique_id, initial, limit
-                           , features, labels_train, labels_test
-                           , labels, regr, line_labels
-                           , g0, n, NH, U, Z
-                           , importances_g0, importances_n, importances_NH,
-                           importances_U, importances_Z
-                           , filename_int, filename_err, n_repetition,
-                           choice_rep
-                           ):
-    """ TODO all
-    :param i:
-    :param models:
-    :param unique_id:
-    :param initial:
-    :param limit:
-    :param features:
-    :param labels_train:
-    :param labels_test:
-    :param labels:
-    :param regr:
-    :param line_labels:
-    :param g0:
-    :param n:
-    :param NH:
-    :param U:
-    :param Z:
-    :param importances_g0:
-    :param importances_n:
-    :param importances_NH:
-    :param importances_U:
-    :param importances_Z:
-    :param filename_int:
-    :param filename_err:
-    :param n_repetition:
-    :param choice_rep:
-    :return:
+def find_features_from_dict(to_predict):
     """
+    :param to_predict: {}
+        Dict with values to predict
+    :return: []
+        List with features to predict
+    """
+
+    output = []
+    keys = ["g0", "n", "NH", "U", "Z"]
+
+    for k in keys:
+        if k in to_predict in to_predict:
+            output.append(to_predict[k])
+
+    for k in keys:
+        if ("importances_" + k) in to_predict in to_predict:
+            output.append(to_predict[("importances_" + k)])
+
+    return output
+
+
+def main_algorithm_to_pool(
+        i, models, unique_id, initial, limit, features,
+        labels_train, labels_test, labels, regr, line_labels,
+        filename_int, filename_err, n_repetition, choice_rep, to_predict=None
+):
+    g0, n, NH, U, Z, importances_g0, importances_n, importances_NH, \
+    importances_U, importances_Z = find_features_from_dict(to_predict)
 
     mask = np.where(models == unique_id[i - 1])
     matrix_mms = []  # matrix_mms is useful to save physical properties
@@ -375,6 +366,7 @@ def main_algorithm_to_pool(i
                                NH[mask[0][el], :],
                                U[mask[0][el], :],
                                Z[mask[0][el], :]])
+
     if choice_rep == NO:
         for el in xrange(len(mask[0])):
             result = np.zeros((len(new_data[el::len(mask[0])]), 5))
@@ -449,7 +441,7 @@ def main_algorithm_additional_to_pool(i
     :param choice_rep:
     :return:
     """
-    # TODO AP: I would recomend merging it with the main algorithm,
+    # TODO AP: I would recommend merging it with the main algorithm,
     # by passing dictionary of features to be searched for, instead of AV,
     # fesc (and n,... in the main)
 
