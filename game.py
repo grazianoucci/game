@@ -595,18 +595,23 @@ def run_game(
                              models=models, unique_id=unique_id,
                              initial=initial, limit=limit
                              , features=features, labels_train=labels_train,
-                             labels_test=labels_test
-                             , labels=labels, regr=REGRESSOR,
-                             line_labels=line_labels
-                             , g0=g0, n=n, NH=NH, U=U, Z=Z
-                             , importances_g0=importances_g0,
-                             importances_n=importances_n,
-                             importances_NH=importances_NH,
-                             importances_U=importances_U,
-                             importances_Z=importances_Z
-                             , filename_int=filename_int,
+                             labels_test=labels_test, labels=labels,
+                             regr=REGRESSOR, line_labels=line_labels,
+                             filename_int=filename_int,
                              filename_err=filename_err,
-                             n_repetition=n_repetition, choice_rep=choice_rep
+                             n_repetition=n_repetition, choice_rep=choice_rep,
+                             to_predict={
+                                 "g0": g0,
+                                 "importances_g0": importances_g0,
+                                 "n": n,
+                                 "importances_n": importances_n,
+                                 "NH": NH,
+                                 "importances_NH": importances_NH,
+                                 "U": U,
+                                 "importances_U": importances_U,
+                                 "Z": Z,
+                                 "importances_Z": importances_Z,
+                             }
                              )
     pool = multiprocessing.Pool(processes=n_processes)
     results = pool.map(
@@ -777,14 +782,19 @@ def run_game(
                                         labels_train=labels_train,
                                         labels_test=labels_test
                                         , labels=labels, regr=REGRESSOR,
-                                        line_labels=line_labels
-                                        , AV=AV, fesc=fesc
-                                        , importances_AV=importances_AV,
+                                        line_labels=line_labels,
                                         importances_fesc=importances_fesc
                                         , filename_int=filename_int,
                                         filename_err=filename_err,
                                         n_repetition=n_repetition,
-                                        choice_rep=choice_rep
+                                        choice_rep=choice_rep,
+                                        to_predict={
+                                            "AV": AV,
+                                            "importances_AV": importances_AV,
+                                            "fesc": fesc,
+                                            "importances_fesc":
+                                                importances_fesc
+                                        }
                                         )
     results = pool.map(main_algorithm_additional,
                        np.arange(1, np.max(unique_id.astype(int)) + 1, 1))
