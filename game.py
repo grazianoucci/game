@@ -139,6 +139,42 @@ def read_library_file(filename_library):
     return array, np.array(input_labels)
 
 
+def write_output_files(dir_path, preds, trues, matrix_ml):
+    """
+    :param dir_path: str
+        Path to output folder
+    :param preds: matrix
+        Predictions
+    :param trues: matrix
+        True values
+    :param matrix_ml: matrix
+        ML matrix
+    :return: void
+        Saves .txt files with output data
+    """
+
+    # This writes down the output relative to the predicted and true
+    # value of the library
+    np.savetxt(dir_path + 'output_pred_G0.dat', preds[0::5, :], fmt='%.5f')
+    np.savetxt(dir_path + 'output_pred_n.dat', preds[1::5, :], fmt='%.5f')
+    np.savetxt(dir_path + 'output_pred_NH.dat', preds[2::5, :], fmt='%.5f')
+    np.savetxt(dir_path + 'output_pred_U.dat', preds[3::5, :], fmt='%.5f')
+    np.savetxt(dir_path + 'output_pred_Z.dat', preds[4::5, :], fmt='%.5f')
+    np.savetxt(dir_path + 'output_true_G0.dat', trues[0::5, :], fmt='%.5f')
+    np.savetxt(dir_path + 'output_true_n.dat', trues[1::5, :], fmt='%.5f')
+    np.savetxt(dir_path + 'output_true_NH.dat', trues[2::5, :], fmt='%.5f')
+    np.savetxt(dir_path + 'output_true_U.dat', trues[3::5, :], fmt='%.5f')
+    np.savetxt(dir_path + 'output_true_Z.dat', trues[4::5, :], fmt='%.5f')
+
+    # This writes down the output relative to the PDFs of the physical
+    # properties
+    np.savetxt(dir_path + 'output_pdf_G0.dat', matrix_ml[:, 0], fmt='%.5f')
+    np.savetxt(dir_path + 'output_pdf_n.dat', matrix_ml[:, 1], fmt='%.5f')
+    np.savetxt(dir_path + 'output_pdf_NH.dat', matrix_ml[:, 2], fmt='%.5f')
+    np.savetxt(dir_path + 'output_pdf_U.dat', matrix_ml[:, 3], fmt='%.5f')
+    np.savetxt(dir_path + 'output_pdf_Z.dat', matrix_ml[:, 4], fmt='%.5f')
+
+
 def determination_models(data):
     """
     :param data: []
@@ -724,27 +760,7 @@ def run_game(
 
     # Optional files
     if choice_rep == 'y':
-        # This writes down the output relative to the predicted and true
-        # value of the library
-        # TODO: method needed
-        np.savetxt(dir_path + 'output_pred_G0.dat', preds[0::5, :], fmt='%.5f')
-        np.savetxt(dir_path + 'output_pred_n.dat', preds[1::5, :], fmt='%.5f')
-        np.savetxt(dir_path + 'output_pred_NH.dat', preds[2::5, :], fmt='%.5f')
-        np.savetxt(dir_path + 'output_pred_U.dat', preds[3::5, :], fmt='%.5f')
-        np.savetxt(dir_path + 'output_pred_Z.dat', preds[4::5, :], fmt='%.5f')
-        np.savetxt(dir_path + 'output_true_G0.dat', trues[0::5, :], fmt='%.5f')
-        np.savetxt(dir_path + 'output_true_n.dat', trues[1::5, :], fmt='%.5f')
-        np.savetxt(dir_path + 'output_true_NH.dat', trues[2::5, :], fmt='%.5f')
-        np.savetxt(dir_path + 'output_true_U.dat', trues[3::5, :], fmt='%.5f')
-        np.savetxt(dir_path + 'output_true_Z.dat', trues[4::5, :], fmt='%.5f')
-
-        # This writes down the output relative to the PDFs of the physical
-        # properties
-        np.savetxt(dir_path + 'output_pdf_G0.dat', matrix_ml[:, 0], fmt='%.5f')
-        np.savetxt(dir_path + 'output_pdf_n.dat', matrix_ml[:, 1], fmt='%.5f')
-        np.savetxt(dir_path + 'output_pdf_NH.dat', matrix_ml[:, 2], fmt='%.5f')
-        np.savetxt(dir_path + 'output_pdf_U.dat', matrix_ml[:, 3], fmt='%.5f')
-        np.savetxt(dir_path + 'output_pdf_Z.dat', matrix_ml[:, 4], fmt='%.5f')
+        write_output_files(dir_path, preds, trues, matrix_ml)
     if verbose:
         print ''
 
@@ -753,7 +769,8 @@ def run_game(
     importances_AV = np.zeros(len(data[0]))
     importances_fesc = np.zeros(len(data[0]))
     if verbose:
-        print 'Starting of Machine Learning algorithm for the additional labels...'
+        print 'Starting of Machine Learning algorithm for the additional ' \
+              'labels... '
 
     start_time = time.time()
     # Definition of additional labels for Machine Learning
