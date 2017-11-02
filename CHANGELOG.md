@@ -7,5 +7,5 @@ All notable changes to this project will be documented in this file.
 - method to create lib folder
 
 ### Refactored
-- read_emission_line_file(...)
-- realization(...)
+- `game.py`
+- method to write output files

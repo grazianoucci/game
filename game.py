@@ -18,8 +18,18 @@ YES, NO = "y", "n"
 INTRO = '--------------------------------------------------------\n' + \
         '--- GAME (GAlaxy Machine learning for Emission lines) --\n' + \
         '------- see Ucci G. et al. (2017a,b) for details -------\n' + \
-        '--------------------------------------------------------\n\n'
+        '--------------------------------------------------------\n\n' + \
+        'ML Algorithm: AdaBoost with Decision Trees as base learner.'
 
+# Definition of algorithm for Machine Learning
+REGRESSOR = AdaBoostRegressor(
+    tree.DecisionTreeRegressor(
+        criterion='mse',
+        splitter='best',
+        max_features=None),
+    n_estimators=2,
+    random_state=0
+)  # ref1: http://adsabs.harvard.edu/abs/2017MNRAS.465.1144U
 
 def create_library_folder():
     """
@@ -523,20 +533,6 @@ def run_game(
     if verbose:
         print INTRO
 
-    # ref1: http://adsabs.harvard.edu/abs/2017MNRAS.465.1144U
-    # Definition of algorithm for Machine Learning
-    regr = AdaBoostRegressor(
-        tree.DecisionTreeRegressor(
-            criterion='mse',
-            splitter='best',
-            max_features=None),
-        n_estimators=2,
-        random_state=0
-    )
-
-    if verbose:
-        print 'ML Algorithm: AdaBoost with Decision Trees as base learner.'
-
     # Input file reading
     if manual_input:
         filename_int = raw_input(
@@ -624,7 +620,7 @@ def run_game(
                              initial=initial, limit=limit
                              , features=features, labels_train=labels_train,
                              labels_test=labels_test
-                             , labels=labels, regr=regr,
+                             , labels=labels, regr=REGRESSOR,
                              line_labels=line_labels
                              , g0=g0, n=n, NH=NH, U=U, Z=Z
                              , importances_g0=importances_g0,
@@ -802,7 +798,7 @@ def run_game(
                                         , features=features,
                                         labels_train=labels_train,
                                         labels_test=labels_test
-                                        , labels=labels, regr=regr,
+                                        , labels=labels, regr=REGRESSOR,
                                         line_labels=line_labels
                                         , AV=AV, fesc=fesc
                                         , importances_AV=importances_AV,
