@@ -14,8 +14,6 @@ from sklearn.cross_validation import cross_val_score
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.preprocessing import Normalizer
 
-DIR_PATH = 'library/'
-
 
 def create_library_folder():
     """
@@ -23,7 +21,8 @@ def create_library_folder():
         Creates necessary  library directory if not existing
     """
 
-    directory = os.path.dirname(DIR_PATH)
+    dir_path = 'library/'
+    directory = os.path.dirname(dir_path)
     if not os.path.exists(directory):
         urllib.urlretrieve(
             "http://cosmology.sns.it/library_game/library.tar.gz",
@@ -100,17 +99,23 @@ def realization(filename_int, filename_err, n_rep, mask):
     return repetition
 
 
-#######################################
-# Reading file containing the library #
-#######################################
 def read_library_file(filename_library):
+    """
+    :param filename_library: str
+        Path to library file
+    :return: tuple (array, numpy array)
+        Reads file containing the library
+    """
+
     # Reading the labels in the first row of the library
     lines = np.array(open('library/library.csv').readline().split(','))
+
     # Read the file containing the user-input labels
     input_labels = open(filename_library).read().splitlines()
     columns = []
     for element in input_labels:
         columns.append(np.where(lines == element)[0][0])
+
     # Add the labels indexes to columns
     columns.append(-5)  # Habing flux
     columns.append(-4)  # density
@@ -119,10 +124,12 @@ def read_library_file(filename_library):
     columns.append(-1)  # metallicity
     array = np.loadtxt('library/library.csv', skiprows=2, delimiter=',',
                        usecols=columns)
+
     # Normalization of the library for each row with respect to the maximum
     # Be careful: do not normalize the labels!
     mms = Normalizer(norm='max')
     array[0:, :-5] = mms.fit_transform(array[0:, :-5])
+
     return array, np.array(input_labels)
 
 
