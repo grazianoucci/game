@@ -161,13 +161,26 @@ def determination_models(data):
     return initial, models, np.unique(models)
 
 
-#######################################
-# Function for error estimation of ML #
-#######################################
-def error_estimation(feat_train, feat_test, lab_train, lab_test, ml_regr):
-    ml_regr.fit(feat_train, lab_train)
-    y = ml_regr.predict(feat_test)
+def error_estimation(feat_train, feat_test, lab_train, lab_test, ml_regressor):
+    """
+    :param feat_train: matrix
+        Fit train
+    :param feat_test: array
+        Fit data
+    :param lab_train: matrix
+        Train data
+    :param lab_test: array
+        Test data
+    :param ml_regressor: TODO find type
+        Regressor used
+    :return: tuple (float, TODO find type, float)
+        Estimate error of ML
+    """
+
+    ml_regressor.fit(feat_train, lab_train)
+    y = ml_regressor.predict(feat_test)
     sigma = np.std(np.double(lab_test) - y)
+
     return np.double(lab_test), y, sigma
 
 
