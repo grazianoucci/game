@@ -6,5 +6,6 @@ All notable changes to this project will be documented in this file.
 ### Added
 - method to create lib folder
 
-### Changed
-- reformat read_emission_line_file(...)
+### Refactored
+- read_emission_line_file(...)
+- realization(...)
