@@ -35,11 +35,16 @@ def create_library_folder():
         os.remove("library.tar.gz")
 
 
-#####################################################
-# Reading file containing emission line intensities #
-# (with normalization with respect to the maximum)  #
-#####################################################
 def read_emission_line_file(filename_int):
+    """
+    :param filename_int: str
+        Path to input file
+    :return: tuple (matrix, min, max)
+        Reading file containing
+        emission line intensities (with normalization with respect to the
+        maximum)
+    """
+
     data = np.loadtxt(filename_int)
     mms = Normalizer(norm='max')
     data[1:, :] = mms.fit_transform(data[1:, :])
