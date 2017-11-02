@@ -133,23 +133,29 @@ def read_library_file(filename_library):
     return array, np.array(input_labels)
 
 
-###############################################
-# Determination of number of different models #
-###############################################
 def determination_models(data):
+    """
+    :param data: []
+        Data list
+    :return: TODO find types
+        Determination of number of different models
+    """
+
     initial = [data != 0][0]
     models = np.zeros(len(initial))
     mask = np.where((initial == initial[0]).all(axis=1))[0]
     models[mask] = 1
-    check = True;
+    check = True
     i = 2
+
     while check:
-        if (len(models[models == 0]) == 0):
+        if len(models[models == 0]) == 0:
             check = False
         else:
-            mask = \
-            np.where((initial == initial[np.argmax(models == 0)]).all(axis=1))[
-                0]
+            mask = np.where(
+                (
+                    initial == initial[np.argmax(models == 0)]
+                ).all(axis=1))[0]
             models[mask] = i
             i += 1
     return initial, models, np.unique(models)
@@ -559,15 +565,15 @@ def run_game(
         f.write('Standard deviation of log(U):  %.3f\n' % sigmas[i, 3])
         f.write('Standard deviation of log(Z):  %.3f\n' % sigmas[i, 4])
         f.write('Cross-validation score for G0: %.3f +- %.3f\n' % (
-        scores[i, 1], 2. * scores[i, 2]))
+            scores[i, 1], 2. * scores[i, 2]))
         f.write('Cross-validation score for n:  %.3f +- %.3f\n' % (
-        scores[i, 3], 2. * scores[i, 4]))
+            scores[i, 3], 2. * scores[i, 4]))
         f.write('Cross-validation score for NH: %.3f +- %.3f\n' % (
-        scores[i, 5], 2. * scores[i, 6]))
+            scores[i, 5], 2. * scores[i, 6]))
         f.write('Cross-validation score for U:  %.3f +- %.3f\n' % (
-        scores[i, 7], 2. * scores[i, 8]))
+            scores[i, 7], 2. * scores[i, 8]))
         f.write('Cross-validation score for Z:  %.3f +- %.3f\n' % (
-        scores[i, 9], 2. * scores[i, 10]))
+            scores[i, 9], 2. * scores[i, 10]))
         f.write('List of input lines:\n')
         f.write('%s\n' % list_of_lines[i])
     f.write('##############################\n')
@@ -761,9 +767,9 @@ def run_game(
         f.write('Standard deviation of Av:        %.3f\n' % sigmas[i, 0])
         f.write('Standard deviation of fesc:      %.3f\n' % sigmas[i, 1])
         f.write('Cross-validation score for Av:   %.3f +- %.3f\n' % (
-        scores[i, 1], 2. * scores[i, 2]))
+            scores[i, 1], 2. * scores[i, 2]))
         f.write('Cross-validation score for fesc: %.3f +- %.3f\n' % (
-        scores[i, 3], 2. * scores[i, 4]))
+            scores[i, 3], 2. * scores[i, 4]))
         f.write('List of input lines:\n')
         f.write('%s\n' % list_of_lines[i])
     f.write('##############################\n')
