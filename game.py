@@ -301,11 +301,7 @@ def run_game(
 
     # Initialization of arrays and lists
     if choice_rep == YES:
-        g0 = np.zeros(shape=(len(data[1:]), n_repetition))
-        n = np.zeros(shape=(len(data[1:]), n_repetition))
-        NH = np.zeros(shape=(len(data[1:]), n_repetition))
-        U = np.zeros(shape=(len(data[1:]), n_repetition))
-        Z = np.zeros(shape=(len(data[1:]), n_repetition))
+        g0, n, NH, U, Z = list(inizialize_arrays_from_data(data, n_repetition))
 
     # Searching for values of the physical properties
     # Pool calling

@@ -172,3 +172,18 @@ def create_importances_from_data(data):
     length = len(data[0])
     for _ in range(len(["g0", "n", "NH", "U", "Z"])):
         yield np.zeros(length)
+
+
+def inizialize_arrays_from_data(data, n_repetition):
+    """
+    :param data: matrix
+        Data input
+    :param n_repetition: int
+        Number of repetition
+    :return: (generator of) numpy array
+        Arrays filled with zeros
+    """
+
+    length = len(data[1:])
+    for _ in range(len(["g0", "n", "NH", "U", "Z"])):
+        yield np.zeros(shape=(length, n_repetition))
