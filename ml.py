@@ -187,3 +187,31 @@ def initialize_arrays(data, n_repetition):
     length = len(data[1:])
     for _ in range(len(["g0", "n", "NH", "U", "Z"])):
         yield np.zeros(shape=(length, n_repetition))
+
+
+def get_write_output(model_ids, matrix_ml):
+    """ TODO add docs
+    :param model_ids:
+    :param matrix_ml:
+    :return: np.vstack
+    """
+
+    return np.vstack(
+        (
+            model_ids, np.log10(np.mean(10 ** matrix_ml[:, 0], axis=1)),
+            np.log10(np.median(10 ** matrix_ml[:, 0], axis=1)),
+            np.std(matrix_ml[:, 0], axis=1),
+            np.log10(np.mean(10 ** matrix_ml[:, 1], axis=1)),
+            np.log10(np.median(10 ** matrix_ml[:, 1], axis=1)),
+            np.std(matrix_ml[:, 1], axis=1),
+            np.log10(np.mean(10 ** matrix_ml[:, 2], axis=1)),
+            np.log10(np.median(10 ** matrix_ml[:, 2], axis=1)),
+            np.std(matrix_ml[:, 2], axis=1),
+            np.log10(np.mean(10 ** matrix_ml[:, 3], axis=1)),
+            np.log10(np.median(10 ** matrix_ml[:, 3], axis=1)),
+            np.std(matrix_ml[:, 3], axis=1),
+            np.log10(np.mean(10 ** matrix_ml[:, 4], axis=1)),
+            np.log10(np.median(10 ** matrix_ml[:, 4], axis=1)),
+            np.std(matrix_ml[:, 4], axis=1)
+        )
+    ).T  # transpose

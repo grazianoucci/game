@@ -412,25 +412,7 @@ def run_game(
 
     # Outputs relative to the Machine Learning determination
     if choice_rep == YES:
-        write_output = np.vstack(
-            (
-                model_ids, np.log10(np.mean(10 ** matrix_ml[:, 0], axis=1)),
-                np.log10(np.median(10 ** matrix_ml[:, 0], axis=1)),
-                np.std(matrix_ml[:, 0], axis=1),
-                np.log10(np.mean(10 ** matrix_ml[:, 1], axis=1)),
-                np.log10(np.median(10 ** matrix_ml[:, 1], axis=1)),
-                np.std(matrix_ml[:, 1], axis=1),
-                np.log10(np.mean(10 ** matrix_ml[:, 2], axis=1)),
-                np.log10(np.median(10 ** matrix_ml[:, 2], axis=1)),
-                np.std(matrix_ml[:, 2], axis=1),
-                np.log10(np.mean(10 ** matrix_ml[:, 3], axis=1)),
-                np.log10(np.median(10 ** matrix_ml[:, 3], axis=1)),
-                np.std(matrix_ml[:, 3], axis=1),
-                np.log10(np.mean(10 ** matrix_ml[:, 4], axis=1)),
-                np.log10(np.median(10 ** matrix_ml[:, 4], axis=1)),
-                np.std(matrix_ml[:, 4], axis=1)
-            )
-        ).T  # transpose
+        write_output = get_write_output(model_ids, matrix_ml)
     else:
         write_output = np.column_stack((model_ids, matrix_ml))
 
