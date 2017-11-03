@@ -8,8 +8,6 @@
 
 """ GAME (GAlaxy Machine learning for Emission lines) """
 
-# TODO add docs
-
 import multiprocessing
 import time
 from functools import partial
@@ -19,8 +17,11 @@ import numpy as np
 from sklearn import tree
 from sklearn.ensemble import AdaBoostRegressor
 
-from ml import *  # TODO: erroneous * import (should name all imported methods)
-from utils import *
+from ml import realization, determine_models, error_estimate, machine_learn, \
+    find_features, get_importances, initialize_arrays, get_write_output
+from utils import create_library_folder, create_output_directory, \
+    read_emission_line_file, read_library_file, write_output_files, \
+    write_optional_files, write_importances_files, get_additional_labels
 
 YES, NO = "y", "n"
 INTRO = '--------------------------------------------------------\n' + \
