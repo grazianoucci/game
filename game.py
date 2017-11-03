@@ -447,20 +447,7 @@ def run_game(
 
     start_time = time.time()
 
-    # Definition of additional labels for Machine Learning
-    # (just change the last two of them)
-    labels[:, -2:] = np.loadtxt('library/additional_labels.dat')
-
-    # This code is inserted in order to work with logarithms!
-    # If there is a zero, we substitute it with 1e-9
-    labels[labels[:, -2] == 0, -2] = 1e-9
-    labels[labels[:, -1] == 0, -1] = 1e-9
-    labels[:, -2] = np.log10(labels[:, -2])
-    labels[:, -1] = np.log10(labels[:, -1])
-
-    # Reading labels in the library corresponding to the line
-    labels_train = labels[:limit, :]
-    labels_test = labels[limit:, :]
+    labels, labels_train, labels_test = get_additional_labels(labels, limit)
 
     # Initialization of arrays and lists
     if choice_rep == YES:

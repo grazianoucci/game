@@ -185,3 +185,32 @@ def write_importances_files(dir_path, data, importances):
                np.vstack((data[0], importances[3::5, :])), fmt='%.5f')
     np.savetxt(dir_path + 'output_feature_importances_Z.dat',
                np.vstack((data[0], importances[4::5, :])), fmt='%.5f')
+
+
+def get_additional_labels(labels, limit,
+                          filename='library/additional_labels.dat'):
+    """
+    :param labels: matrix
+        Initial labels
+    :param limit: int
+        Limit
+    :param filename: str
+        Path to input file
+    :return: tuple (matrix, matrix, matrix)
+        Definition of additional labels for Machine Learning
+    """
+
+    labels[:, -2:] = np.loadtxt(filename)
+
+    # This code is inserted in order to work with logarithms!
+    # If there is a zero, we substitute it with 1e-9
+    labels[labels[:, -2] == 0, -2] = 1e-9
+    labels[labels[:, -1] == 0, -1] = 1e-9
+    labels[:, -2] = np.log10(labels[:, -2])
+    labels[:, -1] = np.log10(labels[:, -1])
+
+    # Reading labels in the library corresponding to the line
+    labels_train = labels[:limit, :]
+    labels_test = labels[limit:, :]
+
+    return labels, labels_train, labels_test
