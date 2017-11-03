@@ -133,3 +133,32 @@ def write_output_files(dir_path, preds, trues, matrix_ml):
     np.savetxt(dir_path + 'output_pdf_NH.dat', matrix_ml[:, 2], fmt='%.5f')
     np.savetxt(dir_path + 'output_pdf_U.dat', matrix_ml[:, 3], fmt='%.5f')
     np.savetxt(dir_path + 'output_pdf_Z.dat', matrix_ml[:, 4], fmt='%.5f')
+
+
+def save_optional_files(dir_path, preds, trues, matrix_ml):
+    """
+    :param dir_path: str
+        Path to output folder
+    :param preds: matrix
+        Predictions
+    :param trues: matrix
+        True values
+    :param matrix_ml: matrix
+        ML matrix
+    :return: void
+        Saves .txt files with output data
+    """
+
+    # This writes down the output relative to the predicted and true
+    # value of the library
+    np.savetxt(dir_path + 'output_pred_Av.dat', preds[0::2, :], fmt='%.5f')
+    np.savetxt(dir_path + 'output_pred_fesc.dat', preds[1::2, :],
+               fmt='%.5f')
+    np.savetxt(dir_path + 'output_true_Av.dat', trues[0::2, :], fmt='%.5f')
+    np.savetxt(dir_path + 'output_true_fesc.dat', trues[1::2, :],
+               fmt='%.5f')
+    # This writes down the output relative to the PDFs of the physical
+    # properties
+    np.savetxt(dir_path + 'output_pdf_Av.dat', matrix_ml[:, 0], fmt='%.5f')
+    np.savetxt(dir_path + 'output_pdf_fesc.dat', matrix_ml[:, 1],
+               fmt='%.5f')

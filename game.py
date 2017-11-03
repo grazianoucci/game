@@ -301,32 +301,33 @@ def run_game(
 
     # Initialization of arrays and lists
     if choice_rep == YES:
-        g0, n, NH, U, Z = list(inizialize_arrays_from_data(data, n_repetition))
+        g0, n, NH, U, Z = list(initialize_arrays_from_data(data, n_repetition))
+
+    to_predict = {
+        "g0": g0,
+        "importances_g0": importances_g0,
+        "n": n,
+        "importances_n": importances_n,
+        "NH": NH,
+        "importances_NH": importances_NH,
+        "U": U,
+        "importances_U": importances_U,
+        "Z": Z,
+        "importances_Z": importances_Z,
+    }  # TODO fix probable undefined ref
 
     # Searching for values of the physical properties
     # Pool calling
-    main_algorithm = partial(main_algorithm_to_pool,
-                             models=models, unique_id=unique_id,
-                             initial=initial, limit=limit
-                             , features=features, labels_train=labels_train,
-                             labels_test=labels_test, labels=labels,
-                             regr=REGRESSOR, line_labels=line_labels,
-                             filename_int=filename_int,
-                             filename_err=filename_err,
-                             n_repetition=n_repetition, choice_rep=choice_rep,
-                             to_predict={
-                                 "g0": g0,
-                                 "importances_g0": importances_g0,
-                                 "n": n,
-                                 "importances_n": importances_n,
-                                 "NH": NH,
-                                 "importances_NH": importances_NH,
-                                 "U": U,
-                                 "importances_U": importances_U,
-                                 "Z": Z,
-                                 "importances_Z": importances_Z,
-                             }
-                             )
+    main_algorithm = partial(
+        main_algorithm_to_pool,
+        models=models, unique_id=unique_id, initial=initial, limit=limit,
+        features=features, labels_train=labels_train,
+        labels_test=labels_test, labels=labels,
+        regr=REGRESSOR, line_labels=line_labels,
+        filename_int=filename_int,
+        filename_err=filename_err,
+        n_repetition=n_repetition, choice_rep=choice_rep, to_predict=to_predict
+    )
     pool = multiprocessing.Pool(processes=n_processes)
     results = pool.map(
         main_algorithm,
@@ -354,7 +355,7 @@ def run_game(
     preds = np.array(list(chain.from_iterable(np.array(results)[:, 8])))
     list_of_lines = np.array(results)[:, 2]
 
-    # find_ids are usefult to reorder the matrix with the ML determinations
+    # find_ids are useful to reorder the matrix with the ML determinations
     find_ids = list(chain.from_iterable(np.array(results)[:, 3]))
     temp_model_ids = list(chain.from_iterable(np.array(results)[:, 4]))
 
@@ -412,24 +413,28 @@ def run_game(
     # Outputs relative to the Machine Learning determination
     if choice_rep == YES:
         write_output = np.vstack(
-            (model_ids, np.log10(np.mean(10 ** matrix_ml[:, 0], axis=1)),
-             np.log10(np.median(10 ** matrix_ml[:, 0], axis=1)),
-             np.std(matrix_ml[:, 0], axis=1),
-             np.log10(np.mean(10 ** matrix_ml[:, 1], axis=1)),
-             np.log10(np.median(10 ** matrix_ml[:, 1], axis=1)),
-             np.std(matrix_ml[:, 1], axis=1),
-             np.log10(np.mean(10 ** matrix_ml[:, 2], axis=1)),
-             np.log10(np.median(10 ** matrix_ml[:, 2], axis=1)),
-             np.std(matrix_ml[:, 2], axis=1),
-             np.log10(np.mean(10 ** matrix_ml[:, 3], axis=1)),
-             np.log10(np.median(10 ** matrix_ml[:, 3], axis=1)),
-             np.std(matrix_ml[:, 3], axis=1),
-             np.log10(np.mean(10 ** matrix_ml[:, 4], axis=1)),
-             np.log10(np.median(10 ** matrix_ml[:, 4], axis=1)),
-             np.std(matrix_ml[:, 4], axis=1))).T
+            (
+                model_ids, np.log10(np.mean(10 ** matrix_ml[:, 0], axis=1)),
+                np.log10(np.median(10 ** matrix_ml[:, 0], axis=1)),
+                np.std(matrix_ml[:, 0], axis=1),
+                np.log10(np.mean(10 ** matrix_ml[:, 1], axis=1)),
+                np.log10(np.median(10 ** matrix_ml[:, 1], axis=1)),
+                np.std(matrix_ml[:, 1], axis=1),
+                np.log10(np.mean(10 ** matrix_ml[:, 2], axis=1)),
+                np.log10(np.median(10 ** matrix_ml[:, 2], axis=1)),
+                np.std(matrix_ml[:, 2], axis=1),
+                np.log10(np.mean(10 ** matrix_ml[:, 3], axis=1)),
+                np.log10(np.median(10 ** matrix_ml[:, 3], axis=1)),
+                np.std(matrix_ml[:, 3], axis=1),
+                np.log10(np.mean(10 ** matrix_ml[:, 4], axis=1)),
+                np.log10(np.median(10 ** matrix_ml[:, 4], axis=1)),
+                np.std(matrix_ml[:, 4], axis=1)
+            )
+        ).T  # transpose
 
     if choice_rep == NO:
         write_output = np.column_stack((model_ids, matrix_ml))
+
     np.savetxt(dir_path + 'output_ml.dat', write_output,
                header="id_model mean[Log(G0)] median[Log(G0)] sigma[Log(G0)] "
                       "mean[Log(n)] median[Log(n)] sigma[Log(n)] mean[Log("
@@ -598,19 +603,7 @@ def run_game(
 
     # Optional files
     if choice_rep == YES:
-        # This writes down the output relative to the predicted and true
-        # value of the library
-        np.savetxt(dir_path + 'output_pred_Av.dat', preds[0::2, :], fmt='%.5f')
-        np.savetxt(dir_path + 'output_pred_fesc.dat', preds[1::2, :],
-                   fmt='%.5f')
-        np.savetxt(dir_path + 'output_true_Av.dat', trues[0::2, :], fmt='%.5f')
-        np.savetxt(dir_path + 'output_true_fesc.dat', trues[1::2, :],
-                   fmt='%.5f')
-        # This writes down the output relative to the PDFs of the physical
-        # properties
-        np.savetxt(dir_path + 'output_pdf_Av.dat', matrix_ml[:, 0], fmt='%.5f')
-        np.savetxt(dir_path + 'output_pdf_fesc.dat', matrix_ml[:, 1],
-                   fmt='%.5f')
+        save_optional_files(dir_path, preds, trues, matrix_ml)
     if verbose:
         print '\nEnd of program!'
 

@@ -174,7 +174,7 @@ def create_importances_from_data(data):
         yield np.zeros(length)
 
 
-def inizialize_arrays_from_data(data, n_repetition):
+def initialize_arrays_from_data(data, n_repetition):
     """
     :param data: matrix
         Data input
