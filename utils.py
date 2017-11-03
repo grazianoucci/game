@@ -187,6 +187,44 @@ def write_importances_files(dir_path, data, importances):
                np.vstack((data[0], importances[4::5, :])), fmt='%.5f')
 
 
+def write_models_info(dir_path, sigmas, scores, list_of_lines):
+    """
+    :param dir_path: str
+        Path to output folder
+    :param sigmas: matrix
+        Sigmas
+    :param scores: matrix
+        Scores
+    :param list_of_lines: []
+        List of lines
+    :return: void
+        Saves to .dat file info about models used
+    """
+
+    with open(dir_path + 'model_ids.dat', 'w+') as f:
+        for i in xrange(len(sigmas)):
+            f.write('##############################\n')
+            f.write('Id model: %d\n' % (i + 1))
+            f.write('Standard deviation of log(G0): %.3f\n' % sigmas[i, 0])
+            f.write('Standard deviation of log(n):  %.3f\n' % sigmas[i, 1])
+            f.write('Standard deviation of log(NH): %.3f\n' % sigmas[i, 2])
+            f.write('Standard deviation of log(U):  %.3f\n' % sigmas[i, 3])
+            f.write('Standard deviation of log(Z):  %.3f\n' % sigmas[i, 4])
+            f.write('Cross-validation score for G0: %.3f +- %.3f\n' % (
+                scores[i, 1], 2. * scores[i, 2]))
+            f.write('Cross-validation score for n:  %.3f +- %.3f\n' % (
+                scores[i, 3], 2. * scores[i, 4]))
+            f.write('Cross-validation score for NH: %.3f +- %.3f\n' % (
+                scores[i, 5], 2. * scores[i, 6]))
+            f.write('Cross-validation score for U:  %.3f +- %.3f\n' % (
+                scores[i, 7], 2. * scores[i, 8]))
+            f.write('Cross-validation score for Z:  %.3f +- %.3f\n' % (
+                scores[i, 9], 2. * scores[i, 10]))
+            f.write('List of input lines:\n')
+            f.write('%s\n' % list_of_lines[i])
+        f.write('##############################\n')
+
+
 def get_additional_labels(labels, limit,
                           filename='library/additional_labels.dat'):
     """

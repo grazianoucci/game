@@ -21,7 +21,8 @@ from ml import realization, determine_models, error_estimate, machine_learn, \
     find_features, get_importances, initialize_arrays, get_write_output
 from utils import create_library_folder, create_output_directory, \
     read_emission_line_file, read_library_file, write_output_files, \
-    write_optional_files, write_importances_files, get_additional_labels
+    write_optional_files, write_importances_files, get_additional_labels, \
+    write_models_info
 
 YES, NO = "y", "n"
 INTRO = '--------------------------------------------------------\n' + \
@@ -133,9 +134,11 @@ def main_algorithm_to_pool(
         [model_NH, imp_NH, score_NH, std_NH] = machine_learn(
             features[:, initial[mask][0]], labels, 2, regr)
         [model_U, imp_U, score_U, std_U] = machine_learn(
-        features[:, initial[mask][0]], labels, 3, regr)
+            features[:, initial[mask][0]], labels, 3, regr
+        )
         [model_Z, imp_Z, score_Z, std_Z] = machine_learn(
-        features[:, initial[mask][0]], labels, 4, regr)
+            features[:, initial[mask][0]], labels, 4, regr
+        )
 
     # Bootstrap
     new_data = realization(
@@ -190,7 +193,7 @@ def main_algorithm_to_pool(
             vector_mms[2::3] = np.std(result, axis=0)
             matrix_mms.append(vector_mms)
 
-    # Importance matrixes
+    # Importance matrices
     if fesc_AV_mode:
         importances_AV[initial[mask][0]] = imp_AV
         importances_fesc[initial[mask][0]] = imp_fesc
@@ -270,7 +273,6 @@ def run_game(
     # Number of repetition for the PDFs determination
     # Input file reading
     data, lower, upper = read_emission_line_file(filename_int)
-
     output, line_labels = read_library_file(filename_library)
 
     # Determination of unique models based on the missing data
@@ -301,9 +303,7 @@ def run_game(
     labels_test = labels[limit:, :]
 
     # Initialization of arrays and lists
-    if choice_rep == YES:
-        g0, n, NH, U, Z = list(initialize_arrays(data, n_repetition))
-
+    g0, n, NH, U, Z = list(initialize_arrays(data, n_repetition))
     to_predict = {
         "g0": g0,
         "importances_g0": importances_g0,
@@ -318,7 +318,6 @@ def run_game(
     }  # TODO fix probable undefined ref
 
     # Searching for values of the physical properties
-    # Pool calling
     main_algorithm = partial(
         main_algorithm_to_pool,
         models=models, unique_id=unique_id, initial=initial, limit=limit,
@@ -329,7 +328,7 @@ def run_game(
         filename_err=filename_err,
         n_repetition=n_repetition, choice_rep=choice_rep, to_predict=to_predict
     )
-    pool = multiprocessing.Pool(processes=n_processes)
+    pool = multiprocessing.Pool(processes=n_processes)  # Pool calling
     results = pool.map(
         main_algorithm,
         np.arange(1, np.max(unique_id.astype(int)) + 1, 1)
@@ -360,9 +359,9 @@ def run_game(
     find_ids = list(chain.from_iterable(np.array(results)[:, 3]))
     temp_model_ids = list(chain.from_iterable(np.array(results)[:, 4]))
 
-    if choice_rep == YES:
-        temp_matrix_ml = np.array(
-            list(chain.from_iterable(np.array(results)[:, 5])))
+    temp_matrix_ml = np.array(
+        list(chain.from_iterable(np.array(results)[:, 5]))
+    )
 
     # Rearrange the matrix based on the find_ids indexes
     matrix_ml = np.zeros(shape=temp_matrix_ml.shape)
@@ -386,30 +385,7 @@ def run_game(
         model_ids[find_ids[i]] = temp_model_ids[i]
 
     # Write information on different models
-    f = open(dir_path + 'model_ids.dat', 'w+')
-
-    for i in xrange(len(sigmas)):
-        f.write('##############################\n')
-        f.write('Id model: %d\n' % (i + 1))
-        f.write('Standard deviation of log(G0): %.3f\n' % sigmas[i, 0])
-        f.write('Standard deviation of log(n):  %.3f\n' % sigmas[i, 1])
-        f.write('Standard deviation of log(NH): %.3f\n' % sigmas[i, 2])
-        f.write('Standard deviation of log(U):  %.3f\n' % sigmas[i, 3])
-        f.write('Standard deviation of log(Z):  %.3f\n' % sigmas[i, 4])
-        f.write('Cross-validation score for G0: %.3f +- %.3f\n' % (
-            scores[i, 1], 2. * scores[i, 2]))
-        f.write('Cross-validation score for n:  %.3f +- %.3f\n' % (
-            scores[i, 3], 2. * scores[i, 4]))
-        f.write('Cross-validation score for NH: %.3f +- %.3f\n' % (
-            scores[i, 5], 2. * scores[i, 6]))
-        f.write('Cross-validation score for U:  %.3f +- %.3f\n' % (
-            scores[i, 7], 2. * scores[i, 8]))
-        f.write('Cross-validation score for Z:  %.3f +- %.3f\n' % (
-            scores[i, 9], 2. * scores[i, 10]))
-        f.write('List of input lines:\n')
-        f.write('%s\n' % list_of_lines[i])
-    f.write('##############################\n')
-    f.close()
+    write_models_info(dir_path, sigmas, scores, list_of_lines)
 
     # Outputs relative to the Machine Learning determination
     if choice_rep == YES:
@@ -447,13 +423,11 @@ def run_game(
               'labels... '
 
     start_time = time.time()
-
     labels, labels_train, labels_test = get_additional_labels(labels, limit)
 
     # Initialization of arrays and lists
-    if choice_rep == YES:
-        AV = np.zeros(shape=(len(data[1:]), n_repetition))
-        fesc = np.zeros(shape=(len(data[1:]), n_repetition))
+    AV = np.zeros(shape=(len(data[1:]), n_repetition))
+    fesc = np.zeros(shape=(len(data[1:]), n_repetition))
 
     # Searching for values of the additional physical properties
     pool = multiprocessing.Pool(processes=n_processes)
