@@ -40,6 +40,10 @@ REGRESSOR = AdaBoostRegressor(
     random_state=0
 )  # ref1: http://adsabs.harvard.edu/abs/2017MNRAS.465.1144U
 
+# Testing, test_size is the percentage of the library to use as testing
+# set to determine the PDFs
+TEST_SIZE = 0.10
+
 
 def main_algorithm_to_pool(
         i, models, unique_id, initial, limit, features,
@@ -277,10 +281,6 @@ def run_game(
     importances_g0, importances_n, importances_NH, \
     importances_U, importances_Z = list(create_importances_from_data(data))
 
-    # Testing, test_size is the percentage of the library to use as testing
-    # set to determine the PDFs
-    test_size = 0.10
-
     if verbose:
         print '# of input  models                     :', len(data[1:])
         print '# of unique models for Machine Learning:', int(
@@ -295,7 +295,7 @@ def run_game(
     features = output[:, :-5]
     labels = np.double(output[:, len(output[0]) - 5:len(output[0])])
     labels[:, -1] = np.log10(labels[:, -1])
-    limit = int((1. - test_size) * len(features))
+    limit = int((1. - TEST_SIZE) * len(features))
     labels_train = labels[:limit, :]
     labels_test = labels[limit:, :]
 
