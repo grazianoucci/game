@@ -54,10 +54,10 @@ def main_algorithm_to_pool(
 
     if fesc_AV_mode:
         AV, fesc, importances_AV, importances_fesc = \
-            find_features_from_dict(to_predict)
+            find_features(to_predict)
     else:
         g0, n, NH, U, Z, importances_g0, importances_n, importances_NH, \
-        importances_U, importances_Z = find_features_from_dict(to_predict)
+        importances_U, importances_Z = find_features(to_predict)
 
     mask = np.where(models == unique_id[i - 1])
     matrix_mms = []  # matrix_mms is useful to save physical properties
@@ -74,14 +74,14 @@ def main_algorithm_to_pool(
     # ML error estimation
 
     if fesc_AV_mode:
-        [AV_true, AV_pred, sigma_AV] = error_estimation(
+        [AV_true, AV_pred, sigma_AV] = error_estimate(
             features_train,
             features_test,
             labels_train[:, 3],
             labels_test[:, 3],
             regr
         )
-        [fesc_true, fesc_pred, sigma_fesc] = error_estimation(
+        [fesc_true, fesc_pred, sigma_fesc] = error_estimate(
             features_train,
             features_test,
             labels_train[:, 4],
@@ -89,29 +89,29 @@ def main_algorithm_to_pool(
             regr
         )
     else:
-        [g0_true, g0_pred, sigma_g0] = error_estimation(
+        [g0_true, g0_pred, sigma_g0] = error_estimate(
             features_train,
             features_test,
             labels_train[:, 0],
             labels_test[:, 0],
             regr)
-        [n_true, n_pred, sigma_n] = error_estimation(
+        [n_true, n_pred, sigma_n] = error_estimate(
             features_train, features_test,
             labels_train[:, 1],
             labels_test[:, 1], regr
         )
-        [NH_true, NH_pred, sigma_NH] = error_estimation(
+        [NH_true, NH_pred, sigma_NH] = error_estimate(
             features_train,
             features_test,
             labels_train[:, 2],
             labels_test[:, 2], regr
         )
-        [U_true, U_pred, sigma_U] = error_estimation(
+        [U_true, U_pred, sigma_U] = error_estimate(
             features_train, features_test,
             labels_train[:, 3],
             labels_test[:, 3], regr
         )
-        [Z_true, Z_pred, sigma_Z] = error_estimation(
+        [Z_true, Z_pred, sigma_Z] = error_estimate(
             features_train, features_test,
             labels_train[:, 4],
             labels_test[:, 4], regr
@@ -120,20 +120,20 @@ def main_algorithm_to_pool(
     # Function calls for the machine learning routines
 
     if fesc_AV_mode:
-        [model_AV, imp_AV, score_AV, std_AV] = machine_learning(
+        [model_AV, imp_AV, score_AV, std_AV] = machine_learn(
             features[:, initial[mask][0]], labels, 3, regr)
-        [model_fesc, imp_fesc, score_fesc, std_fesc] = machine_learning(
+        [model_fesc, imp_fesc, score_fesc, std_fesc] = machine_learn(
             features[:, initial[mask][0]], labels, 4, regr)
     else:
-        [model_g0, imp_g0, score_g0, std_g0] = machine_learning(
+        [model_g0, imp_g0, score_g0, std_g0] = machine_learn(
             features[:, initial[mask][0]], labels, 0, regr)
-        [model_n, imp_n, score_n, std_n] = machine_learning(
+        [model_n, imp_n, score_n, std_n] = machine_learn(
             features[:, initial[mask][0]], labels, 1, regr)
-        [model_NH, imp_NH, score_NH, std_NH] = machine_learning(
+        [model_NH, imp_NH, score_NH, std_NH] = machine_learn(
             features[:, initial[mask][0]], labels, 2, regr)
-        [model_U, imp_U, score_U, std_U] = machine_learning(
+        [model_U, imp_U, score_U, std_U] = machine_learn(
         features[:, initial[mask][0]], labels, 3, regr)
-        [model_Z, imp_Z, score_Z, std_Z] = machine_learning(
+        [model_Z, imp_Z, score_Z, std_Z] = machine_learn(
         features[:, initial[mask][0]], labels, 4, regr)
 
     # Bootstrap
@@ -275,11 +275,11 @@ def run_game(
     # Determination of unique models based on the missing data
     # In this case missing data are values with zero intensities
     # Be careful because the first row in data there are wavelengths!
-    initial, models, unique_id = determination_models(data[1:])
+    initial, models, unique_id = determine_models(data[1:])
 
     # This creates arrays useful to save the output for the feature importances
     importances_g0, importances_n, importances_NH, \
-    importances_U, importances_Z = list(create_importances_from_data(data))
+    importances_U, importances_Z = list(get_importances(data))
 
     if verbose:
         print '# of input  models                     :', len(data[1:])
@@ -301,7 +301,7 @@ def run_game(
 
     # Initialization of arrays and lists
     if choice_rep == YES:
-        g0, n, NH, U, Z = list(initialize_arrays_from_data(data, n_repetition))
+        g0, n, NH, U, Z = list(initialize_arrays(data, n_repetition))
 
     to_predict = {
         "g0": g0,
@@ -431,8 +431,7 @@ def run_game(
                 np.std(matrix_ml[:, 4], axis=1)
             )
         ).T  # transpose
-
-    if choice_rep == NO:
+    else:
         write_output = np.column_stack((model_ids, matrix_ml))
 
     np.savetxt(

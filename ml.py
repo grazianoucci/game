@@ -63,7 +63,7 @@ def realization(filename_int, filename_err, n_rep, mask):
     return repetition
 
 
-def determination_models(data):
+def determine_models(data):
     """
     :param data: []
         Data list
@@ -91,7 +91,7 @@ def determination_models(data):
     return initial, models, np.unique(models)
 
 
-def error_estimation(feat_train, feat_test, lab_train, lab_test, ml_regressor):
+def error_estimate(feat_train, feat_test, lab_train, lab_test, ml_regressor):
     """
     :param feat_train: matrix
         Fit train
@@ -114,7 +114,7 @@ def error_estimation(feat_train, feat_test, lab_train, lab_test, ml_regressor):
     return np.double(lab_test), y, sigma
 
 
-def machine_learning(feat, lab, physical_p, ml_regressor):
+def machine_learn(feat, lab, physical_p, ml_regressor):
     """
     :param feat: TODO
         TODO
@@ -136,7 +136,7 @@ def machine_learning(feat, lab, physical_p, ml_regressor):
     return copy.copy(model), importances, np.mean(score), np.std(score)
 
 
-def find_features_from_dict(to_predict):
+def find_features(to_predict):
     """
     :param to_predict: {}
         Dict with values to predict
@@ -161,7 +161,7 @@ def find_features_from_dict(to_predict):
     return output
 
 
-def create_importances_from_data(data):
+def get_importances(data):
     """
     :param data: matrix
         Data input
@@ -174,7 +174,7 @@ def create_importances_from_data(data):
         yield np.zeros(length)
 
 
-def initialize_arrays_from_data(data, n_repetition):
+def initialize_arrays(data, n_repetition):
     """
     :param data: matrix
         Data input
