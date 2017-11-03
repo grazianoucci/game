@@ -252,7 +252,7 @@ def run_game(
             'Insert name of file containing the labels: '
         )
 
-    prepare_output_directory(
+    create_output_directory(
         dir_path
     )  # Create output directory if not existing
 
@@ -435,25 +435,19 @@ def run_game(
     if choice_rep == NO:
         write_output = np.column_stack((model_ids, matrix_ml))
 
-    np.savetxt(dir_path + 'output_ml.dat', write_output,
-               header="id_model mean[Log(G0)] median[Log(G0)] sigma[Log(G0)] "
-                      "mean[Log(n)] median[Log(n)] sigma[Log(n)] mean[Log("
-                      "NH)] median[Log(NH)] sigma[Log(NH)] mean[Log(U)] "
-                      "median[Log(U)] sigma[Log(U)] mean[Log(Z)] median[Log("
-                      "Z)] sigma[Log(Z)]",
-               fmt='%.5f')
+    np.savetxt(
+        dir_path + 'output_ml.dat',
+        write_output,
+        header="id_model mean[Log(G0)] median[Log(G0)] sigma[Log(G0)] "
+               "mean[Log(n)] median[Log(n)] sigma[Log(n)] mean[Log("
+               "NH)] median[Log(NH)] sigma[Log(NH)] mean[Log(U)] "
+               "median[Log(U)] sigma[Log(U)] mean[Log(Z)] median[Log("
+               "Z)] sigma[Log(Z)]",
+        fmt='%.5f'
+    )
 
     # Outputs with the feature importances
-    np.savetxt(dir_path + 'output_feature_importances_G0.dat',
-               np.vstack((data[0], importances[0::5, :])), fmt='%.5f')
-    np.savetxt(dir_path + 'output_feature_importances_n.dat',
-               np.vstack((data[0], importances[1::5, :])), fmt='%.5f')
-    np.savetxt(dir_path + 'output_feature_importances_NH.dat',
-               np.vstack((data[0], importances[2::5, :])), fmt='%.5f')
-    np.savetxt(dir_path + 'output_feature_importances_U.dat',
-               np.vstack((data[0], importances[3::5, :])), fmt='%.5f')
-    np.savetxt(dir_path + 'output_feature_importances_Z.dat',
-               np.vstack((data[0], importances[4::5, :])), fmt='%.5f')
+    write_importances_files(dir_path, data, importances)
 
     # Optional files
     if choice_rep == YES:
@@ -603,7 +597,7 @@ def run_game(
 
     # Optional files
     if choice_rep == YES:
-        save_optional_files(dir_path, preds, trues, matrix_ml)
+        write_optional_files(dir_path, preds, trues, matrix_ml)
     if verbose:
         print '\nEnd of program!'
 

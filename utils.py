@@ -34,7 +34,7 @@ def create_library_folder():
         os.remove("library.tar.gz")
 
 
-def prepare_output_directory(dir_path):
+def create_output_directory(dir_path):
     """
     :param dir_path: str
         Path to output folder
@@ -135,7 +135,7 @@ def write_output_files(dir_path, preds, trues, matrix_ml):
     np.savetxt(dir_path + 'output_pdf_Z.dat', matrix_ml[:, 4], fmt='%.5f')
 
 
-def save_optional_files(dir_path, preds, trues, matrix_ml):
+def write_optional_files(dir_path, preds, trues, matrix_ml):
     """
     :param dir_path: str
         Path to output folder
@@ -146,7 +146,7 @@ def save_optional_files(dir_path, preds, trues, matrix_ml):
     :param matrix_ml: matrix
         ML matrix
     :return: void
-        Saves .txt files with output data
+        Saves .txt files with optional data
     """
 
     # This writes down the output relative to the predicted and true
@@ -162,3 +162,26 @@ def save_optional_files(dir_path, preds, trues, matrix_ml):
     np.savetxt(dir_path + 'output_pdf_Av.dat', matrix_ml[:, 0], fmt='%.5f')
     np.savetxt(dir_path + 'output_pdf_fesc.dat', matrix_ml[:, 1],
                fmt='%.5f')
+
+
+def write_importances_files(dir_path, data, importances):
+    """
+    :param dir_path: str
+        Path to output folder
+    :param data: matrix
+        Data
+    :param importances: matrix
+        Importances matrix
+    :return: void
+        Saves .txt files with importances data
+    """
+    np.savetxt(dir_path + 'output_feature_importances_G0.dat',
+               np.vstack((data[0], importances[0::5, :])), fmt='%.5f')
+    np.savetxt(dir_path + 'output_feature_importances_n.dat',
+               np.vstack((data[0], importances[1::5, :])), fmt='%.5f')
+    np.savetxt(dir_path + 'output_feature_importances_NH.dat',
+               np.vstack((data[0], importances[2::5, :])), fmt='%.5f')
+    np.savetxt(dir_path + 'output_feature_importances_U.dat',
+               np.vstack((data[0], importances[3::5, :])), fmt='%.5f')
+    np.savetxt(dir_path + 'output_feature_importances_Z.dat',
+               np.vstack((data[0], importances[4::5, :])), fmt='%.5f')
