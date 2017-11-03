@@ -159,3 +159,16 @@ def find_features_from_dict(to_predict):
             output.append(to_predict[("importances_" + k)])
 
     return output
+
+
+def create_importances_from_data(data):
+    """
+    :param data: matrix
+        Data input
+    :return: (generator of) numpy array
+        Arrays filled with zeros
+    """
+
+    length = len(data[0])
+    for _ in range(len(["g0", "n", "NH", "U", "Z"])):
+        yield np.zeros(length)

@@ -19,7 +19,7 @@ import numpy as np
 from sklearn import tree
 from sklearn.ensemble import AdaBoostRegressor
 
-from ml import *
+from ml import *  # TODO: erroneous * import (should name all imported methods)
 from utils import *
 
 YES, NO = "y", "n"
@@ -29,12 +29,13 @@ INTRO = '--------------------------------------------------------\n' + \
         '--------------------------------------------------------\n\n' + \
         'ML Algorithm: AdaBoost with Decision Trees as base learner.'
 
-# Definition of algorithm for Machine Learning
+# algorithm for Machine Learning
 REGRESSOR = AdaBoostRegressor(
     tree.DecisionTreeRegressor(
         criterion='mse',
         splitter='best',
-        max_features=None),
+        max_features=None
+    ),
     n_estimators=2,
     random_state=0
 )  # ref1: http://adsabs.harvard.edu/abs/2017MNRAS.465.1144U
@@ -230,10 +231,8 @@ def run_game(
         choice_rep=YES, n_processes=2, n_repetition=10000,
         dir_path='output/', verbose=True
 ):
-    # AP: TODO choice_rep should be asserted to be among the allowed
-    # values even when input via raw_input).
-
     create_library_folder()
+
     if verbose:
         print INTRO
 
@@ -250,16 +249,14 @@ def run_game(
         )
 
     prepare_output_directory(
-        dir_path)  # Create output directory if not existing
+        dir_path
+    )  # Create output directory if not existing
 
-    # Creation of the optional files
     if manual_input:
         choice_rep = raw_input(
             'Do you want to create the optional files [y/n]?: '
-        )
+        )  # optional files
 
-    # Number of processors
-    if manual_input:
         n_processes = raw_input('Choose the number of processors: ')
 
     if verbose:
@@ -269,7 +266,6 @@ def run_game(
     # Input file reading
     data, lower, upper = read_emission_line_file(filename_int)
 
-    # Library file reading
     output, line_labels = read_library_file(filename_library)
 
     # Determination of unique models based on the missing data
@@ -278,11 +274,8 @@ def run_game(
     initial, models, unique_id = determination_models(data[1:])
 
     # This creates arrays useful to save the output for the feature importances
-    importances_g0 = np.zeros(len(data[0]))
-    importances_n = np.zeros(len(data[0]))
-    importances_NH = np.zeros(len(data[0]))
-    importances_U = np.zeros(len(data[0]))
-    importances_Z = np.zeros(len(data[0]))
+    importances_g0, importances_n, importances_NH, \
+    importances_U, importances_Z = list(create_importances_from_data(data))
 
     # Testing, test_size is the percentage of the library to use as testing
     # set to determine the PDFs
