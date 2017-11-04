@@ -546,4 +546,8 @@ def run_game(
 
 
 if __name__ == "__main__":
-    run_game()
+    try:
+        run_game()
+    except Exception as e:
+        print str(e)
+        print "\nAborted"

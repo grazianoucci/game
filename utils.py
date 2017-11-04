@@ -23,15 +23,21 @@ def create_library_folder():
     """
 
     dir_path = 'library/'
+    download_file = "library.tar.gz"
     directory = os.path.dirname(dir_path)
     if not os.path.exists(directory):
-        urllib.urlretrieve(
-            "http://cosmology.sns.it/library_game/library.tar.gz",
-            filename="library.tar.gz")
-        tar = tarfile.open("library.tar.gz")
-        tar.extractall()
-        tar.close()
-        os.remove("library.tar.gz")
+        try:
+            urllib.urlretrieve(
+                "http://cosmology.sns.it/library_game/library.tar.gz",
+                filename=download_file)
+            tar = tarfile.open(download_file)
+            tar.extractall()
+            tar.close()
+        except Exception:
+            if os.path.exists(download_file):
+                os.remove(download_file)
+
+            raise Exception("Cannot download library .tar file")
 
 
 def create_output_directory(dir_path):

@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - setup script
+- `Exception` handler when cannot downloading library file
+
+### Fixed
+- deprecation warning about `model_selection` `cross_validation`
 
 ## 1.1 - 2017-11-02
 
