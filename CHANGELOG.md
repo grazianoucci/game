@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - setup script
+- c, exe code generator script
 - `Exception` handler when cannot downloading library file
 
 ### Fixed
