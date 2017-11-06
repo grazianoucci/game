@@ -50,7 +50,7 @@ def create_output_directory(dir_path):
 
     directory = os.path.dirname(dir_path)
     if not os.path.exists(directory):
-        os.mkdir(directory)  # TODO why not mkdirs ??
+        os.mkdir(directory)
 
 
 def read_emission_line_file(filename_int):
@@ -207,28 +207,28 @@ def write_models_info(dir_path, sigmas, scores, list_of_lines):
         Saves to .dat file info about models used
     """
 
-    with open(dir_path + 'model_ids.dat', 'w+') as f:
+    with open(dir_path + 'model_ids.dat', 'w+') as out_file:
         for i in xrange(len(sigmas)):
-            f.write('##############################\n')
-            f.write('Id model: %d\n' % (i + 1))
-            f.write('Standard deviation of log(G0): %.3f\n' % sigmas[i, 0])
-            f.write('Standard deviation of log(n):  %.3f\n' % sigmas[i, 1])
-            f.write('Standard deviation of log(NH): %.3f\n' % sigmas[i, 2])
-            f.write('Standard deviation of log(U):  %.3f\n' % sigmas[i, 3])
-            f.write('Standard deviation of log(Z):  %.3f\n' % sigmas[i, 4])
-            f.write('Cross-validation score for G0: %.3f +- %.3f\n' % (
+            out_file.write('##############################\n')
+            out_file.write('Id model: %d\n' % (i + 1))
+            out_file.write('Standard deviation of log(G0): %.3f\n' % sigmas[i, 0])
+            out_file.write('Standard deviation of log(n):  %.3f\n' % sigmas[i, 1])
+            out_file.write('Standard deviation of log(NH): %.3f\n' % sigmas[i, 2])
+            out_file.write('Standard deviation of log(U):  %.3f\n' % sigmas[i, 3])
+            out_file.write('Standard deviation of log(Z):  %.3f\n' % sigmas[i, 4])
+            out_file.write('Cross-validation score for G0: %.3f +- %.3f\n' % (
                 scores[i, 1], 2. * scores[i, 2]))
-            f.write('Cross-validation score for n:  %.3f +- %.3f\n' % (
+            out_file.write('Cross-validation score for n:  %.3f +- %.3f\n' % (
                 scores[i, 3], 2. * scores[i, 4]))
-            f.write('Cross-validation score for NH: %.3f +- %.3f\n' % (
+            out_file.write('Cross-validation score for NH: %.3f +- %.3f\n' % (
                 scores[i, 5], 2. * scores[i, 6]))
-            f.write('Cross-validation score for U:  %.3f +- %.3f\n' % (
+            out_file.write('Cross-validation score for U:  %.3f +- %.3f\n' % (
                 scores[i, 7], 2. * scores[i, 8]))
-            f.write('Cross-validation score for Z:  %.3f +- %.3f\n' % (
+            out_file.write('Cross-validation score for Z:  %.3f +- %.3f\n' % (
                 scores[i, 9], 2. * scores[i, 10]))
-            f.write('List of input lines:\n')
-            f.write('%s\n' % list_of_lines[i])
-        f.write('##############################\n')
+            out_file.write('List of input lines:\n')
+            out_file.write('%s\n' % list_of_lines[i])
+        out_file.write('##############################\n')
 
 
 def get_additional_labels(labels, limit,

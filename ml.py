@@ -79,7 +79,7 @@ def determine_models(data):
     i = 2
 
     while check:
-        if len(models[models == 0]) == 0:
+        if not models[models == 0]:
             check = False
         else:
             mask = np.where(
@@ -108,10 +108,10 @@ def error_estimate(feat_train, feat_test, lab_train, lab_test, ml_regressor):
     """
 
     ml_regressor.fit(feat_train, lab_train)
-    y = ml_regressor.predict(feat_test)
-    sigma = np.std(np.double(lab_test) - y)
+    prediction_y = ml_regressor.predict(feat_test)
+    sigma = np.std(np.double(lab_test) - prediction_y)
 
-    return np.double(lab_test), y, sigma
+    return np.double(lab_test), prediction_y, sigma
 
 
 def machine_learn(feat, lab, physical_p, ml_regressor):
@@ -155,7 +155,7 @@ def find_features(to_predict):
             output.append(to_predict[k])
 
     for k in keys:
-        if ("importances_" + k) in to_predict in to_predict:
+        if "importances_" + k in to_predict in to_predict:
             output.append(to_predict[("importances_" + k)])
 
     return output

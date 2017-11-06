@@ -59,7 +59,7 @@ def main_algorithm_to_pool(
             find_features(to_predict)
     else:
         g0, n, NH, U, Z, importances_g0, importances_n, importances_NH, \
-        importances_U, importances_Z = find_features(to_predict)
+            importances_U, importances_Z = find_features(to_predict)
 
     mask = np.where(models == unique_id[i - 1])
     matrix_mms = []  # matrix_mms is useful to save physical properties
@@ -282,7 +282,7 @@ def run_game(
 
     # This creates arrays useful to save the output for the feature importances
     importances_g0, importances_n, importances_NH, \
-    importances_U, importances_Z = list(get_importances(data))
+        importances_U, importances_Z = list(get_importances(data))
 
     if verbose:
         print '# of input  models                     :', len(data[1:])
@@ -431,27 +431,21 @@ def run_game(
 
     # Searching for values of the additional physical properties
     pool = multiprocessing.Pool(processes=n_processes)
-    main_algorithm_additional = partial(main_algorithm_to_pool,
-                                        models=models, unique_id=unique_id,
-                                        initial=initial, limit=limit
-                                        , features=features,
-                                        labels_train=labels_train,
-                                        labels_test=labels_test
-                                        , labels=labels, regr=REGRESSOR,
-                                        line_labels=line_labels,
-                                        importances_fesc=importances_fesc
-                                        , filename_int=filename_int,
-                                        filename_err=filename_err,
-                                        n_repetition=n_repetition,
-                                        choice_rep=choice_rep,
-                                        to_predict={
-                                            "AV": AV,
-                                            "importances_AV": importances_AV,
-                                            "fesc": fesc,
-                                            "importances_fesc":
-                                                importances_fesc
-                                        }
-                                        )
+    main_algorithm_additional = partial(
+        main_algorithm_to_pool,
+        models=models, unique_id=unique_id, initial=initial, limit=limit,
+        features=features, labels_train=labels_train, labels_test=labels_test,
+        labels=labels, regr=REGRESSOR, line_labels=line_labels,
+        importances_fesc=importances_fesc, filename_int=filename_int,
+        filename_err=filename_err, n_repetition=n_repetition,
+        choice_rep=choice_rep, to_predict={
+            "AV": AV,
+            "importances_AV": importances_AV,
+            "fesc": fesc,
+            "importances_fesc":
+                importances_fesc
+        }
+    )
     results = pool.map(main_algorithm_additional,
                        np.arange(1, np.max(unique_id.astype(int)) + 1, 1))
     pool.close()
