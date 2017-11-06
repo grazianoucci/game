@@ -18,7 +18,7 @@ from sklearn import tree
 from sklearn.ensemble import AdaBoostRegressor
 
 from ml import realization, determine_models, error_estimate, machine_learn, \
-    find_features, get_importances, initialize_arrays, get_write_output
+    get_importances, initialize_arrays, get_write_output
 from utils import create_library, create_output_directory, \
     read_emission_line_file, read_library_file, write_output_files, \
     write_optional_files, write_importances_files, get_additional_labels, \
@@ -47,6 +47,25 @@ REGRESSOR = AdaBoostRegressor(
 TEST_SIZE = 0.10
 
 
+class Prediction(object):
+    def __init__(self, to_predict):
+        self.data = to_predict
+
+        if "AV" and "fesc" in self.data:
+            self.keys = ["AV", "fesc"]
+        else:
+            self.keys = ["g0", "n", "NH", "U", "Z"]
+
+    def get_features(self):
+        output = []
+
+        for k in self.keys:
+            output.append(self.data[k])
+            output.append(self.data[("importances_" + k)])
+
+        return output
+
+
 def main_algorithm_to_pool(
         i, models, unique_id, initial, limit, features,
         labels_train, labels_test, labels, regr, line_labels,
@@ -55,11 +74,10 @@ def main_algorithm_to_pool(
     fesc_AV_mode = "AV" and "fesc" in to_predict
 
     if fesc_AV_mode:
-        AV, fesc, importances_AV, importances_fesc = \
-            find_features(to_predict)
+        AV, fesc, importances_AV, importances_fesc = to_predict.get_features()
     else:
         g0, n, NH, U, Z, importances_g0, importances_n, importances_NH, \
-            importances_U, importances_Z = find_features(to_predict)
+        importances_U, importances_Z = to_predict.get_features()
 
     mask = np.where(models == unique_id[i - 1])
     matrix_mms = []  # matrix_mms is useful to save physical properties
@@ -326,7 +344,8 @@ def run_game(
         regr=REGRESSOR, line_labels=line_labels,
         filename_int=filename_int,
         filename_err=filename_err,
-        n_repetition=n_repetition, choice_rep=choice_rep, to_predict=to_predict
+        n_repetition=n_repetition, choice_rep=choice_rep,
+        to_predict=Prediction(to_predict)
     )
     pool = multiprocessing.Pool(processes=n_processes)  # Pool calling
     results = pool.map(
@@ -540,8 +559,4 @@ def run_game(
 
 
 if __name__ == "__main__":
-    try:
-        run_game()
-    except Exception as e:
-        print str(e)
-        print "\nAborted"
+    run_game()

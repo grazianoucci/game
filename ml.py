@@ -136,31 +136,6 @@ def machine_learn(feat, lab, physical_p, ml_regressor):
     return copy.copy(model), importances, np.mean(score), np.std(score)
 
 
-def find_features(to_predict):
-    """
-    :param to_predict: {}
-        Dict with values to predict
-    :return: []
-        List with features to predict
-    """
-
-    output = []
-    if "AV" and "fesc" in to_predict:
-        keys = ["AV", "fesc"]
-    else:
-        keys = ["g0", "n", "NH", "U", "Z"]
-
-    for k in keys:
-        if k in to_predict in to_predict:
-            output.append(to_predict[k])
-
-    for k in keys:
-        if "importances_" + k in to_predict in to_predict:
-            output.append(to_predict[("importances_" + k)])
-
-    return output
-
-
 def get_importances(data):
     """
     :param data: matrix
