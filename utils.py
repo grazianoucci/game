@@ -16,7 +16,33 @@ import numpy as np
 from sklearn.preprocessing import Normalizer
 
 
-def create_library_folder():
+def download_library(download_file,
+                     url="http://cosmology.sns.it/library_game/library.tar.gz"):
+    """
+    :param download_file: str
+        Path where to download file
+    :param url: str
+        Url of library
+    :return: void
+        Downloads library to file
+    """
+
+    try:
+        urllib.urlretrieve(
+            url,
+            filename=download_file
+        )
+        tar = tarfile.open(download_file)
+        tar.extractall()
+        tar.close()
+    except Exception:
+        if os.path.exists(download_file):
+            os.remove(download_file)
+
+        raise Exception("Cannot download library .tar file")
+
+
+def create_library():
     """
     :return: void
         Creates necessary  library directory if not existing
@@ -24,20 +50,17 @@ def create_library_folder():
 
     dir_path = 'library/'
     download_file = "library.tar.gz"
-    directory = os.path.dirname(dir_path)
-    if not os.path.exists(directory):
-        try:
-            urllib.urlretrieve(
-                "http://cosmology.sns.it/library_game/library.tar.gz",
-                filename=download_file)
-            tar = tarfile.open(download_file)
-            tar.extractall()
-            tar.close()
-        except Exception:
-            if os.path.exists(download_file):
-                os.remove(download_file)
+    library_file = os.path.join(
+        os.getcwd(),
+        dir_path,
+        download_file
+    )
 
-            raise Exception("Cannot download library .tar file")
+    if not os.path.exists(library_file):
+        if not os.path.exists(os.path.dirname(library_file)):
+            os.makedirs(library_file)  # create necessary folders
+
+        download_library(download_file)
 
 
 def create_output_directory(dir_path):

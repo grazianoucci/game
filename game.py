@@ -19,7 +19,7 @@ from sklearn.ensemble import AdaBoostRegressor
 
 from ml import realization, determine_models, error_estimate, machine_learn, \
     find_features, get_importances, initialize_arrays, get_write_output
-from utils import create_library_folder, create_output_directory, \
+from utils import create_library, create_output_directory, \
     read_emission_line_file, read_library_file, write_output_files, \
     write_optional_files, write_importances_files, get_additional_labels, \
     write_models_info
@@ -239,7 +239,7 @@ def run_game(
         choice_rep=YES, n_processes=2, n_repetition=10000,
         dir_path='output/', verbose=True
 ):
-    create_library_folder()
+    create_library()
 
     if verbose:
         print INTRO
