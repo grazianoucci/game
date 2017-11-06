@@ -65,19 +65,22 @@ class Prediction(object):
 
         return output
 
+    def is_fesc_av_mode(self):
+        return "AV" and "fesc" in self.data
+
 
 def main_algorithm_to_pool(
         i, models, unique_id, initial, limit, features,
         labels_train, labels_test, labels, regr, line_labels,
         filename_int, filename_err, n_repetition, choice_rep, to_predict=None
 ):
-    fesc_AV_mode = "AV" and "fesc" in to_predict
-
-    if fesc_AV_mode:
-        AV, fesc, importances_AV, importances_fesc = to_predict.get_features()
+    fesc_av_mode = to_predict[0].is_fesc_av_mode()
+    if fesc_av_mode:
+        AV, fesc, importances_AV, importances_fesc = \
+            to_predict[0].get_features()
     else:
         g0, n, NH, U, Z, importances_g0, importances_n, importances_NH, \
-        importances_U, importances_Z = to_predict.get_features()
+        importances_U, importances_Z = to_predict[0].get_features()
 
     mask = np.where(models == unique_id[i - 1])
     matrix_mms = []  # matrix_mms is useful to save physical properties
@@ -93,7 +96,7 @@ def main_algorithm_to_pool(
 
     # ML error estimation
 
-    if fesc_AV_mode:
+    if fesc_av_mode:
         [AV_true, AV_pred, sigma_AV] = error_estimate(
             features_train,
             features_test,
@@ -139,7 +142,7 @@ def main_algorithm_to_pool(
 
     # Function calls for the machine learning routines
 
-    if fesc_AV_mode:
+    if fesc_av_mode:
         [model_AV, imp_AV, score_AV, std_AV] = machine_learn(
             features[:, initial[mask][0]], labels, 3, regr)
         [model_fesc, imp_fesc, score_fesc, std_fesc] = machine_learn(
@@ -166,7 +169,7 @@ def main_algorithm_to_pool(
     # Prediction of the physical properties
     if choice_rep == YES:
         for el in xrange(len(mask[0])):
-            if fesc_AV_mode:
+            if fesc_av_mode:
                 AV[mask[0][el], :] = model_AV.predict(
                     new_data[el::len(mask[0])])
                 fesc[mask[0][el], :] = model_fesc.predict(
@@ -190,7 +193,7 @@ def main_algorithm_to_pool(
                                Z[mask[0][el], :]])
     else:
         for el in xrange(len(mask[0])):
-            if fesc_AV_mode:
+            if fesc_av_mode:
                 result = np.zeros((len(new_data[el::len(mask[0])]), 2))
                 result[:, 0] = model_AV.predict(new_data[el::len(mask[0])])
                 result[:, 1] = model_fesc.predict(new_data[el::len(mask[0])])
@@ -212,7 +215,7 @@ def main_algorithm_to_pool(
             matrix_mms.append(vector_mms)
 
     # Importance matrices
-    if fesc_AV_mode:
+    if fesc_av_mode:
         importances_AV[initial[mask][0]] = imp_AV
         importances_fesc[initial[mask][0]] = imp_fesc
     else:
@@ -227,7 +230,7 @@ def main_algorithm_to_pool(
         int(np.max(unique_id))), 'completed...'
 
     # Returns for the parallelization
-    if fesc_AV_mode:
+    if fesc_av_mode:
         return [sigma_AV, sigma_fesc], \
                [i, score_AV, std_AV, score_fesc, std_fesc], \
                line_labels[initial[mask][0]], \
@@ -345,7 +348,7 @@ def run_game(
         filename_int=filename_int,
         filename_err=filename_err,
         n_repetition=n_repetition, choice_rep=choice_rep,
-        to_predict=Prediction(to_predict)
+        to_predict=[Prediction(to_predict)]
     )
     pool = multiprocessing.Pool(processes=n_processes)  # Pool calling
     results = pool.map(
