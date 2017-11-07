@@ -136,34 +136,6 @@ def machine_learn(feat, lab, physical_p, ml_regressor):
     return copy.copy(model), importances, np.mean(score), np.std(score)
 
 
-def get_importances(data):
-    """
-    :param data: matrix
-        Data input
-    :return: (generator of) numpy array
-        Arrays filled with zeros
-    """
-
-    length = len(data[0])
-    for _ in range(len(["g0", "n", "NH", "U", "Z"])):
-        yield np.zeros(length)
-
-
-def initialize_arrays(data, n_repetition):
-    """
-    :param data: matrix
-        Data input
-    :param n_repetition: int
-        Number of repetition
-    :return: (generator of) numpy array
-        Arrays filled with zeros
-    """
-
-    length = len(data[1:])
-    for _ in range(len(["g0", "n", "NH", "U", "Z"])):
-        yield np.zeros(shape=(length, n_repetition))
-
-
 def get_write_output(model_ids, matrix_ml):
     """ TODO add docs
     :param model_ids:

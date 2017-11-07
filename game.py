@@ -17,11 +17,10 @@ from sklearn import tree
 from sklearn.ensemble import AdaBoostRegressor
 
 from ml import realization, determine_models, error_estimate, machine_learn, \
-    get_importances, initialize_arrays, get_write_output
+    get_write_output
 from utils import create_library, create_output_directory, \
     read_emission_line_file, read_library_file, write_output_files, \
-    write_optional_files, write_importances_files, get_additional_labels, \
-    write_models_info, get_files_from_user
+    write_importances_files, write_models_info, get_files_from_user
 
 YES, NO = "y", "n"
 INTRO = '--------------------------------------------------------\n' + \
@@ -50,28 +49,16 @@ NUMBER_OF_PROCESSES = 2
 class Prediction(object):
     """ General prediction of model """
 
-    def __init__(self, to_predict):
+    def __init__(self, features, data):
         """
-        :param to_predict: {}
+        :param features: [] of str
             Data to predict
+        :param data: matrix
+            Data input
         """
 
-        self.data = to_predict
-
-        if "AV" and "fesc" in self.data:
-            self.keys = ["AV", "fesc"]
-        else:
-            self.keys = ["g0", "n", "NH", "U", "Z"]
-
-    def get_features(self):
-        """
-        :return: (generator of) []
-            List of features to predict
-        """
-
-        for k in self.keys:
-            yield self.data[k]
-            yield self.data["importances_" + k]
+        self.features = features
+        self.data = data
 
     def are_additional_labels(self):
         """
@@ -81,6 +68,28 @@ class Prediction(object):
 
         return "AV" and "fesc" in self.data
 
+    def create_features_arrays(self, n_repetition):
+        """
+        :param n_repetition: int
+            Number of repetition
+        :return: (generator of) numpy array
+            Arrays filled with zeros
+        """
+
+        length = len(self.data[1:])
+        for _ in self.features:
+            yield np.zeros(shape=(length, n_repetition))
+
+    def create_importances_arrays(self):
+        """
+        :return: (generator of) numpy array
+            Arrays filled with zeros
+        """
+
+        length = len(self.data[0])
+        for _ in self.features:
+            yield np.zeros(length)
+
 
 def game(
         i, models, unique_id, initial, limit, features,
@@ -89,12 +98,14 @@ def game(
 ):
     predicting_additional_labels = to_predict.are_additional_labels()
     if predicting_additional_labels:
-        AV, fesc, importances_AV, importances_fesc = \
-            list(to_predict.get_features())
+        AV, fesc = list(to_predict.create_features_arrays(n_repetition))
+        importances_AV, importances_fesc = list(
+            to_predict.create_importances_arrays(n_repetition))
     else:
-        g0, n, NH, U, Z, importances_g0, importances_n, importances_NH, \
-        importances_U, importances_Z = list(to_predict.get_features())
-
+        g0, n, NH, U, Z = list(to_predict.create_features_arrays(n_repetition))
+        importances_g0, importances_n, importances_NH, \
+        importances_U, importances_Z = list(
+            to_predict.create_importances_arrays(n_repetition))
 
     mask = np.where(models == unique_id[i - 1])
     matrix_mms = []  # matrix_mms is useful to save physical properties
@@ -315,15 +326,11 @@ def main(
     # Be careful because the first row in data there are wavelengths!
     initial, models, unique_id = determine_models(data[1:])
 
-    # This creates arrays useful to save the output for the feature importances
-    importances_g0, importances_n, importances_NH, \
-        importances_U, importances_Z = list(get_importances(data))
-
     if verbose:
         print '# of input  models                     :', len(data[1:])
         print '# of unique models for Machine Learning:', int(
             np.max(unique_id))
-        print '\nStarting of Machine Learning algorithm for the default ' \
+        print '\nStarting Machine Learning algorithm for the default ' \
               'labels... '
 
     start_time = time.time()
@@ -337,20 +344,10 @@ def main(
     labels_train = labels[:limit, :]
     labels_test = labels[limit:, :]
 
-    # Initialization of arrays and lists
-    g0, n, NH, U, Z = list(initialize_arrays(data, n_repetition))
-    to_predict = {
-        "g0": g0,
-        "importances_g0": importances_g0,
-        "n": n,
-        "importances_n": importances_n,
-        "NH": NH,
-        "importances_NH": importances_NH,
-        "U": U,
-        "importances_U": importances_U,
-        "Z": Z,
-        "importances_Z": importances_Z,
-    }
+    to_predict = Prediction(
+        ["g0", "n", "NH", "U", "Z"],
+        data
+    )
 
     # Searching for values of the physical properties
     algorithm = partial(
@@ -363,7 +360,7 @@ def main(
         filename_int=filename_int,
         filename_err=filename_err,
         n_repetition=n_repetition, choice_rep=choice_rep,
-        to_predict=Prediction(to_predict)
+        to_predict=to_predict
     )
     results = algorithm()
     end_time = time.time()
@@ -444,128 +441,6 @@ def main(
 
     if verbose:
         print ''
-
-    # Additional labels This creates arrays useful to save the output for
-    # the feature importances of the 'additional labels'
-    importances_AV = np.zeros(len(data[0]))
-    importances_fesc = np.zeros(len(data[0]))
-    if verbose:
-        print 'Starting Machine Learning algorithm for the additional ' \
-              'labels... '
-
-    start_time = time.time()
-    labels, labels_train, labels_test = get_additional_labels(labels, limit)
-
-    # Initialization of arrays and lists
-    AV = np.zeros(shape=(len(data[1:]), n_repetition))
-    fesc = np.zeros(shape=(len(data[1:]), n_repetition))
-
-    # Searching for values of the additional physical properties
-    to_predict = {
-        "AV": AV,
-        "importances_AV": importances_AV,
-        "fesc": fesc,
-        "importances_fesc":
-            importances_fesc
-    }
-    algorithm = partial(
-        game,
-        i=0,
-        models=models, unique_id=unique_id, initial=initial, limit=limit,
-        features=features, labels_train=labels_train, labels_test=labels_test,
-        labels=labels, regr=REGRESSOR, line_labels=line_labels,
-        importances_fesc=importances_fesc, filename_int=filename_int,
-        filename_err=filename_err, n_repetition=n_repetition,
-        choice_rep=choice_rep, to_predict=Prediction(to_predict)
-    )
-    results = algorithm()
-    end_time = time.time()
-    if verbose:
-        print 'Elapsed time for ML:', (end_time - start_time)
-        print '\nWriting output files for the additional labels...'
-
-    # Rearrange based on the find_ids indexes
-    sigmas = np.array(
-        list(chain.from_iterable(np.array(results)[:, 0]))).reshape(
-        len(unique_id.astype(int)), 2)
-
-    scores = np.array(
-        list(chain.from_iterable(np.array(results)[:, 1]))).reshape(
-        len(unique_id.astype(int)), 5)
-
-    importances = np.array(list(chain.from_iterable(np.array(results)[:, 6])))
-    trues = np.array(list(chain.from_iterable(np.array(results)[:, 7])))
-    preds = np.array(list(chain.from_iterable(np.array(results)[:, 8])))
-    list_of_lines = np.array(results)[:, 2]
-
-    # find_ids are usefult to reorder the matrix with the ML determinations
-    find_ids = list(chain.from_iterable(np.array(results)[:, 3]))
-    temp_model_ids = list(chain.from_iterable(np.array(results)[:, 4]))
-
-    if choice_rep == YES:
-        temp_matrix_ml = np.array(
-            list(chain.from_iterable(np.array(results)[:, 5])))
-        # Rearrange the matrix based on the find_ids indexes
-        matrix_ml = np.zeros(shape=temp_matrix_ml.shape)
-        for i in xrange(len(matrix_ml)):
-            matrix_ml[find_ids[i], :] = temp_matrix_ml[i, :]
-    if choice_rep == NO:
-        temp_matrix_ml = np.array(
-            list(chain.from_iterable(np.array(results)[:, 5]))).reshape(
-            len(data[1:]), 6)
-
-        # Rearrange the matrix based on the find_ids indexes
-        matrix_ml = np.zeros(shape=temp_matrix_ml.shape)
-        for i in xrange(len(matrix_ml)):
-            matrix_ml[find_ids[i], :] = temp_matrix_ml[i, :]
-
-    # Rearrange the model_ids based on the find_ids indexes
-    model_ids = np.zeros(len(temp_model_ids))
-    for i in xrange(len(temp_model_ids)):
-        model_ids[find_ids[i]] = temp_model_ids[i]
-
-    # Write information on different models
-    f = open(dir_path + 'model_ids_additional.dat', 'w+')
-    for i in xrange(len(sigmas)):
-        f.write('##############################\n')
-        f.write('Id model: %d\n' % (i + 1))
-        f.write('Standard deviation of Av:        %.3f\n' % sigmas[i, 0])
-        f.write('Standard deviation of fesc:      %.3f\n' % sigmas[i, 1])
-        f.write('Cross-validation score for Av:   %.3f +- %.3f\n' % (
-            scores[i, 1], 2. * scores[i, 2]))
-        f.write('Cross-validation score for fesc: %.3f +- %.3f\n' % (
-            scores[i, 3], 2. * scores[i, 4]))
-        f.write('List of input lines:\n')
-        f.write('%s\n' % list_of_lines[i])
-    f.write('##############################\n')
-    f.close()
-
-    # Outputs relative to the Machine Learning determination
-    if choice_rep == YES:
-        write_output = np.vstack((model_ids, np.mean(matrix_ml[:, 0], axis=1),
-                                  np.median(matrix_ml[:, 0], axis=1),
-                                  np.std(matrix_ml[:, 0], axis=1),
-                                  np.mean(matrix_ml[:, 1], axis=1),
-                                  np.median(matrix_ml[:, 1], axis=1),
-                                  np.std(matrix_ml[:, 1], axis=1))).T
-    if choice_rep == NO:
-        write_output = np.column_stack((model_ids, matrix_ml))
-    np.savetxt(dir_path + 'output_ml_additional.dat', write_output,
-               header="id_model mean[Av] median[Av] sigma[Av] mean[fesc] "
-                      "median[fesc] sigma[fesc]",
-               fmt='%.5f')
-
-    # Outputs with the feature importances
-    np.savetxt(dir_path + 'output_feature_importances_Av.dat',
-               np.vstack((data[0], importances[0::2, :])), fmt='%.5f')
-    np.savetxt(dir_path + 'output_feature_importances_fesc.dat',
-               np.vstack((data[0], importances[1::2, :])), fmt='%.5f')
-
-    # Optional files
-    if choice_rep == YES:
-        write_optional_files(dir_path, preds, trues, matrix_ml)
-    if verbose:
-        print '\nEnd of program!'
 
 
 if __name__ == "__main__":
