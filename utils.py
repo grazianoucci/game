@@ -293,3 +293,22 @@ def get_additional_labels(labels, limit,
     labels_test = labels[limit:, :]
 
     return labels, labels_train, labels_test
+
+
+def get_files_from_user():
+    """
+    :return: tuple (str, str, str)
+        Files for (line intensities, errors, labels)
+    """
+
+    line = raw_input(
+        'Insert input file name (line intensities): '
+    ).strip()
+    errors = raw_input(
+        'Insert input file name (errors on line intensities): '
+    ).strip()
+    labels = raw_input(
+        'Insert name of file containing the labels: '
+    ).strip()
+
+    return line, errors, labels

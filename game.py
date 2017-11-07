@@ -8,9 +8,7 @@
 
 """ GAME (GAlaxy Machine learning for Emission lines) """
 
-import multiprocessing
 import time
-import traceback
 from functools import partial
 from itertools import chain
 
@@ -23,7 +21,7 @@ from ml import realization, determine_models, error_estimate, machine_learn, \
 from utils import create_library, create_output_directory, \
     read_emission_line_file, read_library_file, write_output_files, \
     write_optional_files, write_importances_files, get_additional_labels, \
-    write_models_info
+    write_models_info, get_files_from_user
 
 YES, NO = "y", "n"
 INTRO = '--------------------------------------------------------\n' + \
@@ -73,9 +71,9 @@ class Prediction(object):
 
         for k in self.keys:
             yield self.data[k]
-            yield self.data[("importances_" + k)]
+            yield self.data["importances_" + k]
 
-    def is_fesc_av_mode(self):
+    def are_additional_labels(self):
         """
         :return: bool
             True iff "AV" and "fesc" features to be predicted
@@ -87,15 +85,16 @@ class Prediction(object):
 def game(
         i, models, unique_id, initial, limit, features,
         labels_train, labels_test, labels, regr, line_labels,
-        filename_int, filename_err, n_repetition, choice_rep, to_predict=None
+        filename_int, filename_err, n_repetition, choice_rep, to_predict
 ):
-    fesc_av_mode = to_predict[0].is_fesc_av_mode()
-    if fesc_av_mode:
-        AV, fesc, importances_AV, importances_fesc = list(to_predict[
-                                                              0].get_features())
+    predicting_additional_labels = to_predict.are_additional_labels()
+    if predicting_additional_labels:
+        AV, fesc, importances_AV, importances_fesc = \
+            list(to_predict.get_features())
     else:
         g0, n, NH, U, Z, importances_g0, importances_n, importances_NH, \
-        importances_U, importances_Z = list(to_predict[0].get_features())
+        importances_U, importances_Z = list(to_predict.get_features())
+
 
     mask = np.where(models == unique_id[i - 1])
     matrix_mms = []  # matrix_mms is useful to save physical properties
@@ -111,7 +110,7 @@ def game(
 
     # ML error estimation
 
-    if fesc_av_mode:
+    if predicting_additional_labels:
         [AV_true, AV_pred, sigma_AV] = error_estimate(
             features_train,
             features_test,
@@ -157,7 +156,7 @@ def game(
 
     # Function calls for the machine learning routines
 
-    if fesc_av_mode:
+    if predicting_additional_labels:
         [model_AV, imp_AV, score_AV, std_AV] = machine_learn(
             features[:, initial[mask][0]], labels, 3, regr)
         [model_fesc, imp_fesc, score_fesc, std_fesc] = machine_learn(
@@ -184,7 +183,7 @@ def game(
     # Prediction of the physical properties
     if choice_rep == YES:
         for el in xrange(len(mask[0])):
-            if fesc_av_mode:
+            if predicting_additional_labels:
                 AV[mask[0][el], :] = model_AV.predict(
                     new_data[el::len(mask[0])])
                 fesc[mask[0][el], :] = model_fesc.predict(
@@ -208,7 +207,7 @@ def game(
                                Z[mask[0][el], :]])
     else:
         for el in xrange(len(mask[0])):
-            if fesc_av_mode:
+            if predicting_additional_labels:
                 result = np.zeros((len(new_data[el::len(mask[0])]), 2))
                 result[:, 0] = model_AV.predict(new_data[el::len(mask[0])])
                 result[:, 1] = model_fesc.predict(new_data[el::len(mask[0])])
@@ -230,7 +229,7 @@ def game(
             matrix_mms.append(vector_mms)
 
     # Importance matrices
-    if fesc_av_mode:
+    if predicting_additional_labels:
         importances_AV[initial[mask][0]] = imp_AV
         importances_fesc[initial[mask][0]] = imp_fesc
     else:
@@ -245,7 +244,7 @@ def game(
         int(np.max(unique_id))), 'completed...'
 
     # Returns for the parallelization
-    if fesc_av_mode:
+    if predicting_additional_labels:
         return [sigma_AV, sigma_fesc], \
                [i, score_AV, std_AV, score_fesc, std_fesc], \
                line_labels[initial[mask][0]], \
@@ -267,7 +266,15 @@ def game(
                 np.array(U_pred), np.array(Z_pred)]
 
 
-def run_game(
+def run_parallel_game():
+    pass
+
+
+def run_additional_labels_predictions():
+    pass
+
+
+def main(
         manual_input=False,
         filename_int='input/inputs_game_test.dat',
         filename_err='input/errors_game_test.dat',
@@ -282,15 +289,7 @@ def run_game(
 
     # Input file reading
     if manual_input:
-        filename_int = raw_input(
-            'Insert input file name (line intensities): '
-        )
-        filename_err = raw_input(
-            'Insert input file name (errors on line intensities): '
-        )
-        filename_library = raw_input(
-            'Insert name of file containing the labels: '
-        )
+        filename_int, filename_err, filename_library = get_files_from_user()
 
     create_output_directory(
         dir_path
@@ -351,11 +350,12 @@ def run_game(
         "importances_U": importances_U,
         "Z": Z,
         "importances_Z": importances_Z,
-    }  # TODO fix probable undefined ref
+    }
 
     # Searching for values of the physical properties
-    main_algorithm = partial(
+    algorithm = partial(
         game,
+        i=0,
         models=models, unique_id=unique_id, initial=initial, limit=limit,
         features=features, labels_train=labels_train,
         labels_test=labels_test, labels=labels,
@@ -363,15 +363,9 @@ def run_game(
         filename_int=filename_int,
         filename_err=filename_err,
         n_repetition=n_repetition, choice_rep=choice_rep,
-        to_predict=[Prediction(to_predict)]
+        to_predict=Prediction(to_predict)
     )
-    pool = multiprocessing.Pool(processes=n_processes)  # Pool calling
-    results = pool.map(
-        main_algorithm,
-        np.arange(1, np.max(unique_id.astype(int)) + 1, 1)
-    )
-    pool.close()
-    pool.join()
+    results = algorithm()
     end_time = time.time()
 
     if verbose:
@@ -467,26 +461,24 @@ def run_game(
     fesc = np.zeros(shape=(len(data[1:]), n_repetition))
 
     # Searching for values of the additional physical properties
-    pool = multiprocessing.Pool(processes=n_processes)
-    main_algorithm_additional = partial(
+    to_predict = {
+        "AV": AV,
+        "importances_AV": importances_AV,
+        "fesc": fesc,
+        "importances_fesc":
+            importances_fesc
+    }
+    algorithm = partial(
         game,
+        i=0,
         models=models, unique_id=unique_id, initial=initial, limit=limit,
         features=features, labels_train=labels_train, labels_test=labels_test,
         labels=labels, regr=REGRESSOR, line_labels=line_labels,
         importances_fesc=importances_fesc, filename_int=filename_int,
         filename_err=filename_err, n_repetition=n_repetition,
-        choice_rep=choice_rep, to_predict={
-            "AV": AV,
-            "importances_AV": importances_AV,
-            "fesc": fesc,
-            "importances_fesc":
-                importances_fesc
-        }
+        choice_rep=choice_rep, to_predict=Prediction(to_predict)
     )
-    results = pool.map(main_algorithm_additional,
-                       np.arange(1, np.max(unique_id.astype(int)) + 1, 1))
-    pool.close()
-    pool.join()
+    results = algorithm()
     end_time = time.time()
     if verbose:
         print 'Elapsed time for ML:', (end_time - start_time)
@@ -577,8 +569,4 @@ def run_game(
 
 
 if __name__ == "__main__":
-    try:
-        run_game()
-    except Exception as e:
-        print str(e)
-        traceback.print_stack()
+    main()
