@@ -51,26 +51,6 @@ class Prediction(object):
                 self.regr
             )
 
-    def are_additional_labels(self):
-        """
-        :return: bool
-            True iff "AV" and "fesc" features to be predicted
-        """
-
-        return ("AV" in self.features) and ("fesc" in self.features)
-
-    def generate_features_arrays(self, n_repetition):
-        """
-        :param n_repetition: int
-            Number of repetition
-        :return: (generator of) numpy array
-            Arrays filled with zeros
-        """
-
-        length = len(self.data[1:])
-        for _ in self.features:
-            yield np.zeros(shape=(length, n_repetition))
-
     def generate_importances_arrays(self):
         """
         :return: (generator of) numpy array
@@ -416,10 +396,9 @@ class Game(object):
             limit=self.test_size_limit,
             features=self.prediction_features, labels_train=labels_train,
             labels_test=labels_test, labels=self.labels,
-            regr=self.REGRESSOR, line_labels=self.line_labels,
-            filename_int=self.filename_int,
-            filename_err=self.filename_err,
-            n_repetition=self.n_repetition, optional_files=self.optional_files,
+            line_labels=self.line_labels, filename_int=self.filename_int,
+            filename_err=self.filename_err, n_repetition=self.n_repetition,
+            optional_files=self.optional_files,
             to_predict=to_predict
         )
         self.results = utils.run_parallel(

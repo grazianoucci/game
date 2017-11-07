@@ -15,7 +15,7 @@ from game.ml import realization
 
 def game(
         i, models, unique_id, initial, limit, features,
-        labels_train, labels_test, labels, regr, line_labels,
+        labels_train, labels_test, labels, line_labels,
         filename_int, filename_err, n_repetition, optional_files, to_predict
 ):
     features_to_predict = list(to_predict.generate_features())
