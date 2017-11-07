@@ -117,16 +117,6 @@ class Game(object):
         """
         :param features: [] of str
             List of features to predict
-        :param manual_input: bool
-            Whether to expect user interaction or not
-        :param verbose: bool
-            Whether to print more information to stdout
-        :param n_repetition: int
-            Number of repetitions to do
-        :param input_folder: str
-            Path to folder where input files are located
-        :param output_folder: str
-            Path to folder where you want output files
         """
 
         self.features = features
@@ -157,6 +147,8 @@ class Game(object):
         self.choice_rep = False
         self.n_processes = 2
         self.results = None
+        self.output_sigmas_header = "Standard deviation of log "
+        self.output_scores_header = "Cross-validation score for "
 
     def start(self):
         """
@@ -278,9 +270,12 @@ class Game(object):
 
         # Definition of features and labels for Machine Learning. Searching
         # for values of the physical properties (for metallicity logarithm)
-        features = self.output[:, :-5]
+        features = self.output[:, : -len(self.features)]
         labels = np.double(
-            self.output[:, len(self.output[0]) - 5:len(self.output[0])]
+            self.output[
+            :,
+            len(self.output[0]) - len(self.features): len(self.output[0])
+            ]
         )
         labels[:, -1] = np.log10(labels[:, -1])
         limit = int((1. - self.TEST_SIZE) * len(features))
@@ -321,19 +316,28 @@ class Game(object):
         """
 
         sigmas = np.array(
-            list(chain.from_iterable(np.array(self.results)[:, 0]))).reshape(
-            len(unique_id.astype(int)), 5)
+            list(chain.from_iterable(np.array(self.results)[:, 0]))
+        ).reshape(len(unique_id.astype(int)), len(self.features))
 
         scores = np.array(
-            list(chain.from_iterable(np.array(self.results)[:, 1]))).reshape(
-            len(unique_id.astype(int)), 11)
+            list(chain.from_iterable(np.array(self.results)[:, 1]))
+        ).reshape(len(unique_id.astype(int)), len(self.features) * 2 + 1)
 
         importances = np.array(
-            list(chain.from_iterable(np.array(self.results)[:, 6])))
+            list(
+                chain.from_iterable(np.array(self.results)[:, 6])
+            )
+        )
         trues = np.array(
-            list(chain.from_iterable(np.array(self.results)[:, 7])))
+            list(
+                chain.from_iterable(np.array(self.results)[:, 7])
+            )
+        )
         predictions = np.array(
-            list(chain.from_iterable(np.array(self.results)[:, 8])))
+            list(
+                chain.from_iterable(np.array(self.results)[:, 8])
+            )
+        )
         list_of_lines = np.array(self.results)[:, 2]
 
         # find_ids are useful to reorder the matrix with the ML determinations
@@ -341,24 +345,31 @@ class Game(object):
         temp_model_ids = list(
             chain.from_iterable(np.array(self.results)[:, 4]))
 
-        temp_matrix_ml = np.array(
+        tmp_matrix_ml = np.array(
             list(chain.from_iterable(np.array(self.results)[:, 5]))
         )
 
-        matrix_ml = np.zeros(shape=temp_matrix_ml.shape)
+        matrix_ml = np.zeros(shape=tmp_matrix_ml.shape)
         for i in xrange(len(matrix_ml)):
-            matrix_ml[find_ids[i], :] = temp_matrix_ml[i, :]
+            matrix_ml[find_ids[i], :] = tmp_matrix_ml[i, :]
 
-        if not self.choice_rep:
-            temp_matrix_ml = np.array(
+        if self.choice_rep:
+            tmp_matrix_ml = np.array(
                 list(chain.from_iterable(
-                    np.array(self.results)[:, 5]))).reshape(
-                len(self.data[1:]), 15)
+                    np.array(self.results)[:, 5])
+                )
+            )
+        else:
+            tmp_matrix_ml = np.array(
+                list(chain.from_iterable(
+                    np.array(self.results)[:, 5])
+                )
+            ).reshape(len(self.data[1:]), len(self.features) * 3)
 
-            # Rearrange the matrix based on the find_ids indexes
-            matrix_ml = np.zeros(shape=temp_matrix_ml.shape)
-            for i in xrange(len(matrix_ml)):
-                matrix_ml[find_ids[i], :] = temp_matrix_ml[i, :]
+        # Rearrange the matrix based on the find_ids indexes
+        matrix_ml = np.zeros(shape=tmp_matrix_ml.shape)
+        for i in xrange(len(matrix_ml)):
+            matrix_ml[find_ids[i], :] = tmp_matrix_ml[i, :]
 
         # Rearrange the model_ids based on the find_ids indexes
         model_ids = np.zeros(len(temp_model_ids))
@@ -375,7 +386,16 @@ class Game(object):
 
         # Write information on different models
         write_models_info(
-            self.output_folder, self.features, sigmas, scores, list_of_lines
+            self.output_folder, self.features, [
+                {
+                    "lst": sigmas,
+                    "str": self.output_sigmas_header
+                },
+                {
+                    "lst": scores,
+                    "str": self.output_scores_header
+                },
+            ], list_of_lines
         )
 
         # Outputs relative to the Machine Learning determination
@@ -679,8 +699,17 @@ def game(
 
 
 def main():
+    print "Starting GAME with default labels..."
     driver = Game(
         ["g0", "n", "NH", "U", "Z"],
+        manual_input=False,
+        verbose=True
+    )
+    driver.run()
+
+    print "Starting GAME with additional labels..."
+    driver = Game(
+        ["AV", "fesc"],
         manual_input=False,
         verbose=True
     )

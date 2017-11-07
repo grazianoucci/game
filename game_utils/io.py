@@ -145,16 +145,18 @@ def write_importances_files(dir_path, labels, data, importances):
         )
 
 
-def write_models_info(dir_path, labels, sigmas, scores, list_of_lines):
+def write_models_info(dir_path, labels, data, list_of_lines):
     """
     :param dir_path: str
         Path to output folder
     :param labels: [] of str
         Features to write
-    :param sigmas: matrix
-        Sigmas
-    :param scores: matrix
-        Scores
+    :param data: [] of {} str -> matrix
+        List of dicts like
+        {
+            "lst": sigmas,
+            "str": "Standard deviation of"
+        }
     :param list_of_lines: []
         List of lines
     :return: void
@@ -162,23 +164,16 @@ def write_models_info(dir_path, labels, sigmas, scores, list_of_lines):
     """
 
     with open(os.path.join(dir_path, "model_ids.dat"), "w+") as out_file:
-        for i in xrange(len(sigmas)):
+        tot_rows = len(data[0]["lst"])
+        for i in xrange(tot_rows):
             out_file.write("##############################\n")
             out_file.write("Id model: %d\n" % (i + 1))
 
-            # std
-            for j, label in enumerate(labels):
-                out_file.write(
-                    "Standard deviation of log(" + label + "): %.3f\n" %
-                    sigmas[i, j]
-                )
-
-            # cross validation score
-            for j, label in enumerate(labels):
-                out_file.write(
-                    "Cross-validation score for" + label + ": %.3f +- %.3f\n"
-                    % (scores[i, 2 * j + 1], 2. * scores[i, 2 * (j + 1)])
-                )
+            for d in data:
+                for j, label in enumerate(labels):
+                    out_file.write(
+                        d["str"] + label + ": %.3f\n" % d["lst"][i, j]
+                    )
 
             out_file.write("List of input lines:\n")
             out_file.write("%s\n" % list_of_lines[i])
