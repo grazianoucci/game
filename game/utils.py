@@ -26,7 +26,7 @@ def create_directory(dir_path):
 
     directory = os.path.dirname(dir_path)
     if not os.path.exists(directory):
-        os.mkdir(directory)
+        os.makedirs(directory)
 
 
 def download_library(
