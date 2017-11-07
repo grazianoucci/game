@@ -13,7 +13,7 @@ import os
 import numpy as np
 
 
-def get_files_from_user():
+def get_input_files():
     """
     :return: tuple (str, str, str)
         Files for (line intensities, errors, labels)
@@ -32,64 +32,26 @@ def get_files_from_user():
     return line, errors, labels
 
 
-def get_write_output(model_ids, matrix_ml):
-    """ TODO add docs
+def get_output(model_ids, matrix_ml, n_features):
+    """
     :param model_ids:
     :param matrix_ml:
+    :param n_features: int
+        Number of features to include
     :return: np.vstack
     """
 
-    return np.vstack(
-        (
-            model_ids, np.log10(np.mean(10 ** matrix_ml[:, 0], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, 0], axis=1)),
-            np.std(matrix_ml[:, 0], axis=1),
-            np.log10(np.mean(10 ** matrix_ml[:, 1], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, 1], axis=1)),
-            np.std(matrix_ml[:, 1], axis=1),
-            np.log10(np.mean(10 ** matrix_ml[:, 2], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, 2], axis=1)),
-            np.std(matrix_ml[:, 2], axis=1),
-            np.log10(np.mean(10 ** matrix_ml[:, 3], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, 3], axis=1)),
-            np.std(matrix_ml[:, 3], axis=1),
-            np.log10(np.mean(10 ** matrix_ml[:, 4], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, 4], axis=1)),
-            np.std(matrix_ml[:, 4], axis=1)
-        )
-    ).T  # transpose
+    out = [model_ids]
+    for i in range(n_features):
+        out += [
+            np.log10(np.mean(10 ** matrix_ml[:, i], axis=1)),
+            np.log10(np.median(10 ** matrix_ml[:, i], axis=1)),
+            np.std(matrix_ml[:, i], axis=1)
+        ]
+    return np.vstack(tuple(out)).T  # transpose
 
 
-def get_additional_labels(labels, limit,
-                          filename="library/additional_labels.dat"):
-    """
-    :param labels: matrix
-        Initial labels
-    :param limit: int
-        Limit
-    :param filename: str
-        Path to input file
-    :return: tuple (matrix, matrix, matrix)
-        Definition of additional labels for Machine Learning
-    """
-
-    labels[:, -2:] = np.loadtxt(filename)
-
-    # This code is inserted in order to work with logarithms!
-    # If there is a zero, we substitute it with 1e-9
-    labels[labels[:, -2] == 0, -2] = 1e-9
-    labels[labels[:, -1] == 0, -1] = 1e-9
-    labels[:, -2] = np.log10(labels[:, -2])
-    labels[:, -1] = np.log10(labels[:, -1])
-
-    # Reading labels in the library corresponding to the line
-    labels_train = labels[:limit, :]
-    labels_test = labels[limit:, :]
-
-    return labels, labels_train, labels_test
-
-
-def write_output_files(dir_path, labels, data):
+def write_optional_files(dir_path, labels, data):
     """
     :param dir_path: str
         Path to output folder

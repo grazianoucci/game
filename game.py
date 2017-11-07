@@ -21,8 +21,8 @@ from sklearn import tree
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.preprocessing import Normalizer
 
-from game_utils.io import write_output_files, write_importances_files, \
-    write_models_info, get_files_from_user, get_write_output
+from game_utils.io import write_optional_files, write_importances_files, \
+    write_models_info, get_input_files, get_output
 from game_utils.ml import realization, error_estimate, machine_learn
 
 
@@ -89,13 +89,6 @@ class Game(object):
     # set to determine the PDFs
     TEST_SIZE = 0.10
 
-    OUTPUT_HEADER = \
-        "id_model mean[Log(G0)] median[Log(G0)] sigma[Log(G0)] " + \
-        "mean[Log(n)] median[Log(n)] sigma[Log(n)] mean[Log(" + \
-        "NH)] median[Log(NH)] sigma[Log(NH)] mean[Log(U)] " + \
-        "median[Log(U)] sigma[Log(U)] mean[Log(Z)] median[Log(" + \
-        "Z)] sigma[Log(Z)]"
-
     INTRO = "--------------------------------------------------------\n" + \
             "--- GAME (GAlaxy Machine learning for Emission lines) --\n" + \
             "------- see Ucci G. et al. (2017a,b) for details -------\n" + \
@@ -111,8 +104,8 @@ class Game(object):
         "library.csv"
     )
 
-    def __init__(self, features, manual_input, verbose, n_repetition=10000,
-                 input_folder=os.getcwd(),
+    def __init__(self, features, manual_input, verbose, output_header,
+                 output_filename, n_repetition=10000, input_folder=os.getcwd(),
                  output_folder=os.path.join(os.getcwd(), "output")):
         """
         :param features: [] of str
@@ -125,6 +118,7 @@ class Game(object):
         self.user_input = manual_input
         self.verbose = verbose
         self.output_folder = output_folder
+        self.optional_files = False
 
         # input files
         self.filename_int = os.path.join(
@@ -140,15 +134,23 @@ class Game(object):
             "input/labels_game_test.dat"
         )
 
+        # data
         self.n_repetition = n_repetition
         self.data = None
+        self.labels = None
+        self.prediction_features = None
+        self.test_size_limit = 0
         self.output = None
         self.line_labels = None
-        self.choice_rep = False
         self.n_processes = 2
         self.results = None
         self.output_sigmas_header = "Standard deviation of log "
         self.output_scores_header = "Cross-validation score for "
+        self.output_header = output_header
+        self.output_filename = os.path.join(
+            self.output_folder,
+            output_filename
+        )
 
     def start(self):
         """
@@ -163,9 +165,9 @@ class Game(object):
 
         if self.user_input:
             self.filename_int, self.filename_err, self.filename_library = \
-                get_files_from_user()
+                get_input_files()
 
-            self.choice_rep = str(raw_input(
+            self.optional_files = str(raw_input(
                 "Do you want to create the optional files [y/n]?: "
             )).strip() == "y"  # optional files
 
@@ -244,8 +246,10 @@ class Game(object):
                 i += 1
         return initial, models, np.unique(models)
 
-    def run(self):
+    def run(self, additional_labels_file=None):
         """
+        :param additional_labels_file: str
+            Path to file containing additional labels
         :return: void
             Runs predictions and writes results
         """
@@ -254,6 +258,13 @@ class Game(object):
 
         if self.verbose:
             print "\nProgram started..."
+
+        if additional_labels_file:
+            print ""
+            print "Running GAME with additional labels...\n"
+        else:
+            print ""
+            print "Running GAME with default labels...\n"
 
         self.parse_input_files()
         initial, models, unique_id = self.determine_models()
@@ -270,17 +281,30 @@ class Game(object):
 
         # Definition of features and labels for Machine Learning. Searching
         # for values of the physical properties (for metallicity logarithm)
-        features = self.output[:, : -len(self.features)]
-        labels = np.double(
-            self.output[
-            :,
-            len(self.output[0]) - len(self.features): len(self.output[0])
-            ]
-        )
-        labels[:, -1] = np.log10(labels[:, -1])
-        limit = int((1. - self.TEST_SIZE) * len(features))
-        labels_train = labels[:limit, :]
-        labels_test = labels[limit:, :]
+        if self.labels is None:
+            self.prediction_features = self.output[:, : -len(self.features)]
+            self.labels = np.double(
+                self.output[:,
+                len(self.output[0]) - len(self.features): len(self.output[0])
+                ]
+            )
+            self.labels[:, -1] = np.log10(self.labels[:, -1])
+            self.test_size_limit = int(
+                (1. - self.TEST_SIZE) * len(self.prediction_features)
+            )
+
+        if additional_labels_file:
+            self.labels[:, -2:] = np.loadtxt(additional_labels_file)
+
+            # This code is inserted in order to work with logarithms!
+            # If there is a zero, we substitute it with 1e-9
+            self.labels[self.labels[:, -2] == 0, -2] = 1e-9
+            self.labels[self.labels[:, -1] == 0, -1] = 1e-9
+            self.labels[:, -2] = np.log10(self.labels[:, -2])
+            self.labels[:, -1] = np.log10(self.labels[:, -1])
+
+        labels_train = self.labels[:self.test_size_limit, :]
+        labels_test = self.labels[self.test_size_limit:, :]
         to_predict = Prediction(
             self.features,
             self.data
@@ -288,18 +312,20 @@ class Game(object):
 
         algorithm = partial(
             game,
+            i=1,
             models=models, unique_id=unique_id, initial=initial,
-            limit=limit,
-            features=features, labels_train=labels_train,
-            labels_test=labels_test, labels=labels,
+            limit=self.test_size_limit,
+            features=self.prediction_features, labels_train=labels_train,
+            labels_test=labels_test, labels=self.labels,
             regr=self.REGRESSOR, line_labels=self.line_labels,
             filename_int=self.filename_int,
             filename_err=self.filename_err,
-            n_repetition=self.n_repetition, choice_rep=self.choice_rep,
+            n_repetition=self.n_repetition, optional_files=self.optional_files,
             to_predict=to_predict
         )
-        self.results = self.run_parallel(algorithm, self.n_processes,
-                                         unique_id)
+        # self.results = self.run_parallel(algorithm, self.n_processes,
+        #                                  unique_id)
+        self.results = [algorithm()]
 
         timer = time.time() - timer  # TIMER end
         if self.verbose:
@@ -307,6 +333,26 @@ class Game(object):
             print "\nWriting output files for the default labels..."
 
         self.write_results(unique_id)
+
+    def run_additional_labels(self, additional_features, labels_file,
+                              output_header, output_filename):
+        """
+        :param additional_features: [] of str
+            List of features to predict
+        :param labels_file: str
+            Path to file containing additional labels
+        :param output_header: str
+            Header of output file
+        :param output_filename: str
+            Name of output file
+        :return: void
+            Runs predictions and writes results
+        """
+
+        self.features = additional_features
+        self.output_header = output_header
+        self.output_filename = output_filename
+        self.run(additional_labels_file=labels_file)
 
     def parse_results(self, unique_id):
         """
@@ -353,7 +399,7 @@ class Game(object):
         for i in xrange(len(matrix_ml)):
             matrix_ml[find_ids[i], :] = tmp_matrix_ml[i, :]
 
-        if self.choice_rep:
+        if self.optional_files:
             tmp_matrix_ml = np.array(
                 list(chain.from_iterable(
                     np.array(self.results)[:, 5])
@@ -399,18 +445,20 @@ class Game(object):
         )
 
         # Outputs relative to the Machine Learning determination
-        if self.choice_rep:
-            write_output = get_write_output(model_ids, matrix_ml)
+        if self.optional_files:
+            write_output = get_output(
+                model_ids, matrix_ml, len(self.features)
+            )
         else:
             write_output = np.column_stack((model_ids, matrix_ml))
 
         np.savetxt(
             os.path.join(
                 self.output_folder,
-                "output_ml.dat"
+                self.output_filename
             ),
             write_output,
-            header=self.OUTPUT_HEADER,
+            header=self.output_header,
             fmt="%.5f"
         )
 
@@ -420,8 +468,8 @@ class Game(object):
         )
 
         # Optional files
-        if self.choice_rep:
-            write_output_files(
+        if self.optional_files:
+            write_optional_files(
                 self.output_folder, self.features,
                 {
                     "pred": predictions,
@@ -514,7 +562,7 @@ class Game(object):
 def game(
         i, models, unique_id, initial, limit, features,
         labels_train, labels_test, labels, regr, line_labels,
-        filename_int, filename_err, n_repetition, choice_rep, to_predict
+        filename_int, filename_err, n_repetition, optional_files, to_predict
 ):
     predicting_additional_labels = to_predict.are_additional_labels()
     if predicting_additional_labels:
@@ -541,7 +589,6 @@ def game(
     features_test = features[:, initial[mask][0]][limit:, :]
 
     # ML error estimation
-
     if predicting_additional_labels:
         [AV_true, AV_pred, sigma_AV] = error_estimate(
             features_train,
@@ -613,7 +660,7 @@ def game(
     )[:, initial[mask][0]]
 
     # Prediction of the physical properties
-    if choice_rep:
+    if optional_files:
         for el in xrange(len(mask[0])):
             if predicting_additional_labels:
                 AV[mask[0][el], :] = model_AV.predict(
@@ -643,6 +690,15 @@ def game(
                 result = np.zeros((len(new_data[el::len(mask[0])]), 2))
                 result[:, 0] = model_AV.predict(new_data[el::len(mask[0])])
                 result[:, 1] = model_fesc.predict(new_data[el::len(mask[0])])
+
+                # Model ids
+                id_model.append(i)
+                index_find.append(mask[0][el])
+                vector_mms = np.zeros(6)
+                vector_mms[0::3] = np.mean(result, axis=0)
+                vector_mms[1::3] = np.median(result, axis=0)
+                vector_mms[2::3] = np.std(result, axis=0)
+                matrix_mms.append(vector_mms)
             else:
                 result = np.zeros((len(new_data[el::len(mask[0])]), 5))
                 result[:, 0] = model_g0.predict(new_data[el::len(mask[0])])
@@ -651,14 +707,14 @@ def game(
                 result[:, 3] = model_U.predict(new_data[el::len(mask[0])])
                 result[:, 4] = model_Z.predict(new_data[el::len(mask[0])])
 
-            # Model ids
-            id_model.append(i)
-            index_find.append(mask[0][el])
-            vector_mms = np.zeros(15)
-            vector_mms[0::3] = np.log10(np.mean(10 ** result, axis=0))
-            vector_mms[1::3] = np.log10(np.median(10 ** result, axis=0))
-            vector_mms[2::3] = np.std(result, axis=0)
-            matrix_mms.append(vector_mms)
+                # Model ids
+                id_model.append(i)
+                index_find.append(mask[0][el])
+                vector_mms = np.zeros(15)
+                vector_mms[0::3] = np.log10(np.mean(10 ** result, axis=0))
+                vector_mms[1::3] = np.log10(np.median(10 ** result, axis=0))
+                vector_mms[2::3] = np.std(result, axis=0)
+                matrix_mms.append(vector_mms)
 
     # Importance matrices
     if predicting_additional_labels:
@@ -699,21 +755,31 @@ def game(
 
 
 def main():
-    print "Starting GAME with default labels..."
     driver = Game(
         ["g0", "n", "NH", "U", "Z"],
+        output_header="id_model mean[Log(G0)] median[Log(G0)]"
+                      "sigma[Log(G0)] mean[Log(n)] median[Log(n)]"
+                      "sigma[Log(n)] mean[Log(NH)] median[Log(NH)]"
+                      "sigma[Log(NH)] mean[Log(U)] median[Log(U)]"
+                      "sigma[Log(U)] mean[Log(Z)] median[Log(Z)]"
+                      "sigma[Log(Z)]",
+        output_filename="output_ml.dat",
         manual_input=False,
         verbose=True
     )
-    driver.run()
 
-    print "Starting GAME with additional labels..."
-    driver = Game(
-        ["AV", "fesc"],
-        manual_input=False,
-        verbose=True
-    )
     driver.run()
+    driver.run_additional_labels(
+        additional_features=["AV", "fesc"],
+        labels_file=os.path.join(
+            os.getcwd(),
+            "library",
+            "additional_labels.dat"
+        ),
+        output_header="id_model mean[Av] median[Av] sigma[Av] mean[fesc] "
+                      "median[fesc] sigma[fesc]",
+        output_filename="output_ml_additional.dat"
+    )
 
 
 if __name__ == "__main__":

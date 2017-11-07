@@ -86,7 +86,7 @@ def error_estimate(feat_train, feat_test, lab_train, lab_test, ml_regressor):
     return np.double(lab_test), prediction_y, sigma
 
 
-def machine_learn(feat, lab, physical_p, ml_regressor):
+def machine_learn(feat, lab, physical_p, regressor):
     """
     :param feat: TODO
         TODO
@@ -94,15 +94,15 @@ def machine_learn(feat, lab, physical_p, ml_regressor):
         TODO
     :param physical_p: TODO
         TODO
-    :param ml_regressor: TODO
+    :param regressor: TODO
         TODO
     :return:
         Function for Machine Learning
     """
 
-    model = ml_regressor.fit(feat, lab[:, physical_p])  # Model
+    model = regressor.fit(feat, lab[:, physical_p])  # Model
     importances = model.feature_importances_  # Feature importances
 
     # Cross-validation score
-    score = cross_val_score(ml_regressor, feat, lab[:, physical_p], cv=5)
+    score = cross_val_score(regressor, feat, lab[:, physical_p], cv=5)
     return copy.copy(model), importances, np.mean(score), np.std(score)
