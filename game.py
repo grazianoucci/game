@@ -21,10 +21,9 @@ from sklearn import tree
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.preprocessing import Normalizer
 
-from ml import realization, error_estimate, machine_learn, \
-    get_write_output
-from utils import write_output_files, write_importances_files, \
-    write_models_info, get_files_from_user
+from game_utils.io import write_output_files, write_importances_files, \
+    write_models_info, get_files_from_user, get_write_output
+from game_utils.ml import realization, error_estimate, machine_learn
 
 
 class Prediction(object):
@@ -147,7 +146,7 @@ class Game(object):
             Prints to stdout intro and asks for which files to use
         """
 
-        Game.create_library()
+        self.create_library()
 
         if self.verbose:
             print self.INTRO
@@ -174,7 +173,66 @@ class Game(object):
         mms = Normalizer(norm='max')
         self.data[1:, :] = mms.fit_transform(self.data[1:, :])
         self.output, self.line_labels = \
-            self.parse_library_file(self.filename_library)
+            self.parse_library_file()
+
+    def parse_library_file(self):
+        """
+        :return: tuple (array, numpy array)
+            Reads file containing the library
+        """
+
+        # Reading the labels in the first row of the library
+        lines = np.array(open(self.LABELS_FILE).readline().split(','))
+
+        # Read the file containing the user-input labels
+        input_labels = open(self.filename_library).read().splitlines()
+        columns = []
+        for element in input_labels:
+            columns.append(np.where(lines == element)[0][0])
+
+        # Add the labels indexes to columns
+        columns.append(-5)  # Habing flux
+        columns.append(-4)  # density
+        columns.append(-3)  # column density
+        columns.append(-2)  # ionization parameter
+        columns.append(-1)  # metallicity
+        array = np.loadtxt(
+            self.LABELS_FILE, skiprows=2, delimiter=',', usecols=columns
+        )
+
+        # Normalization of the library for each row with respect to the maximum
+        # Be careful: do not normalize the labels!
+        mms = Normalizer(norm='max')
+        array[0:, :-5] = mms.fit_transform(array[0:, :-5])
+
+        return array, np.array(input_labels)
+
+    def determine_models(self):
+        """
+        :return: tuple (TODO types) Determination of unique models based on
+            the missing data. In this case missing data are values with zero
+            intensities. Be careful because the first row in data there are
+            wavelengths!
+        """
+
+        initial = [self.data[1:] != 0][0]
+        models = np.zeros(len(initial))
+        mask = np.where((initial == initial[0]).all(axis=1))[0]
+        models[mask] = 1
+        check = True
+        i = 2
+
+        while check:
+            if not models[models == 0]:
+                check = False
+            else:
+                mask = np.where(
+                    (
+                        initial == initial[np.argmax(models == 0)]
+                    ).all(axis=1))[0]
+                models[mask] = i
+                i += 1
+        return initial, models, np.unique(models)
 
     def run(self):
         """
@@ -234,33 +292,6 @@ class Game(object):
             print "\nWriting output files for the default labels..."
 
         self.write_results(unique_id)
-
-    def determine_models(self):
-        """
-        :return: tuple (TODO types) Determination of unique models based on
-            the missing data. In this case missing data are values with zero
-            intensities. Be careful because the first row in data there are
-            wavelengths!
-        """
-
-        initial = [self.data[1:] != 0][0]
-        models = np.zeros(len(initial))
-        mask = np.where((initial == initial[0]).all(axis=1))[0]
-        models[mask] = 1
-        check = True
-        i = 2
-
-        while check:
-            if not models[models == 0]:
-                check = False
-            else:
-                mask = np.where(
-                    (
-                        initial == initial[np.argmax(models == 0)]
-                    ).all(axis=1))[0]
-                models[mask] = i
-                i += 1
-        return initial, models, np.unique(models)
 
     def parse_results(self, unique_id):
         """
@@ -342,7 +373,9 @@ class Game(object):
         )
 
         # Outputs with the feature importances
-        write_importances_files(self.output_folder, self.data, importances)
+        write_importances_files(
+            self.output_folder, self.features, self.data, importances
+        )
 
         # Optional files
         if self.choice_rep:
@@ -417,41 +450,6 @@ class Game(object):
                 tar = tarfile.open(lib_file)  # extract library
                 tar.extractall()
                 tar.close()
-
-    @staticmethod
-    def parse_library_file(filename_labels):
-        """
-        :param filename_labels: str
-            Path to library file
-        :return: tuple (array, numpy array)
-            Reads file containing the library
-        """
-
-        # Reading the labels in the first row of the library
-        lines = np.array(open(Game.LABELS_FILE).readline().split(','))
-
-        # Read the file containing the user-input labels
-        input_labels = open(filename_labels).read().splitlines()
-        columns = []
-        for element in input_labels:
-            columns.append(np.where(lines == element)[0][0])
-
-        # Add the labels indexes to columns
-        columns.append(-5)  # Habing flux
-        columns.append(-4)  # density
-        columns.append(-3)  # column density
-        columns.append(-2)  # ionization parameter
-        columns.append(-1)  # metallicity
-        array = np.loadtxt(
-            Game.LABELS_FILE, skiprows=2, delimiter=',', usecols=columns
-        )
-
-        # Normalization of the library for each row with respect to the maximum
-        # Be careful: do not normalize the labels!
-        mms = Normalizer(norm='max')
-        array[0:, :-5] = mms.fit_transform(array[0:, :-5])
-
-        return array, np.array(input_labels)
 
     @staticmethod
     def run_parallel(algorithm, n_processes, unique_id):

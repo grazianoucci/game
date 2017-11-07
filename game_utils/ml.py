@@ -106,31 +106,3 @@ def machine_learn(feat, lab, physical_p, ml_regressor):
     # Cross-validation score
     score = cross_val_score(ml_regressor, feat, lab[:, physical_p], cv=5)
     return copy.copy(model), importances, np.mean(score), np.std(score)
-
-
-def get_write_output(model_ids, matrix_ml):
-    """ TODO add docs
-    :param model_ids:
-    :param matrix_ml:
-    :return: np.vstack
-    """
-
-    return np.vstack(
-        (
-            model_ids, np.log10(np.mean(10 ** matrix_ml[:, 0], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, 0], axis=1)),
-            np.std(matrix_ml[:, 0], axis=1),
-            np.log10(np.mean(10 ** matrix_ml[:, 1], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, 1], axis=1)),
-            np.std(matrix_ml[:, 1], axis=1),
-            np.log10(np.mean(10 ** matrix_ml[:, 2], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, 2], axis=1)),
-            np.std(matrix_ml[:, 2], axis=1),
-            np.log10(np.mean(10 ** matrix_ml[:, 3], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, 3], axis=1)),
-            np.std(matrix_ml[:, 3], axis=1),
-            np.log10(np.mean(10 ** matrix_ml[:, 4], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, 4], axis=1)),
-            np.std(matrix_ml[:, 4], axis=1)
-        )
-    ).T  # transpose
