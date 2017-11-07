@@ -11,6 +11,12 @@ performances """
 
 import argparse
 import os
+import time
+
+import numpy as np
+import pylab
+
+from game.models import Game
 
 GENERATE_CHARTS = True
 INPUT_FOLDER = os.path.join(
@@ -151,7 +157,6 @@ def get_test_set(folder):
     files = get_just_files(folder)
     keys = ["inputs", "errors", "labels"]
     test_set = {}
-    print files
     for key in keys:
         test_set[key] = [
             f for f in files if get_name_of(f) == key + ".dat"
@@ -173,7 +178,57 @@ def discover_tests(folder):
         if is_valid_test_folder(fold):
             test_set = get_test_set(fold)
             test_set["size"] = int(get_name_of(fold))
+            test_set["root"] = fold
             yield test_set
+
+
+def run_test(input_folder):
+    """
+    :param input_folder: str
+        Path where to find input files
+    :return: void
+        Runs GAME algorithm with inputs
+    """
+
+    stopwatch = time.time()
+
+    try:
+        driver = Game(
+            ["g0", "n", "NH", "U", "Z"],
+            input_folder=input_folder,
+            output_folder="/dev/null",  # TODO change when in Windows
+            output_header="",
+            output_filename="",
+            manual_input=False,
+            verbose=False
+        )
+        driver.run()
+        successfully_run = True
+    except:
+        successfully_run = False
+
+    stopwatch = time.time() - stopwatch
+    return stopwatch, successfully_run
+
+
+def show_plot(x_data, y_data, trend_line_exp=3):
+    """
+    :param x_data: [] of float
+        x
+    :param y_data: [] of float
+        y
+    :param trend_line_exp: int
+        Max degree of fitter polynomial
+    :return: void
+        Shows plot
+    """
+
+    pylab.plot(x_data, y_data, "-x")
+    trend = np.polyfit(x_data, y_data, trend_line_exp)
+    poly_line = np.poly1d(trend)
+    pylab.plot(x_data, poly_line(x_data), "r--")
+    pylab.title("Test size (number of features) VS Time taken (seconds)")
+    pylab.show()
 
 
 def main():
@@ -184,8 +239,29 @@ def main():
 
     args = create_and_parse_args()
     tests = discover_tests(args["input"])
+    test_times = []  # x, y data to plot
     for test in tests:
-        print test
+        test_size = test["size"]
+
+        print "Running test with", test_size, "features"
+        time_taken, successully_run = run_test(test["root"])
+
+        if successully_run:
+            print "Successfully completed test with", test_size, "features"
+        else:
+            print "Aborted test with", test_size, "features"
+        print "\tTime taken:", time_taken, "seconds\n"
+
+        test_times.append(
+            (test_size, time_taken)
+        )
+
+    print "Done all tests, displaying chart..."
+    test_times.sort(key=lambda tup: tup[0])  # sort based on test size
+    show_plot(
+        [t[0] for t in test_times],
+        [t[1] for t in test_times]
+    )
 
 
 if __name__ == '__main__':

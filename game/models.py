@@ -175,7 +175,8 @@ class Game(object):
 
     def __init__(self, features, manual_input, verbose, output_header,
                  output_filename, test_size=TEST_SIZE, n_repetition=10000,
-                 input_folder=os.getcwd(), lib_folder=LIBRARY_FOLDER,
+                 input_folder=os.path.join(os.getcwd(), "input"),
+                 lib_folder=LIBRARY_FOLDER,
                  labels_file=LABELS_FILE,
                  output_folder=os.path.join(os.getcwd(), "output")):
         """
@@ -214,18 +215,15 @@ class Game(object):
         # input files
         self.filename_int = os.path.join(
             input_folder,
-            "input",
-            "inputs_game_test.dat"
+            "inputs.dat"
         )
         self.filename_err = os.path.join(
             input_folder,
-            "input",
-            "errors_game_test.dat"
+            "errors.dat"
         )
         self.filename_library = os.path.join(
             input_folder,
-            "input",
-            "labels_game_test.dat"
+            "labels.dat"
         )
 
         # library files
@@ -358,13 +356,12 @@ class Game(object):
 
         if self.verbose:
             print "\nProgram started..."
-
-        if additional_labels_file:
-            print ""
-            print "Running GAME with additional labels...\n"
-        else:
-            print ""
-            print "Running GAME with default labels...\n"
+            if additional_labels_file:
+                print ""
+                print "Running GAME with additional labels...\n"
+            else:
+                print ""
+                print "Running GAME with default labels...\n"
 
         self.parse_input_files()
         initial, models, unique_id = self.determine_models()

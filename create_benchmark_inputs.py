@@ -10,19 +10,25 @@
 
 import argparse
 import os
+import random
 
 import numpy as np
 
 from game.utils import create_directory
 
-MIN_SIZE = 10
-MAX_SIZE = 1000
-STEP_SIZE = 150
+MIN_SIZE = 2
+MAX_SIZE = 100
+STEP_SIZE = 10
 INPUT_SIZE = 500
 OUTPUT_FOLDER = os.path.join(
     os.getcwd(),
     "benchmarks",
     "inputs"
+)
+LABELS_FILE = os.path.join(
+    os.getcwd(),
+    "library",
+    "library_labels.dat"
 )
 
 
@@ -35,7 +41,8 @@ def create_and_parse_args():
     parser = argparse.ArgumentParser(
         usage="-m <minimum qty of features> -M <maximum qty of features> -s "
               "<specifies the increment of features size> -q <quantity of "
-              "input to generate> -o <folder to store outputs>\n"
+              "input to generate> -f <file containing allowed labels>"
+              " -o <folder to store outputs>\n"
               "-help for help and usage"
     )
 
@@ -69,6 +76,13 @@ def create_and_parse_args():
         type=int
     )
     parser.add_argument(
+        "-f", dest="features_data",
+        help="File containing allowed labels",
+        default=LABELS_FILE,
+        required=False,
+        type=str
+    )
+    parser.add_argument(
         "-o", dest="output_path",
         help="Folder to store outputs",
         default=OUTPUT_FOLDER,
@@ -83,16 +97,33 @@ def create_and_parse_args():
         "max": args.max_inputs,
         "step": args.step_inputs,
         "qty": args.qty_inputs,
+        "lab": args.features_data,
         "out": args.output_path
     }
 
 
-def create_input_set(n_features, qty_to_generate, low=1e-9, high=1e9):
+def get_allowed_labels(labels_file):
+    """
+    :param labels_file: str
+        File containing allowed labels
+    :return: [] of str
+        List of allowed labels from file
+    """
+
+    with open(labels_file, "r") as in_file:
+        lines = in_file.readlines()
+        data = [l.split("\" ")[0].replace("\"", "") for l in lines]
+        return data
+
+
+def create_input_set(n_features, qty_to_generate, labels, low=1e-9, high=1e9):
     """
     :param n_features: int
         Number of features to generate
     :param qty_to_generate: int
         Size of features to generate
+    :param labels: [] of str
+        Allowed labels
     :param low: float
         Min number allowed in matrices
     :param high: float
@@ -112,11 +143,7 @@ def create_input_set(n_features, qty_to_generate, low=1e-9, high=1e9):
         size=(qty_to_generate, n_features)  # rows, columns
     )
     labels = np.array([
-        [
-            "feat_" + str(f),  # name of feature
-            str(int(np.random.uniform(1e3, 1e4))) + " A"  # spectrum
-        ]
-        for f in range(n_features)
+        random.choice(labels) for _ in range(n_features)
     ])
 
     return {
@@ -156,10 +183,11 @@ def main():
     """
 
     args = create_and_parse_args()
+    labels = get_allowed_labels(args["lab"])
     for feature_size in range(args["min"], args["max"], args["step"]):
         print "Generating inputs with", feature_size, "features"
 
-        inputs_set = create_input_set(feature_size, args["qty"])
+        inputs_set = create_input_set(feature_size, args["qty"], labels)
         output_folder = os.path.join(
             args["out"],
             str(feature_size) + os.path.sep  # make sure to create a folder
