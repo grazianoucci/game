@@ -32,7 +32,7 @@ def realization(filename_int, filename_err, n_rep, mask):
     data = np.loadtxt(filename_int)[1:, :][mask]
     errors = np.loadtxt(filename_err)[1:, :][mask]
 
-    # Be careful: in the first row of 'errors' there are wavelenghts!
+    # Be careful: in the first row of "errors" there are wavelenghts!
     # Find the position where error = -99 (i.e. the upper limits)
     mask_upper = [errors == -99]
 
@@ -45,7 +45,7 @@ def realization(filename_int, filename_err, n_rep, mask):
     errors[errors == -99] = 0.1
     errors[errors == 0.0] = 0.1
 
-    # Compute the 'repetition matrix'
+    # Compute the "repetition matrix"
     repetition = np.random.normal(loc=np.tile(data, (n_rep, 1)),
                                   scale=np.tile(errors, (n_rep, 1)))
 
@@ -58,7 +58,7 @@ def realization(filename_int, filename_err, n_rep, mask):
         0, tiled_data[tiled_mask_upper[0]]
     )
     repetition[tiled_mask_miss[0]] = 0.0
-    mms = Normalizer(norm='max')
+    mms = Normalizer(norm="max")
     repetition = mms.fit_transform(repetition)
     return repetition
 

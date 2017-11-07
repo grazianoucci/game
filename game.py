@@ -111,9 +111,26 @@ class Game(object):
         "library.csv"
     )
 
-    def __init__(self, manual_input, verbose, n_repetition=10000,
+    def __init__(self, features, manual_input, verbose, n_repetition=10000,
                  input_folder=os.getcwd(),
                  output_folder=os.path.join(os.getcwd(), "output")):
+        """
+        :param features: [] of str
+            List of features to predict
+        :param manual_input: bool
+            Whether to expect user interaction or not
+        :param verbose: bool
+            Whether to print more information to stdout
+        :param n_repetition: int
+            Number of repetitions to do
+        :param input_folder: str
+            Path to folder where input files are located
+        :param output_folder: str
+            Path to folder where you want output files
+        """
+
+        self.features = features
+
         # user interaction
         self.user_input = manual_input
         self.verbose = verbose
@@ -134,10 +151,11 @@ class Game(object):
         )
 
         self.n_repetition = n_repetition
-        self.data, self.output, self.line_labels = None, None, None
+        self.data = None
+        self.output = None
+        self.line_labels = None
         self.choice_rep = False
         self.n_processes = 2
-        self.features = ["g0", "n", "NH", "U", "Z"]  # TODO as arg
         self.results = None
 
     def start(self):
@@ -170,7 +188,7 @@ class Game(object):
         """
 
         self.data = np.loadtxt(self.filename_int)
-        mms = Normalizer(norm='max')
+        mms = Normalizer(norm="max")
         self.data[1:, :] = mms.fit_transform(self.data[1:, :])
         self.output, self.line_labels = \
             self.parse_library_file()
@@ -182,7 +200,7 @@ class Game(object):
         """
 
         # Reading the labels in the first row of the library
-        lines = np.array(open(self.LABELS_FILE).readline().split(','))
+        lines = np.array(open(self.LABELS_FILE).readline().split(","))
 
         # Read the file containing the user-input labels
         input_labels = open(self.filename_library).read().splitlines()
@@ -197,12 +215,12 @@ class Game(object):
         columns.append(-2)  # ionization parameter
         columns.append(-1)  # metallicity
         array = np.loadtxt(
-            self.LABELS_FILE, skiprows=2, delimiter=',', usecols=columns
+            self.LABELS_FILE, skiprows=2, delimiter=",", usecols=columns
         )
 
         # Normalization of the library for each row with respect to the maximum
         # Be careful: do not normalize the labels!
-        mms = Normalizer(norm='max')
+        mms = Normalizer(norm="max")
         array[0:, :-5] = mms.fit_transform(array[0:, :-5])
 
         return array, np.array(input_labels)
@@ -380,7 +398,12 @@ class Game(object):
         # Optional files
         if self.choice_rep:
             write_output_files(
-                self.output_folder, predictions, trues, matrix_ml
+                self.output_folder, self.features,
+                {
+                    "pred": predictions,
+                    "trues": trues,
+                    "pdf": matrix_ml
+                }
             )
 
         if self.verbose:
@@ -653,6 +676,7 @@ def game(
 
 def main():
     driver = Game(
+        ["g0", "n", "NH", "U", "Z"],
         manual_input=False,
         verbose=True
     )
