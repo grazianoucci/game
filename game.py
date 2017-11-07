@@ -8,6 +8,8 @@
 
 """ GAME (GAlaxy Machine learning for Emission lines) """
 
+import multiprocessing
+import os
 import time
 from functools import partial
 from itertools import chain
@@ -23,17 +25,17 @@ from utils import create_library, create_output_directory, \
     write_importances_files, write_models_info, get_files_from_user
 
 YES, NO = "y", "n"
-INTRO = '--------------------------------------------------------\n' + \
-        '--- GAME (GAlaxy Machine learning for Emission lines) --\n' + \
-        '------- see Ucci G. et al. (2017a,b) for details -------\n' + \
-        '--------------------------------------------------------\n\n' + \
-        'ML Algorithm: AdaBoost with Decision Trees as base learner.'
+INTRO = "--------------------------------------------------------\n" + \
+        "--- GAME (GAlaxy Machine learning for Emission lines) --\n" + \
+        "------- see Ucci G. et al. (2017a,b) for details -------\n" + \
+        "--------------------------------------------------------\n\n" + \
+        "ML Algorithm: AdaBoost with Decision Trees as base learner."
 
 # algorithm for Machine Learning
 REGRESSOR = AdaBoostRegressor(
     tree.DecisionTreeRegressor(
-        criterion='mse',
-        splitter='best',
+        criterion="mse",
+        splitter="best",
         max_features=None
     ),
     n_estimators=2,
@@ -269,8 +271,8 @@ def game(
         importances_Z[initial[mask][0]] = imp_Z
 
     # Print message
-    print 'Model', str(int(i)) + '/' + str(
-        int(np.max(unique_id))), 'completed...'
+    print "Model", str(int(i)) + "/" + str(
+        int(np.max(unique_id))), "completed..."
 
     # Returns for the parallelization
     if predicting_additional_labels:
@@ -301,11 +303,11 @@ def run_parallel_game():
 
 def main(
         manual_input=False,
-        filename_int='input/inputs_game_test.dat',
-        filename_err='input/errors_game_test.dat',
-        filename_library='input/labels_game_test.dat',
+        filename_int="input/inputs_game_test.dat",
+        filename_err="input/errors_game_test.dat",
+        filename_library="input/labels_game_test.dat",
         choice_rep=YES, n_processes=NUMBER_OF_PROCESSES, n_repetition=10000,
-        dir_path='output/', verbose=True
+        dir_path=os.path.join(os.getcwd(), "output/"), verbose=True
 ):
     create_library()
 
@@ -322,13 +324,13 @@ def main(
 
     if manual_input:
         choice_rep = raw_input(
-            'Do you want to create the optional files [y/n]?: '
+            "Do you want to create the optional files [y/n]?: "
         )  # optional files
 
-        n_processes = raw_input('Choose the number of processors: ')
+        n_processes = raw_input("Choose the number of processors: ")
 
     if verbose:
-        print '\nProgram started...'
+        print "\nProgram started..."
 
     # Number of repetition for the PDFs determination
     # Input file reading
@@ -341,11 +343,11 @@ def main(
     initial, models, unique_id = determine_models(data[1:])
 
     if verbose:
-        print '# of input  models                     :', len(data[1:])
-        print '# of unique models for Machine Learning:', int(
+        print "# of input  models                     :", len(data[1:])
+        print "# of unique models for Machine Learning:", int(
             np.max(unique_id))
-        print '\nStarting Machine Learning algorithm for the default ' \
-              'labels... '
+        print "\nStarting Machine Learning algorithm for the default " \
+              "labels... "
 
     start_time = time.time()
 
@@ -366,7 +368,6 @@ def main(
     # Searching for values of the physical properties
     algorithm = partial(
         game,
-        i=0,
         models=models, unique_id=unique_id, initial=initial, limit=limit,
         features=features, labels_train=labels_train,
         labels_test=labels_test, labels=labels,
@@ -376,12 +377,18 @@ def main(
         n_repetition=n_repetition, choice_rep=choice_rep,
         to_predict=to_predict
     )
-    results = [algorithm()]
+    pool = multiprocessing.Pool(processes=n_processes)
+    results = pool.map(
+        algorithm,
+        np.arange(1, np.max(unique_id.astype(int)) + 1, 1)
+    )
+    pool.close()
+    pool.join()
     end_time = time.time()
 
     if verbose:
-        print 'Elapsed time for ML:', (end_time - start_time)
-        print '\nWriting output files for the default labels...'
+        print "Elapsed time for ML:", (end_time - start_time)
+        print "\nWriting output files for the default labels..."
 
     # Rearrange based on the find_ids indexes
     sigmas = np.array(
@@ -394,7 +401,7 @@ def main(
 
     importances = np.array(list(chain.from_iterable(np.array(results)[:, 6])))
     trues = np.array(list(chain.from_iterable(np.array(results)[:, 7])))
-    preds = np.array(list(chain.from_iterable(np.array(results)[:, 8])))
+    predictions = np.array(list(chain.from_iterable(np.array(results)[:, 8])))
     list_of_lines = np.array(results)[:, 2]
 
     # find_ids are useful to reorder the matrix with the ML determinations
@@ -436,14 +443,14 @@ def main(
         write_output = np.column_stack((model_ids, matrix_ml))
 
     np.savetxt(
-        dir_path + 'output_ml.dat',
+        dir_path + "output_ml.dat",
         write_output,
         header="id_model mean[Log(G0)] median[Log(G0)] sigma[Log(G0)] "
                "mean[Log(n)] median[Log(n)] sigma[Log(n)] mean[Log("
                "NH)] median[Log(NH)] sigma[Log(NH)] mean[Log(U)] "
                "median[Log(U)] sigma[Log(U)] mean[Log(Z)] median[Log("
                "Z)] sigma[Log(Z)]",
-        fmt='%.5f'
+        fmt="%.5f"
     )
 
     # Outputs with the feature importances
@@ -451,10 +458,10 @@ def main(
 
     # Optional files
     if choice_rep == YES:
-        write_output_files(dir_path, preds, trues, matrix_ml)
+        write_output_files(dir_path, predictions, trues, matrix_ml)
 
     if verbose:
-        print ''
+        print ""
 
 
 if __name__ == "__main__":
