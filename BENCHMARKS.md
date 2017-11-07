@@ -7,11 +7,11 @@
 - [tl;dr](#tldr)
 - [Inputs](#inputs)
 - [Setup](#setup)
-- [Ouputs](#ouputs)
+- [Ouputs](#outputs)
 
 ## TL;DR
 ```
-TODO linear trend on the number of features (using 1 model)
+linear trend on the number of features (using 1 model)
 ```
 
 ## Inputs
@@ -22,7 +22,7 @@ Inputs have been generated with the [provided script](create_benchmark_inputs.py
 python2 create_benchmark_inputs.py
 python2 run_benchmarks.py
 ```
-and using just 2 processes under linux (with 8-cores and 16GB RAM) it should take the [following times](#ouputs).
+and using just 2 processes under linux (with 8-cores and 16GB RAM) it should take the [following times](#outputs).
 
 ## Outputs
 A sample of the raw output:
