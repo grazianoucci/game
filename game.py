@@ -66,7 +66,7 @@ class Prediction(object):
             True iff "AV" and "fesc" features to be predicted
         """
 
-        return "AV" and "fesc" in self.data
+        return ("AV" in self.features) and ("fesc" in self.features)
 
     def create_features_arrays(self, n_repetition):
         """
@@ -100,12 +100,12 @@ def game(
     if predicting_additional_labels:
         AV, fesc = list(to_predict.create_features_arrays(n_repetition))
         importances_AV, importances_fesc = list(
-            to_predict.create_importances_arrays(n_repetition))
+            to_predict.create_importances_arrays())
     else:
         g0, n, NH, U, Z = list(to_predict.create_features_arrays(n_repetition))
         importances_g0, importances_n, importances_NH, \
         importances_U, importances_Z = list(
-            to_predict.create_importances_arrays(n_repetition))
+            to_predict.create_importances_arrays())
 
     mask = np.where(models == unique_id[i - 1])
     matrix_mms = []  # matrix_mms is useful to save physical properties
@@ -281,10 +281,6 @@ def run_parallel_game():
     pass
 
 
-def run_additional_labels_predictions():
-    pass
-
-
 def main(
         manual_input=False,
         filename_int='input/inputs_game_test.dat',
@@ -362,7 +358,7 @@ def main(
         n_repetition=n_repetition, choice_rep=choice_rep,
         to_predict=to_predict
     )
-    results = algorithm()
+    results = [algorithm()]
     end_time = time.time()
 
     if verbose:
