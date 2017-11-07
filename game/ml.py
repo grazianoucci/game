@@ -20,8 +20,8 @@ def realization(filename_int, filename_err, n_rep, mask):
         Path to .txt error file
     :param n_rep: int
         Number of repetitions to generate
-    :param mask: TODO find type
-        TODO find purpose
+    :param mask: matrix
+        Mask matrix
     :return: []
         Builds the array useful for PDFs
     """

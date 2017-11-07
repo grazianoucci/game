@@ -290,7 +290,8 @@ class Game(object):
 
     def determine_models(self):
         """
-        :return: tuple (TODO types) Determination of unique models based on
+        :return: tuple
+            Determination of unique models based on
             the missing data. In this case missing data are values with zero
             intensities. Be careful because the first row in data there are
             wavelengths!
