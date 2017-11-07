@@ -198,7 +198,7 @@ class Game(object):
     )
 
     def __init__(self, features, manual_input, verbose, output_header,
-                 output_filename, n_repetition=1, input_folder=os.getcwd(),
+                 output_filename, n_repetition=10000, input_folder=os.getcwd(),
                  output_folder=os.path.join(os.getcwd(), "output")):
         """
         :param features: [] of str
@@ -416,7 +416,6 @@ class Game(object):
 
         algorithm = partial(
             game,
-            i=1,
             models=models, unique_id=unique_id, initial=initial,
             limit=self.test_size_limit,
             features=self.prediction_features, labels_train=labels_train,
@@ -427,10 +426,9 @@ class Game(object):
             n_repetition=self.n_repetition, optional_files=self.optional_files,
             to_predict=to_predict
         )
-        # self.results = self.run_parallel(
-        #     algorithm, self.n_processes, unique_id
-        # )
-        self.results = [algorithm()]
+        self.results = self.run_parallel(
+            algorithm, self.n_processes, unique_id
+        )
         timer = time.time() - timer  # TIMER end
         if self.verbose:
             print "Elapsed seconds for ML:", timer
@@ -503,18 +501,14 @@ class Game(object):
         for i in xrange(len(matrix_ml)):
             matrix_ml[find_ids[i], :] = tmp_matrix_ml[i, :]
 
-        if self.optional_files:
-            tmp_matrix_ml = np.array(
-                list(chain.from_iterable(
-                    np.array(self.results)[:, 5])
-                )
+        tmp_matrix_ml = np.array(
+            list(chain.from_iterable(
+                np.array(self.results)[:, 5])
             )
-        else:
-            tmp_matrix_ml = np.array(
-                list(chain.from_iterable(
-                    np.array(self.results)[:, 5])
-                )
-            ).reshape(len(self.data[1:]), len(self.features) * 3)
+        )
+        if not self.optional_files:
+            tmp_matrix_ml = tmp_matrix_ml \
+                .reshape(len(self.data[1:]), len(self.features) * 3)
 
         # Rearrange the matrix based on the find_ids indexes
         matrix_ml = np.zeros(shape=tmp_matrix_ml.shape)

@@ -74,9 +74,9 @@ def game(
 
             # result vector
             vector_mms = np.zeros(3 * len(features_to_predict))
-            vector_mms[0::3] = np.mean(results, axis=0)
-            vector_mms[1::3] = np.median(results, axis=0)
-            vector_mms[2::3] = np.std(results, axis=0)
+            vector_mms[0::3] = np.mean(results)
+            vector_mms[1::3] = np.median(results)
+            vector_mms[2::3] = np.std(results)
             matrix_mms.append(vector_mms)
 
     # Importance matrices
@@ -86,21 +86,16 @@ def game(
     print "Model", str(int(i)) + "/" + str(
         int(np.max(unique_id))), "completed..."
 
-    output = ([
-        error["sigma"] for error in errors
-    ])
-
-    sigmas_scores = []
+    scores = []
     for model in models:
-        sigmas_scores += [model["score"], model["std"]]
-    output = (output, [i] + sigmas_scores)
-    output = (output, line_labels[initial[mask][0]])
-    output = (output, index_find, id_model, matrix_mms)
-    output = (output, importances)
-    output = (output, [
+        scores += [model["score"], model["std"]]
+    scores = [i] + scores
+
+    return [
+               error["sigma"] for error in errors
+           ], scores, line_labels[initial[mask][0]], index_find, id_model, \
+           matrix_mms, importances, [
         np.array(error["true"]) for error in errors
-    ])
-    output = (output, [
+           ], [
         np.array(error["pred"]) for error in errors
-    ])
-    return output
+           ]
