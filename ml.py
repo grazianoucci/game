@@ -63,34 +63,6 @@ def realization(filename_int, filename_err, n_rep, mask):
     return repetition
 
 
-def determine_models(data):
-    """
-    :param data: []
-        Data list
-    :return: TODO find types
-        Determination of number of different models
-    """
-
-    initial = [data != 0][0]
-    models = np.zeros(len(initial))
-    mask = np.where((initial == initial[0]).all(axis=1))[0]
-    models[mask] = 1
-    check = True
-    i = 2
-
-    while check:
-        if not models[models == 0]:
-            check = False
-        else:
-            mask = np.where(
-                (
-                    initial == initial[np.argmax(models == 0)]
-                ).all(axis=1))[0]
-            models[mask] = i
-            i += 1
-    return initial, models, np.unique(models)
-
-
 def error_estimate(feat_train, feat_test, lab_train, lab_test, ml_regressor):
     """
     :param feat_train: matrix
