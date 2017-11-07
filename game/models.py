@@ -174,11 +174,33 @@ class Game(object):
     )
 
     def __init__(self, features, manual_input, verbose, output_header,
-                 output_filename, n_repetition=10000, input_folder=os.getcwd(),
+                 output_filename, test_size=TEST_SIZE, n_repetition=10000,
+                 input_folder=os.getcwd(), lib_folder=LIBRARY_FOLDER,
+                 labels_file=LABELS_FILE,
                  output_folder=os.path.join(os.getcwd(), "output")):
         """
-        :param features: [] of str
+        :param :param features: [] of str
             List of features to predict
+        :param manual_input: bool
+            True iff you want user to input data
+        :param verbose: bool
+            True iff you want more information on screen
+        :param output_header: str
+            Header of output file
+        :param output_filename: str
+            Output file name
+        :param test_size: float in [0, 1]
+            Percentage of test data
+        :param n_repetition: int
+            Number of repetitions to do
+        :param input_folder: str
+            Path to folder containing input files
+        :param lib_folder: str
+            Path to folder containing library
+        :param labels_file: str
+            Path containing labels file
+        :param output_folder: str
+            Path to output file
         """
 
         self.features = features
@@ -192,18 +214,26 @@ class Game(object):
         # input files
         self.filename_int = os.path.join(
             input_folder,
-            "input/inputs_game_test.dat"
+            "input",
+            "inputs_game_test.dat"
         )
         self.filename_err = os.path.join(
             input_folder,
-            "input/errors_game_test.dat"
+            "input",
+            "errors_game_test.dat"
         )
         self.filename_library = os.path.join(
             input_folder,
-            "input/labels_game_test.dat"
+            "input",
+            "labels_game_test.dat"
         )
 
+        # library files
+        self.library_folder = lib_folder
+        self.labels_file = labels_file
+
         # data
+        self.test_size = float(test_size)
         self.n_repetition = n_repetition
         self.data = None
         self.labels = None
@@ -227,7 +257,7 @@ class Game(object):
             Prints to stdout intro and asks for which files to use
         """
 
-        utils.create_library(self.LIBRARY_FOLDER, self.LABELS_FILE)
+        utils.create_library(self.library_folder, self.labels_file)
 
         if self.verbose:
             print self.INTRO
@@ -360,7 +390,7 @@ class Game(object):
             )
             self.labels[:, -1] = np.log10(self.labels[:, -1])
             self.test_size_limit = int(
-                (1. - self.TEST_SIZE) * len(self.prediction_features)
+                (1. - self.test_size) * len(self.prediction_features)
             )
 
         if additional_labels_file:
@@ -410,7 +440,11 @@ class Game(object):
             print "Elapsed seconds for ML:", timer
             print "\nWriting output files for the default labels..."
 
-        self.write_results(unique_id)
+        try:
+            self.write_results(unique_id)
+        except Exception as e:
+            print "Tried to write results to file but got error:"
+            print str(e)
 
     def run_additional_labels(self, additional_features, labels_file,
                               output_header, output_filename):

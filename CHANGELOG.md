@@ -1,6 +1,12 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 1.1.3 - 2017-11-07
+
+### Added
+- `benchmarks` module
+- bare `benchmarks` script
+
 ## 1.1.2 - 2017-11-07
 
 ### Refactored
