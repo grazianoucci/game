@@ -8,10 +8,7 @@
 
 """ GAME machine learning utilities """
 
-import copy
-
 import numpy as np
-from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import Normalizer
 
 
@@ -61,48 +58,3 @@ def realization(filename_int, filename_err, n_rep, mask):
     mms = Normalizer(norm="max")
     repetition = mms.fit_transform(repetition)
     return repetition
-
-
-def error_estimate(feat_train, feat_test, lab_train, lab_test, ml_regressor):
-    """
-    :param feat_train: matrix
-        Fit train
-    :param feat_test: array
-        Fit data
-    :param lab_train: matrix
-        Train data
-    :param lab_test: array
-        Test data
-    :param ml_regressor: TODO find type
-        Regressor used
-    :return: tuple (float, TODO find type, float)
-        Estimate error of ML
-    """
-
-    ml_regressor.fit(feat_train, lab_train)
-    prediction_y = ml_regressor.predict(feat_test)
-    sigma = np.std(np.double(lab_test) - prediction_y)
-
-    return np.double(lab_test), prediction_y, sigma
-
-
-def machine_learn(feat, lab, physical_p, regressor):
-    """
-    :param feat: TODO
-        TODO
-    :param lab: TODO
-        TODO
-    :param physical_p: TODO
-        TODO
-    :param regressor: TODO
-        TODO
-    :return:
-        Function for Machine Learning
-    """
-
-    model = regressor.fit(feat, lab[:, physical_p])  # Model
-    importances = model.feature_importances_  # Feature importances
-
-    # Cross-validation score
-    score = cross_val_score(regressor, feat, lab[:, physical_p], cv=5)
-    return copy.copy(model), importances, np.mean(score), np.std(score)

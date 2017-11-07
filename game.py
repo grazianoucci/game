@@ -8,6 +8,7 @@
 
 """ GAME (GAlaxy Machine learning for Emission lines) """
 
+import copy
 import multiprocessing
 import os
 import tarfile
@@ -19,26 +20,34 @@ from itertools import chain
 import numpy as np
 from sklearn import tree
 from sklearn.ensemble import AdaBoostRegressor
+from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import Normalizer
 
 from game_utils.io import write_optional_files, write_importances_files, \
     write_models_info, get_input_files, get_output
-from game_utils.ml import realization, error_estimate, machine_learn
+from game_utils.ml import realization
 
 
 class Prediction(object):
     """ General prediction of model """
 
-    def __init__(self, features, data):
+    def __init__(self, features, data, regressor):
         """
         :param features: [] of str
             Data to predict
         :param data: matrix
             Data input
+        :param regressor: sklearn regressor
+            Regressor to predict
         """
 
         self.features = features
         self.data = data
+        self.regr = regressor
+
+    def generate_features(self):
+        for key in self.features:
+            yield FeaturePrediction(key, self.regr)
 
     def are_additional_labels(self):
         """
@@ -69,6 +78,72 @@ class Prediction(object):
         length = len(self.data[0])
         for _ in self.features:
             yield np.zeros(length)
+
+
+class FeaturePrediction(object):
+    """ Prediction of single feature """
+
+    def __init__(self, label, regressor):
+        """
+        :param label: str
+            Identify feature with this literal
+        :param regressor: sklearn regressor
+            Regressor to predict
+        """
+
+        self.label = label
+        self.regr = regressor
+
+    def error_estimate(self, features_train, features_test, labels_train,
+                       labels_test):
+        """
+        :param features_train: matrix
+            X input
+        :param features_test: matrix
+            X test
+        :param labels_train: matrix
+            Y input
+        :param labels_test: matrix
+            Y test
+        :return: float, [], float
+            score, predictions, sigma
+        """
+
+        self.regr.fit(features_train, labels_train)
+        prediction = self.regr.predict(features_test)
+        sigma = np.std(np.double(labels_test) - prediction)
+        return np.double(labels_test), prediction, sigma
+
+    def train(self, x_input, y_input, physical_p):
+        """
+        :param x_input: matrix
+            X input
+        :param y_input: matrix
+            Y input
+        :param physical_p: int
+            Index of physical property to predict
+        :return: model, [], float, float
+            Copy of fit model, importances, score, std
+        """
+
+        model = self.regr.fit(x_input, y_input[:, physical_p])  # Model
+        importances = model.feature_importances_  # Feature importances
+
+        # Cross-validation score
+        score = cross_val_score(
+            self.regr, x_input, y_input[:, physical_p], cv=5
+        )
+        return copy.copy(model), importances, np.mean(score), np.std(score)
+
+    def predict(self, x_input):
+        """
+        :param x_input: matrix
+            New data to base new prediction on
+        :return: TODO find type
+            Prediction
+        """
+
+        return self.regr.predict(x_input)
 
 
 class Game(object):
@@ -307,26 +382,24 @@ class Game(object):
         labels_test = self.labels[self.test_size_limit:, :]
         to_predict = Prediction(
             self.features,
-            self.data
+            self.data,
+            self.REGRESSOR
         )
 
         algorithm = partial(
             game,
-            i=1,
             models=models, unique_id=unique_id, initial=initial,
             limit=self.test_size_limit,
             features=self.prediction_features, labels_train=labels_train,
             labels_test=labels_test, labels=self.labels,
-            regr=self.REGRESSOR, line_labels=self.line_labels,
+            regr=REGRESSOR, line_labels=self.line_labels,
             filename_int=self.filename_int,
             filename_err=self.filename_err,
             n_repetition=self.n_repetition, optional_files=self.optional_files,
             to_predict=to_predict
         )
-        # self.results = self.run_parallel(algorithm, self.n_processes,
-        #                                  unique_id)
-        self.results = [algorithm()]
-
+        self.results = self.run_parallel(algorithm, self.n_processes,
+                                         unique_id)
         timer = time.time() - timer  # TIMER end
         if self.verbose:
             print "Elapsed seconds for ML:", timer
@@ -564,6 +637,7 @@ def game(
         labels_train, labels_test, labels, regr, line_labels,
         filename_int, filename_err, n_repetition, optional_files, to_predict
 ):
+
     predicting_additional_labels = to_predict.are_additional_labels()
     if predicting_additional_labels:
         AV, fesc = list(to_predict.generate_features_arrays(n_repetition))
@@ -604,6 +678,11 @@ def game(
             labels_test[:, 4],
             regr
         )
+
+        [model_AV, imp_AV, score_AV, std_AV] = machine_learn(
+            features[:, initial[mask][0]], labels, 3, regr)
+        [model_fesc, imp_fesc, score_fesc, std_fesc] = machine_learn(
+            features[:, initial[mask][0]], labels, 4, regr)
     else:
         [g0_true, g0_pred, sigma_g0] = error_estimate(
             features_train,
@@ -633,14 +712,6 @@ def game(
             labels_test[:, 4], regr
         )
 
-    # Function calls for the machine learning routines
-
-    if predicting_additional_labels:
-        [model_AV, imp_AV, score_AV, std_AV] = machine_learn(
-            features[:, initial[mask][0]], labels, 3, regr)
-        [model_fesc, imp_fesc, score_fesc, std_fesc] = machine_learn(
-            features[:, initial[mask][0]], labels, 4, regr)
-    else:
         [model_g0, imp_g0, score_g0, std_g0] = machine_learn(
             features[:, initial[mask][0]], labels, 0, regr)
         [model_n, imp_n, score_n, std_n] = machine_learn(
@@ -731,7 +802,6 @@ def game(
     print "Model", str(int(i)) + "/" + str(
         int(np.max(unique_id))), "completed..."
 
-    # Returns for the parallelization
     if predicting_additional_labels:
         return [sigma_AV, sigma_fesc], \
                [i, score_AV, std_AV, score_fesc, std_fesc], \
