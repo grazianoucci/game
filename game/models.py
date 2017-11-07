@@ -9,11 +9,8 @@
 """ GAME classes models to predict and machine learn data """
 
 import copy
-import multiprocessing
 import os
-import tarfile
 import time
-import urllib
 from functools import partial
 from itertools import chain
 
@@ -23,6 +20,7 @@ from sklearn.ensemble import AdaBoostRegressor
 from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import Normalizer
 
+import game.utils as utils
 from game.alg import game
 from game.io import write_optional_files, write_importances_files, \
     write_models_info, get_input_files, get_output
@@ -133,8 +131,6 @@ class FeaturePrediction(object):
             X input
         :param y_input: matrix
             Y input
-        :param physical_p: int
-            Index of physical property to predict
         :return: model, [], float, float
             Copy of fit model, importances, score, std
         """
@@ -251,7 +247,7 @@ class Game(object):
             Prints to stdout intro and asks for which files to use
         """
 
-        self.create_library()
+        utils.create_library(self.LIBRARY_FOLDER, self.LABELS_FILE)
 
         if self.verbose:
             print self.INTRO
@@ -426,7 +422,7 @@ class Game(object):
             n_repetition=self.n_repetition, optional_files=self.optional_files,
             to_predict=to_predict
         )
-        self.results = self.run_parallel(
+        self.results = utils.run_parallel(
             algorithm, self.n_processes, unique_id
         )
         timer = time.time() - timer  # TIMER end
@@ -578,80 +574,3 @@ class Game(object):
 
         if self.verbose:
             print ""
-
-    @staticmethod
-    def create_output_directory(dir_path):
-        """
-        :param dir_path: str
-            Path to output folder
-        :return: void
-            Creates folder if not existent
-        """
-
-        directory = os.path.dirname(dir_path)
-        if not os.path.exists(directory):
-            os.mkdir(directory)
-
-    @staticmethod
-    def download_library(
-            download_file,
-            url="http://cosmology.sns.it/library_game/library.tar.gz"
-    ):
-        """
-        :param download_file: str
-            Path where to download file
-        :param url: str
-            Url of library
-        :return: void
-            Downloads library to file
-        """
-
-        try:
-            urllib.urlretrieve(
-                url,
-                filename=download_file
-            )
-        except Exception:
-            if os.path.exists(download_file):
-                os.remove(download_file)
-
-            raise Exception("Cannot download library .tar file")
-
-    @staticmethod
-    def create_library():
-        """
-        :return: void
-            Creates necessary  library directory if not existing
-        """
-
-        lib_file = os.path.join(
-            Game.LIBRARY_FOLDER,
-            "library.tar.gz"
-        )
-
-        if not os.path.exists(Game.LABELS_FILE):
-            if not os.path.exists(Game.LIBRARY_FOLDER):
-                print "Creating library folder ..."
-                os.makedirs(Game.LIBRARY_FOLDER)  # create necessary folders
-
-            if not os.path.exists(lib_file):
-                print "Downloading library ..."
-                Game.download_library(lib_file)  # download library
-
-            if not os.path.exists(Game.LABELS_FILE):
-                print "Extracting library files ..."
-                tar = tarfile.open(lib_file)  # extract library
-                tar.extractall()
-                tar.close()
-
-    @staticmethod
-    def run_parallel(algorithm, n_processes, unique_id):
-
-        pool = multiprocessing.Pool(processes=n_processes)
-        results = pool.map(
-            algorithm,
-            np.arange(1, np.max(unique_id.astype(int)) + 1, 1)
-        )
-        pool.close()
-        pool.join()
-        return results
