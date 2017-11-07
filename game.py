@@ -10,6 +10,7 @@
 
 import multiprocessing
 import time
+import traceback
 from functools import partial
 from itertools import chain
 
@@ -45,10 +46,18 @@ REGRESSOR = AdaBoostRegressor(
 # Testing, test_size is the percentage of the library to use as testing
 # set to determine the PDFs
 TEST_SIZE = 0.10
+NUMBER_OF_PROCESSES = 2
 
 
 class Prediction(object):
+    """ General prediction of model """
+
     def __init__(self, to_predict):
+        """
+        :param to_predict: {}
+            Data to predict
+        """
+
         self.data = to_predict
 
         if "AV" and "fesc" in self.data:
@@ -57,30 +66,36 @@ class Prediction(object):
             self.keys = ["g0", "n", "NH", "U", "Z"]
 
     def get_features(self):
-        output = []
+        """
+        :return: (generator of) []
+            List of features to predict
+        """
 
         for k in self.keys:
-            output.append(self.data[k])
-            output.append(self.data[("importances_" + k)])
-
-        return output
+            yield self.data[k]
+            yield self.data[("importances_" + k)]
 
     def is_fesc_av_mode(self):
+        """
+        :return: bool
+            True iff "AV" and "fesc" features to be predicted
+        """
+
         return "AV" and "fesc" in self.data
 
 
-def main_algorithm_to_pool(
+def game(
         i, models, unique_id, initial, limit, features,
         labels_train, labels_test, labels, regr, line_labels,
         filename_int, filename_err, n_repetition, choice_rep, to_predict=None
 ):
     fesc_av_mode = to_predict[0].is_fesc_av_mode()
     if fesc_av_mode:
-        AV, fesc, importances_AV, importances_fesc = \
-            to_predict[0].get_features()
+        AV, fesc, importances_AV, importances_fesc = list(to_predict[
+                                                              0].get_features())
     else:
         g0, n, NH, U, Z, importances_g0, importances_n, importances_NH, \
-        importances_U, importances_Z = to_predict[0].get_features()
+        importances_U, importances_Z = list(to_predict[0].get_features())
 
     mask = np.where(models == unique_id[i - 1])
     matrix_mms = []  # matrix_mms is useful to save physical properties
@@ -257,7 +272,7 @@ def run_game(
         filename_int='input/inputs_game_test.dat',
         filename_err='input/errors_game_test.dat',
         filename_library='input/labels_game_test.dat',
-        choice_rep=YES, n_processes=2, n_repetition=10000,
+        choice_rep=YES, n_processes=NUMBER_OF_PROCESSES, n_repetition=10000,
         dir_path='output/', verbose=True
 ):
     create_library()
@@ -340,7 +355,7 @@ def run_game(
 
     # Searching for values of the physical properties
     main_algorithm = partial(
-        main_algorithm_to_pool,
+        game,
         models=models, unique_id=unique_id, initial=initial, limit=limit,
         features=features, labels_train=labels_train,
         labels_test=labels_test, labels=labels,
@@ -441,7 +456,7 @@ def run_game(
     importances_AV = np.zeros(len(data[0]))
     importances_fesc = np.zeros(len(data[0]))
     if verbose:
-        print 'Starting of Machine Learning algorithm for the additional ' \
+        print 'Starting Machine Learning algorithm for the additional ' \
               'labels... '
 
     start_time = time.time()
@@ -454,7 +469,7 @@ def run_game(
     # Searching for values of the additional physical properties
     pool = multiprocessing.Pool(processes=n_processes)
     main_algorithm_additional = partial(
-        main_algorithm_to_pool,
+        game,
         models=models, unique_id=unique_id, initial=initial, limit=limit,
         features=features, labels_train=labels_train, labels_test=labels_test,
         labels=labels, regr=REGRESSOR, line_labels=line_labels,
@@ -562,4 +577,8 @@ def run_game(
 
 
 if __name__ == "__main__":
-    run_game()
+    try:
+        run_game()
+    except Exception as e:
+        print str(e)
+        traceback.print_stack()
