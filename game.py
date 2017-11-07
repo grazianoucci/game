@@ -68,7 +68,7 @@ class Prediction(object):
 
         return ("AV" in self.features) and ("fesc" in self.features)
 
-    def create_features_arrays(self, n_repetition):
+    def generate_features_arrays(self, n_repetition):
         """
         :param n_repetition: int
             Number of repetition
@@ -80,7 +80,7 @@ class Prediction(object):
         for _ in self.features:
             yield np.zeros(shape=(length, n_repetition))
 
-    def create_importances_arrays(self):
+    def generate_importances_arrays(self):
         """
         :return: (generator of) numpy array
             Arrays filled with zeros
@@ -91,6 +91,23 @@ class Prediction(object):
             yield np.zeros(length)
 
 
+class Game(object):
+    """ GAlaxy Machine learning for Emission lines """
+
+    def __init__(self):
+        pass
+
+    def run_parallel(self, number_of_processes=2):
+        """
+        :param number_of_processes: int
+            Number of processes to use when running parallel algorithm
+        :return: TODO
+            TODO
+        """
+
+        pass
+
+
 def game(
         i, models, unique_id, initial, limit, features,
         labels_train, labels_test, labels, regr, line_labels,
@@ -98,14 +115,15 @@ def game(
 ):
     predicting_additional_labels = to_predict.are_additional_labels()
     if predicting_additional_labels:
-        AV, fesc = list(to_predict.create_features_arrays(n_repetition))
+        AV, fesc = list(to_predict.generate_features_arrays(n_repetition))
         importances_AV, importances_fesc = list(
-            to_predict.create_importances_arrays())
+            to_predict.generate_importances_arrays())
     else:
-        g0, n, NH, U, Z = list(to_predict.create_features_arrays(n_repetition))
+        g0, n, NH, U, Z = list(
+            to_predict.generate_features_arrays(n_repetition))
         importances_g0, importances_n, importances_NH, \
         importances_U, importances_Z = list(
-            to_predict.create_importances_arrays())
+            to_predict.generate_importances_arrays())
 
     mask = np.where(models == unique_id[i - 1])
     matrix_mms = []  # matrix_mms is useful to save physical properties
