@@ -258,6 +258,8 @@ class Game(object):
             Runs predictions and writes results
         """
 
+        self.start()
+
         if self.verbose:
             print "\nProgram started..."
 
@@ -269,8 +271,8 @@ class Game(object):
                 len(self.data[1:])
             print "# of unique models for Machine Learning:", int(
                 np.max(unique_id))
-            print "\nStarting Machine Learning algorithm for the default " \
-                  "labels... "
+            print "\nStarting Machine Learning algorithm for " \
+                  + ", ".join(self.features) + " labels... "
 
         timer = time.time()  # TIMER start
 
@@ -372,7 +374,9 @@ class Game(object):
             self.parse_results(unique_id)
 
         # Write information on different models
-        write_models_info(self.output_folder, sigmas, scores, list_of_lines)
+        write_models_info(
+            self.output_folder, self.features, sigmas, scores, list_of_lines
+        )
 
         # Outputs relative to the Machine Learning determination
         if self.choice_rep:
@@ -680,7 +684,6 @@ def main():
         manual_input=False,
         verbose=True
     )
-    driver.start()
     driver.run()
 
 

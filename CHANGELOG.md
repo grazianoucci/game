@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 ### Refactored
 - now using `OOP` approach
 
+### Fixed
+- `output` files names concatenation with `+`
+
 ### Removed
 - additional labels algorithm (to be added)
 
