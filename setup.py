@@ -31,7 +31,7 @@ setup(
     install_requires=[
         "numpy",
         "scipy",
-        "sklearn",
+        "sklearn", 'PIL',
     ],
     test_suite="tests"
 )
