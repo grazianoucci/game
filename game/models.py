@@ -149,7 +149,7 @@ class Game(object):
             splitter="best",
             max_features=None
         ),
-        n_estimators=2,
+        n_estimators=50,
         random_state=0
     )  # algorithm for Machine Learning (ref1:
     # http://adsabs.harvard.edu/abs/2017MNRAS.465.1144U(

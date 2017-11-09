@@ -12,7 +12,7 @@ performances """
 import argparse
 import os
 import time
-
+import datetime
 import numpy as np
 import pylab
 
@@ -243,6 +243,7 @@ def main():
     for test in tests:
         test_size = test["size"]
 
+        print datetime.datetime.now()
         print "Running test with", test_size, "features"
         time_taken, successully_run = run_test(test["root"])
 
