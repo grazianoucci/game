@@ -47,9 +47,9 @@ class Prediction(object):
         return [
             FeaturePrediction(
                 feature,
-                self.features[feature],
+                i,
                 copy.copy(self.regr)
-            ) for feature in self.features
+            ) for i, feature in enumerate(self.features)
         ]
 
     def generate_importances_arrays(self):
@@ -383,9 +383,7 @@ class Game(object):
             )
         else:
             to_predict = Prediction(
-                {
-                    feature: i for i, feature in enumerate(self.features)
-                },
+                self.features,
                 self.data,
                 self.REGRESSOR
             )
@@ -443,7 +441,7 @@ class Game(object):
         scores = np.array(self.results[1])
         list_of_lines = np.array(self.results[2])
         find_ids = list(self.results[3])
-        temp_model_ids = list(self.results[4])
+        tmp_model_ids = list(self.results[4])
         tmp_matrix_ml = np.array(self.results[5])
         importances = np.array(self.results[6])
         trues = np.array(self.results[7])
@@ -459,9 +457,9 @@ class Game(object):
         for i in xrange(len(matrix_ml)):
             matrix_ml[find_ids[i], :] = tmp_matrix_ml[i, :]
 
-        model_ids = np.zeros(len(temp_model_ids))
+        model_ids = np.zeros(len(tmp_model_ids))
         for i in xrange(len(matrix_ml)):
-            model_ids[find_ids[i]] = temp_model_ids[i]
+            model_ids[find_ids[i]] = tmp_model_ids[i]
 
         return sigmas, scores, list_of_lines, model_ids, matrix_ml, \
                importances, predictions, trues
