@@ -14,6 +14,27 @@ import numpy as np
 
 FMT_PRINT="%.5f"
 
+def get_output_header(features):
+    """
+    :param features:
+      features list
+    :return header: string
+      standard header for output
+    """
+
+    log_list = ["g0", "n", "NH", "U", "Z"]
+    out_list = ['mean','median','sigma']
+
+    out_head = []
+    out_head.append('id_model')
+    for k in features:
+        var_st = k
+        if(var_st in log_list):
+            var_st = 'Log('+var_st+')'
+        for out_st in out_list:
+          out_head.append( out_st+'['+var_st+']' )
+    out_head = ' '.join(out_head)
+    return out_head
 
 def get_input_files():
     """

@@ -16,12 +16,6 @@ from game.models import Game
 def main():
     driver = Game(
         ["g0", "n", "NH", "U", "Z"],
-        output_header="id_model mean[Log(G0)] median[Log(G0)]"
-                      "sigma[Log(G0)] mean[Log(n)] median[Log(n)]"
-                      "sigma[Log(n)] mean[Log(NH)] median[Log(NH)]"
-                      "sigma[Log(NH)] mean[Log(U)] median[Log(U)]"
-                      "sigma[Log(U)] mean[Log(Z)] median[Log(Z)]"
-                      "sigma[Log(Z)]",
         output_filename="output_ml.dat",
         manual_input=False,
         verbose=True
@@ -35,8 +29,6 @@ def main():
             "library",
             "additional_labels.dat"
         ),
-        output_header="id_model mean[Av] median[Av] sigma[Av] mean[fesc] "
-                      "median[fesc] sigma[fesc]",
         output_filename="output_ml_additional.dat"
     )
 

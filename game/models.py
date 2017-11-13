@@ -23,7 +23,7 @@ from sklearn.preprocessing import Normalizer
 import game.utils as utils
 from game.alg import game
 from game.io import write_optional_files, write_importances_files, \
-    write_models_info, get_input_files, get_output,FMT_PRINT
+    write_models_info, get_input_files, get_output,FMT_PRINT,get_output_header
 
 
 class Prediction(object):
@@ -173,7 +173,7 @@ class Game(object):
         "library.csv"
     )
 
-    def __init__(self, features, manual_input, verbose, output_header,
+    def __init__(self, features, manual_input, verbose,
                  output_filename, n_repetition=10000, input_folder=os.getcwd(),
                  output_folder=os.path.join(os.getcwd(), "output")):
         """
@@ -204,19 +204,19 @@ class Game(object):
         )
 
         # data
-        self.n_repetition = n_repetition
-        self.data = None
-        self.labels = None
-        self.prediction_features = None
-        self.test_size_limit = 0
-        self.output = None
-        self.line_labels = None
-        self.n_processes = 2
-        self.results = None
+        self.n_repetition         = n_repetition
+        self.data                 = None
+        self.labels               = None
+        self.prediction_features  = None
+        self.test_size_limit      = 0
+        self.output               = None
+        self.line_labels          = None
+        self.n_processes          = 2
+        self.results              = None
         self.output_sigmas_header = "Standard deviation of log "
         self.output_scores_header = "Cross-validation score for "
-        self.output_header = output_header
-        self.output_filename = os.path.join(
+        self.output_header        = get_output_header(self.features)
+        self.output_filename      = os.path.join(
             self.output_folder,
             output_filename
         )
@@ -413,14 +413,12 @@ class Game(object):
         self.write_results(unique_id)
 
     def run_additional_labels(self, additional_features, labels_file,
-                              output_header, output_filename):
+                              output_filename):
         """
         :param additional_features: [] of str
             List of features to predict
         :param labels_file: str
             Path to file containing additional labels
-        :param output_header: str
-            Header of output file
         :param output_filename: str
             Name of output file
         :return: void
@@ -428,7 +426,7 @@ class Game(object):
         """
 
         self.features = additional_features
-        self.output_header = output_header
+        self.output_header = get_output_header(self.features)
         self.output_filename = output_filename
         self.run(additional_labels_file=labels_file)
 
