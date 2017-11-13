@@ -47,9 +47,9 @@ class Prediction(object):
         return [
             FeaturePrediction(
                 feature,
-                self.features[feature],
+                j,
                 copy.copy(self.regr)
-            ) for feature in self.features
+            ) for j, feature in enumerate(self.features)
         ]
 
     def generate_importances_arrays(self):
@@ -383,9 +383,7 @@ class Game(object):
             )
         else:
             to_predict = Prediction(
-                {
-                    feature: i for i, feature in enumerate(self.features)
-                },
+                self.features,
                 self.data,
                 self.REGRESSOR
             )
@@ -443,30 +441,25 @@ class Game(object):
         scores = np.array(self.results[1])
         list_of_lines = np.array(self.results[2])
         find_ids = list(self.results[3])
-        temp_model_ids = list(self.results[4])
+        tmp_model_ids = list(self.results[4])
         tmp_matrix_ml = np.array(self.results[5])
         importances = np.array(self.results[6])
         trues = np.array(self.results[7])
         predictions = np.array(self.results[8])
 
-        matrix_ml = np.zeros(shape=tmp_matrix_ml.shape)
-        for i in xrange(len(matrix_ml)):
-            matrix_ml[find_ids[i], :] = tmp_matrix_ml[i, :]
-
+        # Rearrange the matrix based on the find_ids indexes
         if not self.optional_files:
             tmp_matrix_ml = tmp_matrix_ml.reshape(
-                len(self.data[1:]), len(self.features) * 3
+                len(self.data[1:]), 3 * len(self.features)
             )
 
-        # Rearrange the matrix based on the find_ids indexes
         matrix_ml = np.zeros(shape=tmp_matrix_ml.shape)
         for i in xrange(len(matrix_ml)):
             matrix_ml[find_ids[i], :] = tmp_matrix_ml[i, :]
 
-        # Rearrange the model_ids based on the find_ids indexes
-        model_ids = np.zeros(len(temp_model_ids))
-        for i in xrange(len(temp_model_ids)):
-            model_ids[find_ids[i]] = temp_model_ids[i]
+        model_ids = np.zeros(len(tmp_model_ids))
+        for i in xrange(len(matrix_ml)):
+            model_ids[find_ids[i]] = tmp_model_ids[i]
 
         return sigmas, scores, list_of_lines, model_ids, matrix_ml, \
                importances, predictions, trues
@@ -489,20 +482,14 @@ class Game(object):
             ], list_of_lines
         )
 
-        # Outputs relative to the Machine Learning determination
-        if self.optional_files:
-            write_output = get_output(
-                model_ids, matrix_ml, len(self.features)
-            )
-        else:
-            write_output = np.column_stack((model_ids, matrix_ml))
-
         np.savetxt(
             os.path.join(
                 self.output_folder,
                 self.output_filename
             ),
-            write_output,
+            get_output(
+                model_ids, matrix_ml, len(self.features), self.optional_files
+            ),  # Outputs relative to the Machine Learning determination
             header=self.output_header,
             fmt=FMT_PRINT
         )

@@ -11,7 +11,7 @@
 import os
 
 from game.models import Game
-
+from benchmark.benchmark import simple_benchmark
 
 def main():
     driver = Game(
@@ -34,4 +34,8 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()
+
+    simple_benchmark()
+

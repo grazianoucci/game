@@ -58,23 +58,30 @@ def get_input_files():
     return line, errors, labels
 
 
-def get_output(model_ids, matrix_ml, n_features):
+def get_output(model_ids, matrix_ml, n_features, optional_files):
     """
     :param model_ids:
     :param matrix_ml:
     :param n_features: int
         Number of features to include
+    :param optional_files: bool
+        True iff you want to enable optional files generation
     :return: np.vstack
     """
 
-    out = [model_ids]
-    for i in range(n_features):
-        out += [
-            np.log10(np.mean(10 ** matrix_ml[:, i], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, i], axis=1)),
-            np.std(matrix_ml[:, i], axis=1)
-        ]
-    return np.vstack(tuple(out)).T  # transpose
+    if optional_files:
+        out = [model_ids]
+        for i in range(n_features):
+            out += [
+                np.log10(np.mean(10 ** matrix_ml[:, i], axis=1)),
+                np.log10(np.median(10 ** matrix_ml[:, i], axis=1)),
+                np.std(matrix_ml[:, i], axis=1)
+            ]
+        return np.vstack(tuple(out)).T  # transpose
+    else:
+        return np.column_stack(
+            (model_ids, matrix_ml)  # add model IDs to output matrix
+        )
 
 
 def write_optional_files(dir_path, labels, data):
