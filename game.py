@@ -8,12 +8,15 @@
 
 """ GAME (GAlaxy Machine learning for Emission lines) """
 
+import os
+
 from game.models import Game
 
 
 def main():
     driver = Game(
         ["g0", "n", "NH", "U", "Z"],
+        input_folder="benchmarks/inputs/32",
         output_header="id_model mean[Log(G0)] median[Log(G0)]"
                       "sigma[Log(G0)] mean[Log(n)] median[Log(n)]"
                       "sigma[Log(n)] mean[Log(NH)] median[Log(NH)]"
@@ -26,17 +29,17 @@ def main():
     )
 
     driver.run()
-    # driver.run_additional_labels(
-    #     additional_features=["AV", "fesc"],
-    #     labels_file=os.path.join(
-    #         os.getcwd(),
-    #         "library",
-    #         "additional_labels.dat"
-    #     ),
-    #     output_header="id_model mean[Av] median[Av] sigma[Av] mean[fesc] "
-    #                   "median[fesc] sigma[fesc]",
-    #     output_filename="output_ml_additional.dat"
-    # )
+    driver.run_additional_labels(
+        additional_features=["AV", "fesc"],
+        labels_file=os.path.join(
+            os.getcwd(),
+            "library",
+            "additional_labels.dat"
+        ),
+        output_header="id_model mean[Av] median[Av] sigma[Av] mean[fesc] "
+                      "median[fesc] sigma[fesc]",
+        output_filename="output_ml_additional.dat"
+    )
 
 
 if __name__ == "__main__":

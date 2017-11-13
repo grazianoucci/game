@@ -431,9 +431,19 @@ class Game(object):
             optional_files=self.optional_files,
             to_predict=to_predict
         )
+
+        if self.verbose:
+            print "Setting up parallel algorithm"
+            print "Memory usage:", utils.get_memory_usage(), "MB"
+
         self.results = utils.run_parallel(
             algorithm, self.n_processes, unique_id
         )
+
+        if self.verbose:
+            print "Collecting results from parallel algorithm"
+            print "Memory usage:", utils.get_memory_usage(), "MB"
+
         timer = time.time() - timer  # TIMER end
         if self.verbose:
             print "Elapsed seconds for ML:", timer
@@ -447,7 +457,7 @@ class Game(object):
             print str(e)
 
         if self.verbose:
-            print "Done predictions!"
+            print "Done I/O"
             print "Memory usage:", utils.get_memory_usage(), "MB"
 
     def run_additional_labels(self, additional_features, labels_file,
