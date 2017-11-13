@@ -12,6 +12,8 @@ import os
 
 import numpy as np
 
+FMT_PRINT="%.5f"
+
 
 def get_input_files():
     """
@@ -77,7 +79,7 @@ def write_optional_files(dir_path, labels, data):
             np.savetxt(
                 file_name,
                 data[key][i::5, :],
-                fmt="%.5f"
+                fmt=FMT_PRINT
             )
 
 
@@ -103,7 +105,7 @@ def write_importances_files(dir_path, labels, data, importances):
         np.savetxt(
             file_name,
             np.vstack((data[0], importances[0::5, :])),
-            fmt="%.5f"
+            fmt=FMT_PRINT
         )
 
 

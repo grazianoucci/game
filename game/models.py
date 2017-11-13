@@ -23,7 +23,7 @@ from sklearn.preprocessing import Normalizer
 import game.utils as utils
 from game.alg import game
 from game.io import write_optional_files, write_importances_files, \
-    write_models_info, get_input_files, get_output
+    write_models_info, get_input_files, get_output,FMT_PRINT
 
 
 class Prediction(object):
@@ -533,7 +533,7 @@ class Game(object):
             ),
             write_output,
             header=self.output_header,
-            fmt="%.5f"
+            fmt=FMT_PRINT
         )
 
         # Outputs with the feature importances
