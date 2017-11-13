@@ -28,7 +28,7 @@ def game(
     features_train = features[:, initial[mask][0]][:limit, :]
     features_test = features[:, initial[mask][0]][limit:, :]
     importances = list(to_predict.generate_importances_arrays())
-    errors = [
+    sigmas = [
         feature.error_estimate(
             features_train,
             features_test,
@@ -63,10 +63,11 @@ def game(
             ])
     else:
         for k in range(len(mask[0])):
-            results = [
-                feature.predict(new_data[k::len(mask[0])])
-                for feature in features_to_predict
-            ]
+            results = np.zeros(
+                (len(new_data[k::len(mask[0])]), len(features_to_predict))
+            )
+            for j, feature in enumerate(features_to_predict):
+                results[:, j] = feature.predict(new_data[k::len(mask[0])])
 
             # Models ids
             id_model.append(i)
@@ -74,9 +75,9 @@ def game(
 
             # result vector
             vector_mms = np.zeros(3 * len(features_to_predict))
-            vector_mms[0::3] = np.mean(results)
-            vector_mms[1::3] = np.median(results)
-            vector_mms[2::3] = np.std(results)
+            vector_mms[0::3] = np.mean(results, axis=0)
+            vector_mms[1::3] = np.median(results, axis=0)
+            vector_mms[2::3] = np.std(results, axis=0)
             matrix_mms.append(vector_mms)
 
     # Importance matrices
@@ -91,11 +92,15 @@ def game(
         scores += [model["score"], model["std"]]
     scores = [i] + scores
 
-    return [
-               error["sigma"] for error in errors
-           ], scores, line_labels[initial[mask][0]], index_find, id_model, \
-           matrix_mms, importances, [
-        np.array(error["true"]) for error in errors
-           ], [
-        np.array(error["pred"]) for error in errors
-           ]
+    errors = [
+        error["sigma"] for error in sigmas
+    ]
+    trues = [
+        np.array(error["true"]) for error in sigmas
+    ]
+    predictions = [
+        np.array(error["pred"]) for error in sigmas
+    ]
+
+    return errors, scores, line_labels[initial[mask][0]], index_find, \
+           id_model, matrix_mms, importances, trues, predictions

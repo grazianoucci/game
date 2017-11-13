@@ -16,17 +16,6 @@ import urllib
 import numpy as np
 
 
-def create_directory(dir_path):
-    """
-    :param dir_path: str
-        Path to output folder
-    :return: void
-        Creates folder if not existent
-    """
-
-    os.makedirs(dir_path)
-
-
 def download_library(
         download_file,
         url="http://cosmology.sns.it/library_game/library.tar.gz"
@@ -64,7 +53,7 @@ def create_library(folder, check_file):
     )
 
     if not os.path.exists(check_file):
-        create_directory(folder)
+        os.makedirs(folder)
 
         if not os.path.exists(lib_file):
             download_library(lib_file)  # download library
@@ -79,7 +68,7 @@ def run_parallel(algorithm, n_processes, unique_id):
     pool = multiprocessing.Pool(processes=n_processes)
     results = pool.map(
         algorithm,
-        np.arange(1, np.max(unique_id.astype(int)) + 1, 1)
+        range(1, int(np.max(unique_id)) + 1)
     )
     pool.close()
     pool.join()
