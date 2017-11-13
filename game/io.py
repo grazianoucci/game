@@ -27,6 +27,7 @@ def get_output_header(features):
 
     out_head = []
     out_head.append('id_model')
+    # right now it does not have the same sorting as defined in game()
     for k in features:
         var_st = k
         if(var_st in log_list):

@@ -44,7 +44,7 @@ class Prediction(object):
         self.regr = regressor
 
     def generate_features(self):
-        for feature in self.features:
+        for feature in sorted(self.features,key= lambda k :self.features[k]):
             yield FeaturePrediction(
                 feature,
                 self.features[feature],
