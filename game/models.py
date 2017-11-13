@@ -44,12 +44,13 @@ class Prediction(object):
         self.regr = regressor
 
     def generate_features(self):
-        for feature in self.features:
-            yield FeaturePrediction(
+        return [
+            FeaturePrediction(
                 feature,
                 self.features[feature],
                 copy.copy(self.regr)
-            )
+            ) for feature in self.features
+        ]
 
     def generate_importances_arrays(self):
         """
@@ -58,8 +59,9 @@ class Prediction(object):
         """
 
         length = len(self.data[0])
-        for _ in self.features:
-            yield np.zeros(length)
+        return [
+            np.zeros(length) for _ in self.features
+        ]
 
 
 class FeaturePrediction(object):
@@ -116,15 +118,12 @@ class FeaturePrediction(object):
         """
 
         model = self.regr.fit(x_input, y_input[:, self.matrix_index])  # Model
-        importances = model.feature_importances_  # Feature importances
-
-        # Cross-validation score
         score = cross_val_score(
             self.regr, x_input, y_input[:, self.matrix_index], cv=5
         )
         return {
             "model": copy.copy(model),
-            "importance": importances,
+            "importance": model.feature_importances_,
             "score": np.mean(score),
             "std": np.std(score)
         }
@@ -215,7 +214,8 @@ class Game(object):
         self.results              = None
         self.output_sigmas_header = "Standard deviation of log "
         self.output_scores_header = "Cross-validation score for "
-        self.output_header        = get_output_header(self.features)
+        # self.output_header        = get_output_header(self.features)
+        self.output_header = get_output_header(features)
         self.output_filename      = os.path.join(
             self.output_folder,
             output_filename
@@ -395,7 +395,6 @@ class Game(object):
 
         algorithm = partial(
             game,
-            i=1,
             models=models, unique_id=unique_id, initial=initial,
             limit=self.test_size_limit,
             features=self.prediction_features, labels_train=labels_train,
@@ -405,11 +404,10 @@ class Game(object):
             optional_files=self.optional_files,
             to_predict=to_predict
         )
-        # self.results = utils.run_parallel(
-        #     algorithm, self.n_processes, unique_id
-        # )
-        self.results = algorithm()
-        self.results = list(self.results)
+        self.results = utils.run_parallel(
+            algorithm, self.n_processes, unique_id
+        )
+        self.results = list(self.results[0])
         timer = time.time() - timer  # TIMER end
         if self.verbose:
             print "Elapsed seconds for ML:", timer
@@ -437,7 +435,6 @@ class Game(object):
 
     def parse_results(self):
         """
-        :param unique_id:
         :return: tuple of []
             Rearrange based on the find_ids indexes
         """

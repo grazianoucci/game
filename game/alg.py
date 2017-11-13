@@ -18,7 +18,7 @@ def game(
         labels_train, labels_test, labels, line_labels,
         filename_int, filename_err, n_repetition, optional_files, to_predict
 ):
-    features_to_predict = list(to_predict.generate_features())
+    features_to_predict = to_predict.generate_features()
     mask = np.where(models == unique_id[i - 1])
     matrix_mms = []  # matrix_mms is useful to save physical properties
     index_find = []  # index_find helps to keep trace of the indexes
@@ -27,7 +27,7 @@ def game(
     # Definition of training / testing
     features_train = features[:, initial[mask][0]][:limit, :]
     features_test = features[:, initial[mask][0]][limit:, :]
-    importances = list(to_predict.generate_importances_arrays())
+    importances = to_predict.generate_importances_arrays()
     sigmas = [
         feature.error_estimate(
             features_train,
@@ -79,8 +79,6 @@ def game(
             vector_mms[1::3] = np.median(results, axis=0)
             vector_mms[2::3] = np.std(results, axis=0)
             matrix_mms.append(vector_mms)
-
-    print matrix_mms
 
     # Importance matrices
     for j in range(len(importances)):
