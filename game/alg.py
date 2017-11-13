@@ -61,11 +61,10 @@ def game(
                 prediction[mask[0][k], :] for prediction in predictions
             ])
         else:
-            results = np.zeros(
-                (len(new_data[k::len(mask[0])]), len(features_to_predict))
-            )
-            for j, feature in enumerate(features_to_predict):
-                results[:, j] = feature.predict(new_data[k::len(mask[0])])
+            results = [
+                feature.predict(new_data[k::len(mask[0])])
+                for feature in features_to_predict
+            ]
 
             # result vector
             vector_mms = np.zeros(3 * len(features_to_predict))

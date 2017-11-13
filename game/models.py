@@ -47,9 +47,9 @@ class Prediction(object):
         return [
             FeaturePrediction(
                 feature,
-                i,
+                j,
                 copy.copy(self.regr)
-            ) for i, feature in enumerate(self.features)
+            ) for j, feature in enumerate(self.features)
         ]
 
     def generate_importances_arrays(self):
