@@ -22,7 +22,7 @@ from sklearn.preprocessing import Normalizer
 
 import game.utils as utils
 from game.alg import game
-from game.io import write_optional_files, write_importances_files, \
+from game.rw import write_optional_files, write_importances_files, \
     write_models_info, get_input_files, get_output
 
 
@@ -149,7 +149,7 @@ class Game(object):
             splitter="best",
             max_features=None
         ),
-        n_estimators=50,
+        n_estimators=2,
         random_state=0
     )  # algorithm for Machine Learning (ref1:
     # http://adsabs.harvard.edu/abs/2017MNRAS.465.1144U(
@@ -362,6 +362,7 @@ class Game(object):
             else:
                 print ""
                 print "Running GAME with default labels...\n"
+            print "RAM memory usage:", utils.get_memory_usage(), "MB"
 
         self.parse_input_files()
         initial, models, unique_id = self.determine_models()
@@ -373,6 +374,7 @@ class Game(object):
                 np.max(unique_id))
             print "\nStarting Machine Learning algorithm for " \
                   + ", ".join(self.features) + " labels... "
+            print "Memory usage:", utils.get_memory_usage(), "MB"
 
         timer = time.time()  # TIMER start
 
@@ -436,12 +438,17 @@ class Game(object):
         if self.verbose:
             print "Elapsed seconds for ML:", timer
             print "\nWriting output files for the default labels..."
+            print "Memory usage:", utils.get_memory_usage(), "MB"
 
         try:
             self.write_results(unique_id)
         except Exception as e:
             print "Tried to write results to file but got error:"
             print str(e)
+
+        if self.verbose:
+            print "Done predictions!"
+            print "Memory usage:", utils.get_memory_usage(), "MB"
 
     def run_additional_labels(self, additional_features, labels_file,
                               output_header, output_filename):

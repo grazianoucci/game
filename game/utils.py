@@ -14,6 +14,7 @@ import tarfile
 import urllib
 
 import numpy as np
+import psutil
 
 
 def create_directory(dir_path):
@@ -86,3 +87,14 @@ def run_parallel(algorithm, n_processes, unique_id):
     pool.close()
     pool.join()
     return results
+
+
+def get_memory_usage():
+    """
+    :return: float
+        MB of memory used by this process
+    """
+
+    process = psutil.Process(os.getpid())
+    mem = process.memory_info().rss
+    return mem / (1024 * 1024)
