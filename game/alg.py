@@ -48,30 +48,24 @@ def game(
         filename_int, filename_err, n_repetition, mask
     )[:, initial[mask][0]]
 
-    if optional_files:
-        for k in range(len(mask[0])):
+    for k in range(len(mask[0])):
+        id_model.append(i)  # Model ids
+        index_find.append(mask[0][k])
+
+        if optional_files:
             predictions = [
                 feature.predict(new_data[k::len(mask[0])])
                 for feature in features_to_predict
             ]
-
-            # Model ids
-            id_model.append(i)
-            index_find.append(mask[0][k])
             matrix_mms.append([
                 prediction[mask[0][k], :] for prediction in predictions
             ])
-    else:
-        for k in range(len(mask[0])):
+        else:
             results = np.zeros(
                 (len(new_data[k::len(mask[0])]), len(features_to_predict))
             )
             for j, feature in enumerate(features_to_predict):
                 results[:, j] = feature.predict(new_data[k::len(mask[0])])
-
-            # Models ids
-            id_model.append(i)
-            index_find.append(mask[0][k])
 
             # result vector
             vector_mms = np.zeros(3 * len(features_to_predict))
