@@ -23,7 +23,8 @@ from sklearn.preprocessing import Normalizer
 import game.utils as utils
 from game.alg import game
 from game.io import write_optional_files, write_importances_files, \
-    write_models_info, get_input_files, get_output,FMT_PRINT,get_output_header
+    write_models_info, get_input_files, get_output, FMT_PRINT, \
+    get_output_header
 
 
 class Prediction(object):
@@ -228,6 +229,7 @@ class Game(object):
         """
 
         utils.create_library(self.LIBRARY_FOLDER, self.LABELS_FILE)
+        utils.create_directory(self.output_folder)
 
         if self.verbose:
             print self.INTRO
