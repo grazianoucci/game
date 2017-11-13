@@ -48,7 +48,7 @@ class Prediction(object):
             yield FeaturePrediction(
                 feature,
                 self.features[feature],
-                self.regr
+                copy.copy(self.regr)
             )
 
     def generate_importances_arrays(self):
@@ -413,7 +413,7 @@ class Game(object):
         timer = time.time() - timer  # TIMER end
         if self.verbose:
             print "Elapsed seconds for ML:", timer
-            print "\nWriting output files for the default labels..."
+            print "\nWriting output files..."
 
         self.write_results()
 

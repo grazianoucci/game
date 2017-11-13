@@ -80,6 +80,8 @@ def game(
             vector_mms[2::3] = np.std(results, axis=0)
             matrix_mms.append(vector_mms)
 
+    print matrix_mms
+
     # Importance matrices
     for j in range(len(importances)):
         importances[j][initial[mask][0]] = models[j]["importance"]
