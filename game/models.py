@@ -12,7 +12,6 @@ import copy
 import os
 import time
 from functools import partial
-from itertools import chain
 
 import numpy as np
 from sklearn import tree
@@ -22,7 +21,7 @@ from sklearn.preprocessing import Normalizer
 
 import game.utils as utils
 from game.alg import game
-from game.io import write_optional_files, write_importances_files, \
+from game.rw import write_optional_files, write_importances_files, \
     write_models_info, get_input_files, get_output, FMT_PRINT, \
     get_output_header
 
@@ -175,7 +174,7 @@ class Game(object):
     )
 
     def __init__(self, features, manual_input, verbose,
-                 output_filename, n_repetition=10000, input_folder=os.getcwd(),
+                 output_filename, n_repetition=10, input_folder=os.getcwd(),
                  output_folder=os.path.join(os.getcwd(), "output")):
         """
         :param features: [] of str
@@ -229,7 +228,8 @@ class Game(object):
         """
 
         utils.create_library(self.LIBRARY_FOLDER, self.LABELS_FILE)
-        utils.create_directory(self.output_folder)
+        if not os.path.exists(self.output_folder):  # prepare output folder
+            os.makedirs(self.output_folder)
 
         if self.verbose:
             print self.INTRO
@@ -395,6 +395,7 @@ class Game(object):
 
         algorithm = partial(
             game,
+            i=1,
             models=models, unique_id=unique_id, initial=initial,
             limit=self.test_size_limit,
             features=self.prediction_features, labels_train=labels_train,
@@ -404,15 +405,17 @@ class Game(object):
             optional_files=self.optional_files,
             to_predict=to_predict
         )
-        self.results = utils.run_parallel(
-            algorithm, self.n_processes, unique_id
-        )
+        # self.results = utils.run_parallel(
+        #     algorithm, self.n_processes, unique_id
+        # )
+        self.results = algorithm()
+        self.results = list(self.results)
         timer = time.time() - timer  # TIMER end
         if self.verbose:
             print "Elapsed seconds for ML:", timer
             print "\nWriting output files for the default labels..."
 
-        self.write_results(unique_id)
+        self.write_results()
 
     def run_additional_labels(self, additional_features, labels_file,
                               output_filename):
@@ -432,59 +435,31 @@ class Game(object):
         self.output_filename = output_filename
         self.run(additional_labels_file=labels_file)
 
-    def parse_results(self, unique_id):
+    def parse_results(self):
         """
         :param unique_id:
         :return: tuple of []
             Rearrange based on the find_ids indexes
         """
 
-        sigmas = np.array(
-            list(chain.from_iterable(np.array(self.results)[:, 0]))
-        ).reshape(len(unique_id.astype(int)), len(self.features))
-
-        scores = np.array(
-            list(chain.from_iterable(np.array(self.results)[:, 1]))
-        ).reshape(len(unique_id.astype(int)), len(self.features) * 2 + 1)
-
-        importances = np.array(
-            list(
-                chain.from_iterable(np.array(self.results)[:, 6])
-            )
-        )
-        trues = np.array(
-            list(
-                chain.from_iterable(np.array(self.results)[:, 7])
-            )
-        )
-        predictions = np.array(
-            list(
-                chain.from_iterable(np.array(self.results)[:, 8])
-            )
-        )
-        list_of_lines = np.array(self.results)[:, 2]
-
-        # find_ids are useful to reorder the matrix with the ML determinations
-        find_ids = list(chain.from_iterable(np.array(self.results)[:, 3]))
-        temp_model_ids = list(
-            chain.from_iterable(np.array(self.results)[:, 4]))
-
-        tmp_matrix_ml = np.array(
-            list(chain.from_iterable(np.array(self.results)[:, 5]))
-        )
+        sigmas = np.array(self.results[0])
+        scores = np.array(self.results[1])
+        list_of_lines = np.array(self.results[2])
+        find_ids = list(self.results[3])
+        temp_model_ids = list(self.results[4])
+        tmp_matrix_ml = np.array(self.results[5])
+        importances = np.array(self.results[6])
+        trues = np.array(self.results[7])
+        predictions = np.array(self.results[8])
 
         matrix_ml = np.zeros(shape=tmp_matrix_ml.shape)
         for i in xrange(len(matrix_ml)):
             matrix_ml[find_ids[i], :] = tmp_matrix_ml[i, :]
 
-        tmp_matrix_ml = np.array(
-            list(chain.from_iterable(
-                np.array(self.results)[:, 5])
-            )
-        )
         if not self.optional_files:
-            tmp_matrix_ml = tmp_matrix_ml \
-                .reshape(len(self.data[1:]), len(self.features) * 3)
+            tmp_matrix_ml = tmp_matrix_ml.reshape(
+                len(self.data[1:]), len(self.features) * 3
+            )
 
         # Rearrange the matrix based on the find_ids indexes
         matrix_ml = np.zeros(shape=tmp_matrix_ml.shape)
@@ -497,12 +472,11 @@ class Game(object):
             model_ids[find_ids[i]] = temp_model_ids[i]
 
         return sigmas, scores, list_of_lines, model_ids, matrix_ml, \
-               importances, predictions, trues, matrix_ml
+               importances, predictions, trues
 
-    def write_results(self, unique_id):
+    def write_results(self):
         sigmas, scores, list_of_lines, model_ids, matrix_ml, \
-        importances, predictions, trues, matrix_ml = \
-            self.parse_results(unique_id)
+        importances, predictions, trues = self.parse_results()
 
         # Write information on different models
         write_models_info(
@@ -551,6 +525,3 @@ class Game(object):
                     "pdf": matrix_ml
                 }
             )
-
-        if self.verbose:
-            print ""

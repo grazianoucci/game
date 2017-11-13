@@ -12,7 +12,8 @@ import os
 
 import numpy as np
 
-FMT_PRINT="%.5f"
+FMT_PRINT = "%.5f"
+
 
 def get_output_header(features):
     """
@@ -35,6 +36,7 @@ def get_output_header(features):
           out_head.append( out_st+'['+var_st+']' )
     out_head = ' '.join(out_head)
     return out_head
+
 
 def get_input_files():
     """
@@ -157,7 +159,7 @@ def write_models_info(dir_path, labels, data, list_of_lines):
             for d in data:
                 for j, label in enumerate(labels):
                     out_file.write(
-                        d["str"] + label + ": %.3f\n" % d["lst"][i, j]
+                        d["str"] + label + ": %.3f\n" % d["lst"][j]
                     )
 
             out_file.write("List of input lines:\n")
