@@ -491,7 +491,7 @@ class Game(object):
                 model_ids,
                 matrix_ml,
                 len(self.features),
-                True,
+                self.optional_files,
                 "AV" in self.features
             ),  # Outputs relative to the Machine Learning determination
             header=self.output_header,
