@@ -13,6 +13,7 @@ import os
 from game.models import Game
 from benchmark.benchmark import simple_benchmark
 
+
 def main():
     driver = Game(
         ["g0", "n", "NH", "U", "Z"],

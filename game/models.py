@@ -488,7 +488,11 @@ class Game(object):
                 self.output_filename
             ),
             get_output(
-                model_ids, matrix_ml, len(self.features), self.optional_files
+                model_ids,
+                matrix_ml,
+                len(self.features),
+                True,
+                "AV" in self.features
             ),  # Outputs relative to the Machine Learning determination
             header=self.output_header,
             fmt=FMT_PRINT
