@@ -356,8 +356,11 @@ class Game(object):
         if self.labels is None:
             self.prediction_features = self.output[:, : -len(self.features)]
             self.labels = np.double(
-                self.output[:,
-                len(self.output[0]) - len(self.features): len(self.output[0])
+                self.output
+                [
+                    :,
+                    len(self.output[0]) - len(self.features):
+                    len(self.output[0])
                 ]
             )
             self.labels[:, -1] = np.log10(self.labels[:, -1])
