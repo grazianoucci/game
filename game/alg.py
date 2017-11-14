@@ -69,8 +69,8 @@ def game(
 
             # result vector
             vector_mms = np.zeros(3 * len(features_to_predict))
-            vector_mms[0::3] = np.log10(np.mean(10 ** results, axis=0))
-            vector_mms[1::3] = np.log10(np.median(10 ** results, axis=0))
+            vector_mms[0::3] = np.mean(results, axis=0)
+            vector_mms[1::3] = np.median(results, axis=0)
             vector_mms[2::3] = np.std(results, axis=0)
 
             matrix_mms.append(vector_mms)
@@ -79,8 +79,8 @@ def game(
     for j in range(len(importances)):
         importances[j][initial[mask][0]] = models[j]["importance"]
 
-    print "Model", str(int(i)) + "/" + str(
-        int(np.max(unique_id))), "completed..."
+    print "Model", str(int(i)) + "/" + str(int(np.max(unique_id))), \
+        "completed..."
 
     scores = []
     for model in models:

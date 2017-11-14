@@ -31,7 +31,7 @@ class Prediction(object):
 
     def __init__(self, features, data, regressor):
         """
-        :param features: [] of str
+        :param features: [] of {}
             List of names of features
         :param data: matrix
             Data input
@@ -46,10 +46,10 @@ class Prediction(object):
     def generate_features(self):
         return [
             FeaturePrediction(
-                feature,
-                j,
+                feature["name"],
+                feature["index"],
                 copy.copy(self.regr)
-            ) for j, feature in enumerate(self.features)
+            ) for feature in self.features
         ]
 
     def generate_importances_arrays(self):
@@ -356,11 +356,8 @@ class Game(object):
         if self.labels is None:
             self.prediction_features = self.output[:, : -len(self.features)]
             self.labels = np.double(
-                self.output
-                [
-                    :,
-                    len(self.output[0]) - len(self.features):
-                    len(self.output[0])
+                self.output[:,
+                len(self.output[0]) - len(self.features): len(self.output[0])
                 ]
             )
             self.labels[:, -1] = np.log10(self.labels[:, -1])
@@ -378,15 +375,23 @@ class Game(object):
             self.labels[:, -2] = np.log10(self.labels[:, -2])
             self.labels[:, -1] = np.log10(self.labels[:, -1])
             to_predict = Prediction(
-                {
-                    feature: i + 3 for i, feature in enumerate(self.features)
-                },  # additional labels have +3 offset
+                [
+                    {
+                        "name": feature,
+                        "index": i + 3
+                    } for i, feature in enumerate(self.features)
+                ],  # additional labels have +3 offset
                 self.data,
                 self.REGRESSOR
             )
         else:
             to_predict = Prediction(
-                self.features,
+                [
+                    {
+                        "name": feature,
+                        "index": i
+                    } for i, feature in enumerate(self.features)
+                ],
                 self.data,
                 self.REGRESSOR
             )
