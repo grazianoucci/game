@@ -31,8 +31,8 @@ class Prediction(object):
 
     def __init__(self, features, data, regressor):
         """
-        :param features: {} str -> int
-            Identify feature with this literal and index in matrix
+        :param features: [] of {}
+            List of names of features
         :param data: matrix
             Data input
         :param regressor: sklearn regressor
@@ -46,10 +46,10 @@ class Prediction(object):
     def generate_features(self):
         return [
             FeaturePrediction(
-                feature,
-                j,
+                feature["name"],
+                feature["index"],
                 copy.copy(self.regr)
-            ) for j, feature in enumerate(self.features)
+            ) for feature in self.features
         ]
 
     def generate_importances_arrays(self):
@@ -375,15 +375,23 @@ class Game(object):
             self.labels[:, -2] = np.log10(self.labels[:, -2])
             self.labels[:, -1] = np.log10(self.labels[:, -1])
             to_predict = Prediction(
-                {
-                    feature: i + 3 for i, feature in enumerate(self.features)
-                },  # additional labels have +3 offset
+                [
+                    {
+                        "name": feature,
+                        "index": i + 3
+                    } for i, feature in enumerate(self.features)
+                ],  # additional labels have +3 offset
                 self.data,
                 self.REGRESSOR
             )
         else:
             to_predict = Prediction(
-                self.features,
+                [
+                    {
+                        "name": feature,
+                        "index": i
+                    } for i, feature in enumerate(self.features)
+                ],
                 self.data,
                 self.REGRESSOR
             )
@@ -491,8 +499,7 @@ class Game(object):
                 model_ids,
                 matrix_ml,
                 len(self.features),
-                self.optional_files,
-                "AV" in self.features
+                self.optional_files
             ),  # Outputs relative to the Machine Learning determination
             header=self.output_header,
             fmt=FMT_PRINT
