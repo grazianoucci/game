@@ -68,7 +68,7 @@ def run_parallel(algorithm, n_processes, unique_id):
     pool = multiprocessing.Pool(processes=n_processes)
     results = pool.map(
         algorithm,
-        range(1, int(np.max(unique_id)) + 1)
+        np.arange(1, np.max(unique_id.astype(int)) + 1, 1)
     )
     pool.close()
     pool.join()

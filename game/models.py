@@ -405,7 +405,7 @@ class Game(object):
         self.results = utils.run_parallel(
             algorithm, self.n_processes, unique_id
         )
-        self.results = list(self.results[0])
+        self.results = list(self.results[0])  # tuple to int
         timer = time.time() - timer  # TIMER end
         if self.verbose:
             print "Elapsed seconds for ML:", timer
