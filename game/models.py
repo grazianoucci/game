@@ -405,7 +405,7 @@ class Game(object):
         self.results = utils.run_parallel(
             algorithm, self.n_processes, unique_id
         )
-        self.results = list(self.results[0])
+        self.results = list(self.results[0])  # tuple to int
         timer = time.time() - timer  # TIMER end
         if self.verbose:
             print "Elapsed seconds for ML:", timer
@@ -488,7 +488,11 @@ class Game(object):
                 self.output_filename
             ),
             get_output(
-                model_ids, matrix_ml, len(self.features), self.optional_files
+                model_ids,
+                matrix_ml,
+                len(self.features),
+                self.optional_files,
+                "AV" in self.features
             ),  # Outputs relative to the Machine Learning determination
             header=self.output_header,
             fmt=FMT_PRINT
