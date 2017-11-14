@@ -56,7 +56,7 @@ def check_precision(
      folder_current  = 'output/'
     ,folder_original = 'benchmark/'
     ,f_in            = "output_ml.dat"
-    ,toll            = 1.e-2
+    ,toll            = 1.
     ,log_data        = True
     ,verbose         = True
     ):
@@ -68,9 +68,11 @@ def check_precision(
         print '  current :',folder_current
         print '  original:',folder_original
         print '  file    :',f_in
-        print '  '
         print '  adopted tollerance'
-        print '    ',toll*100,'%'
+        if(toll >= 1):
+            print '    ',toll,'sigma'
+        else:
+            print '    ',toll*100,'%'
 
     new_data = np.loadtxt(folder_current+f_in)
     old_data = np.loadtxt(folder_original+f_in)
@@ -82,7 +84,7 @@ def check_precision(
     mean_new = new_data[:,1::3]
 
     if(log_data):
-        test     = np.abs(10**mean - 10**mean_new)/error
+        test     = np.abs(10**mean - 10**mean_new)/10**error
     else:
         test     = np.abs(mean - mean_new)/error
     test     = test>toll
@@ -90,11 +92,13 @@ def check_precision(
     out      = float(np.sum(test))/np.prod(np.shape(test))
 
     if(verbose):
-      print '  '
       if(out == 0):
           print '  everything seems fine'
       else:
           print '  error in ',out*100,'% of the cases'
+          print '  per label:'
+          for i_label in xrange(np.shape(test)[1]):
+            print '    ',i_label+1,100*float(np.sum(test[:,i_label]))/np.shape(test)[0],'%'
 
     return out
 
@@ -114,5 +118,3 @@ if __name__ == "__main__":
 
         stat = check_precision(f_in = "output_ml_additional.dat",log_data=False)
 
-        if(stat == 0):
-            print 'everthing seems fine'

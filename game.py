@@ -11,7 +11,7 @@
 import os
 
 from game.models import Game
-from benchmark.benchmark import simple_benchmark
+from benchmark.benchmark import simple_benchmark,check_precision
 
 
 def main():
@@ -39,4 +39,8 @@ if __name__ == "__main__":
     main()
 
     simple_benchmark()
+
+    stat = check_precision()
+    stat = stat+check_precision(f_in = "output_ml_additional.dat",log_data=False)
+
 
