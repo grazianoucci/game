@@ -64,7 +64,7 @@ def check_precision(
     out = 0
 
     if(verbose):
-        print 'Cheking'
+        print 'Checking'
         print '  current :',folder_current
         print '  original:',folder_original
         print '  file    :',f_in
