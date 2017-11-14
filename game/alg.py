@@ -72,6 +72,7 @@ def game(
             vector_mms[0::3] = np.log10(np.mean(10 ** results, axis=0))
             vector_mms[1::3] = np.log10(np.median(10 ** results, axis=0))
             vector_mms[2::3] = np.std(results, axis=0)
+
             matrix_mms.append(vector_mms)
 
     # Importance matrices

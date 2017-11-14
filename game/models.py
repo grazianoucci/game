@@ -31,8 +31,8 @@ class Prediction(object):
 
     def __init__(self, features, data, regressor):
         """
-        :param features: {} str -> int
-            Identify feature with this literal and index in matrix
+        :param features: [] of str
+            List of names of features
         :param data: matrix
             Data input
         :param regressor: sklearn regressor
@@ -491,8 +491,7 @@ class Game(object):
                 model_ids,
                 matrix_ml,
                 len(self.features),
-                self.optional_files,
-                "AV" in self.features
+                self.optional_files
             ),  # Outputs relative to the Machine Learning determination
             header=self.output_header,
             fmt=FMT_PRINT
