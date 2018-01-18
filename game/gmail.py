@@ -49,7 +49,7 @@ class GMailApiOAuth(GoogleApiOAuth):
             GMail API driver
         """
 
-        return super().get_driver("gmail", "v1")
+        return self.get_driver("gmail", "v1")
 
 
 def get_mime_message(subject, text):

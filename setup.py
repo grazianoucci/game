@@ -31,7 +31,7 @@ setup(
     install_requires=[
         "numpy",
         "scipy",
-        "sklearn",
+        "sklearn", 'httplib2'
     ],
     test_suite="tests"
 )
