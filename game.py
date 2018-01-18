@@ -40,4 +40,3 @@ if __name__ == "__main__":
 
     stat = check_precision()
     stat = stat+check_precision(f_in = "output_ml_additional.dat",log_data=False)
-    
