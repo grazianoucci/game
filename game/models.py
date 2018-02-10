@@ -172,8 +172,9 @@ class Game(object):
         "library.csv"
     )
 
-    def __init__(self, features, manual_input, verbose,
-                 output_filename, n_repetition=10, input_folder=os.getcwd(),
+    def __init__(self, features, manual_input, verbose, output_filename,
+                 inputs_file=None, errors_file=None, labels_file=None,
+                 n_repetition=10, input_folder=os.getcwd(),
                  output_folder=os.path.join(os.getcwd(), "output")):
         """
         :param features: [] of str
@@ -191,16 +192,16 @@ class Game(object):
         # input files
         self.filename_int = os.path.join(
             input_folder,
-            "input/inputs_game_test.dat"
-        )
+            "inputs.dat"
+        ) if inputs_file is None else inputs_file
         self.filename_err = os.path.join(
             input_folder,
-            "input/errors_game_test.dat"
-        )
+            "errors.dat"
+        ) if errors_file is None else errors_file
         self.filename_library = os.path.join(
             input_folder,
-            "input/labels_game_test.dat"
-        )
+            "labels.dat"
+        ) if labels_file is None else labels_file
 
         # data
         self.n_repetition         = n_repetition
