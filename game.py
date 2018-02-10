@@ -14,29 +14,32 @@ from game.models import Game
 from benchmark.benchmark import simple_benchmark,check_precision
 
 
-def main():
+def main(labels, additional_features, output_folder):
+    output_filename = os.path.join(output_folder, "output_ml.dat")
     driver = Game(
-        ["g0", "n", "NH", "U", "Z"],
-        output_filename="output_ml.dat",
+        labels,
+        output_filename=output_filename,
         manual_input=False,
         verbose=True
     )
-
     driver.run()
+
+    output_filename = os.path.join(output_folder, "output_ml_additional.dat")
     driver.run_additional_labels(
-        additional_features=["AV", "fesc"],
+        additional_features=additional_features,
         labels_file=os.path.join(
             os.getcwd(),
             "library",
             "additional_labels.dat"
         ),
-        output_filename="output_ml_additional.dat"
+        output_filename=output_filename
     )
 
 
 if __name__ == "__main__":
-    main()
+    main(["g0", "n", "NH", "U", "Z"], ["AV", "fesc"], os.getcwd())
+
     simple_benchmark()
 
     stat = check_precision()
-    stat = stat+check_precision(f_in = "output_ml_additional.dat",log_data=False)
+    stat += check_precision(f_in="output_ml_additional.dat", log_data=False)
