@@ -18,6 +18,9 @@ def main(labels, additional_features, output_folder):
     output_filename = os.path.join(output_folder, "output_ml.dat")
     driver = Game(
         labels,
+        inputs_file="input/inputs_game_test.dat",
+        errors_file="input/errors_game_test.dat",
+        labels_file="input/labels_game_test.dat",
         output_filename=output_filename,
         manual_input=False,
         verbose=True
