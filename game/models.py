@@ -171,6 +171,10 @@ class Game(object):
         LIBRARY_FOLDER,
         "library.csv"
     )
+    ADDITIONAL_LABELS_FILE = os.path.join(
+        LIBRARY_FOLDER,
+        "additional_labels.dat"
+    )
 
     def __init__(self, features, manual_input, verbose, output_filename,
                  inputs_file=None, errors_file=None, labels_file=None,
@@ -422,8 +426,8 @@ class Game(object):
 
         self.write_results()
 
-    def run_additional_labels(self, additional_features, labels_file,
-                              output_filename):
+    def run_additional_labels(self, additional_features, output_filename,
+                              labels_file=ADDITIONAL_LABELS_FILE):
         """
         :param additional_features: [] of str
             List of features to predict
