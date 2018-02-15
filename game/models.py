@@ -359,10 +359,11 @@ class Game(object):
         # Definition of features and labels for Machine Learning. Searching
         # for values of the physical properties (for metallicity logarithm)
         if self.labels is None:
-            self.prediction_features = self.output[:, : -len(self.features)]
+            labels_to_skip = 5
+            self.prediction_features = self.output[:, : -labels_to_skip]
             self.labels = np.double(
                 self.output[:,
-                len(self.output[0]) - len(self.features): len(self.output[0])
+                len(self.output[0]) - labels_to_skip: len(self.output[0])
                 ]
             )
             self.labels[:, -1] = np.log10(self.labels[:, -1])

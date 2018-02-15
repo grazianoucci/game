@@ -40,7 +40,7 @@ def main(labels, additional_features, output_folder):
 
 
 if __name__ == "__main__":
-    main(["g0", "n", "NH", "U", "Z"], ["AV", "fesc"], os.getcwd())
+    main(["g0", "n", "NH", "U"], ["AV", "fesc"], os.getcwd())
 
     simple_benchmark()
 
