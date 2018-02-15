@@ -312,7 +312,7 @@ class Game(object):
         i = 2
 
         while check:
-            if not models[models == 0]:
+            if len(models[models == 0]) == 0:
                 check = False
             else:
                 mask = np.where(
