@@ -10,7 +10,7 @@
 
 import numpy as np
 
-from game.ml import realization
+from game.algorithms.machine_learn import realization
 
 
 def game(

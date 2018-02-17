@@ -10,8 +10,8 @@
 
 import os
 
-from game.models import Game
-from benchmark.benchmark import simple_benchmark,check_precision
+from game.models.core import Game
+from benchmark.benchmark import simple_benchmark, check_precision
 
 
 def main(features, additional_features, output_folder):

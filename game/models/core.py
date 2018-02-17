@@ -17,10 +17,12 @@ from sklearn.ensemble import AdaBoostRegressor
 from sklearn.preprocessing import Normalizer
 
 from game import utils as utils
-from game.alg import game
+from game.algorithms.core import game
 from game.models.features import Prediction
-from game.rw import get_output_header, write_models_info, get_output, \
-    FMT_PRINT, write_importances_files, write_optional_files
+from game.files.read import get_output_header, get_output, \
+    FMT_PRINT
+from game.files.write import write_optional_files, write_importances_files, \
+    write_models_info
 
 
 class Game(object):
