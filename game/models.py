@@ -176,10 +176,8 @@ class Game(object):
         "additional_labels.dat"
     )
 
-    def __init__(self, features, manual_input, verbose, output_filename,
-                 inputs_file=None, errors_file=None, labels_file=None,
-                 n_repetition=10, input_folder=os.getcwd(),
-                 output_folder=os.path.join(os.getcwd(), "output")):
+    def __init__(self, features, inputs_file, errors_file,
+                 labels_file, output_folder, n_repetition=10, verbose=False):
         """
         :param features: [] of str
             List of features to predict
@@ -188,43 +186,29 @@ class Game(object):
         self.features = features
 
         # user interaction
-        self.user_input = manual_input
         self.verbose = verbose
         self.output_folder = output_folder
         self.optional_files = False
 
         # input files
-        self.filename_int = os.path.join(
-            input_folder,
-            "inputs.dat"
-        ) if inputs_file is None else inputs_file
-        self.filename_err = os.path.join(
-            input_folder,
-            "errors.dat"
-        ) if errors_file is None else errors_file
-        self.filename_library = os.path.join(
-            input_folder,
-            "labels.dat"
-        ) if labels_file is None else labels_file
+        self.inputs_file = inputs_file
+        self.errors_file = errors_file
+        self.labels_file = labels_file
 
         # data
-        self.n_repetition         = n_repetition
-        self.data                 = None
-        self.labels               = None
-        self.prediction_features  = None
-        self.test_size_limit      = 0
-        self.output               = None
-        self.line_labels          = None
-        self.n_processes          = 2
-        self.results              = None
+        self.n_repetition = n_repetition
+        self.data = None
+        self.labels = None
+        self.prediction_features = None
+        self.test_size_limit = 0
+        self.output = None
+        self.line_labels = None
+        self.n_processes = 2
+        self.results = None
         self.output_sigmas_header = "Standard deviation of log "
         self.output_scores_header = "Cross-validation score for "
-        # self.output_header        = get_output_header(self.features)
         self.output_header = get_output_header(features)
-        self.output_filename      = os.path.join(
-            self.output_folder,
-            output_filename
-        )
+        self.output_filename = os.path.join(self.output_folder, "output.dat")
 
     def start(self):
         """
@@ -239,25 +223,13 @@ class Game(object):
         if self.verbose:
             print self.INTRO
 
-        if self.user_input:
-            self.filename_int, self.filename_err, self.filename_library = \
-                get_input_files()
-
-            self.optional_files = str(raw_input(
-                "Do you want to create the optional files [y/n]?: "
-            )).strip() == "y"  # optional files
-
-            self.n_processes = int(
-                raw_input("Choose the number of processors: ")
-            )
-
-    def parse_input_files(self):
+    def parse_inputs_file(self):
         """
         :return: void
             Parses input files and saves data in object
         """
 
-        self.data = np.loadtxt(self.filename_int)
+        self.data = np.loadtxt(self.inputs_file)
         mms = Normalizer(norm="max")
         self.data[1:, :] = mms.fit_transform(self.data[1:, :])
         self.output, self.line_labels = \
@@ -273,7 +245,7 @@ class Game(object):
         lines = np.array(open(self.LABELS_FILE).readline().split(","))
 
         # Read the file containing the user-input labels
-        input_labels = open(self.filename_library).read().splitlines()
+        input_labels = open(self.labels_file).read().splitlines()
         columns = []
         for element in input_labels:
             columns.append(np.where(lines == element)[0][0])
@@ -295,7 +267,7 @@ class Game(object):
 
         return array, np.array(input_labels)
 
-    def determine_models(self):
+    def get_models(self):
         """
         :return: tuple
             Determination of unique models based on
@@ -317,7 +289,7 @@ class Game(object):
             else:
                 mask = np.where(
                     (
-                        initial == initial[np.argmax(models == 0)]
+                            initial == initial[np.argmax(models == 0)]
                     ).all(axis=1))[0]
                 models[mask] = i
                 i += 1
@@ -336,15 +308,15 @@ class Game(object):
         if self.verbose:
             print "\nProgram started..."
 
-        if additional_labels_file:
+        if additional_labels_file and self.verbose:
             print ""
             print "Running GAME with additional labels...\n"
         else:
             print ""
             print "Running GAME with default labels...\n"
 
-        self.parse_input_files()
-        initial, models, unique_id = self.determine_models()
+        self.parse_inputs_file()
+        initial, models, unique_id = self.get_models()
 
         if self.verbose:
             print "# of input  models                     :", \
@@ -411,8 +383,8 @@ class Game(object):
             limit=self.test_size_limit,
             features=self.prediction_features, labels_train=labels_train,
             labels_test=labels_test, labels=self.labels,
-            line_labels=self.line_labels, filename_int=self.filename_int,
-            filename_err=self.filename_err, n_repetition=self.n_repetition,
+            line_labels=self.line_labels, filename_int=self.inputs_file,
+            filename_err=self.errors_file, n_repetition=self.n_repetition,
             optional_files=self.optional_files,
             to_predict=to_predict
         )

@@ -27,16 +27,18 @@ def main(labels, additional_features, output_folder):
     )
     driver.run()
 
-    output_filename = os.path.join(output_folder, "output_ml_additional.dat")
-    driver.run_additional_labels(
-        additional_features=additional_features,
-        labels_file=os.path.join(
-            os.getcwd(),
-            "library",
-            "additional_labels.dat"
-        ),
-        output_filename=output_filename
-    )
+    if additional_features:
+        output_filename =\
+            os.path.join(output_folder, "output_ml_additional.dat")
+        driver.run_additional_labels(
+            additional_features=additional_features,
+            labels_file=os.path.join(
+                os.getcwd(),
+                "library",
+                "additional_labels.dat"
+            ),
+            output_filename=output_filename
+        )
 
 
 if __name__ == "__main__":
