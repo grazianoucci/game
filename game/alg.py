@@ -16,7 +16,8 @@ from game.ml import realization
 def game(
         i, models, unique_id, initial, limit, features,
         labels_train, labels_test, labels, line_labels,
-        filename_int, filename_err, n_repetition, optional_files, to_predict
+        filename_int, filename_err, n_repetition, optional_files,
+        to_predict, verbose=False
 ):
     features_to_predict = to_predict.generate_features()
     mask = np.where(models == unique_id[i - 1])
@@ -79,8 +80,9 @@ def game(
     for j in range(len(importances)):
         importances[j][initial[mask][0]] = models[j]["importance"]
 
-    print "Model", str(int(i)) + "/" + str(int(np.max(unique_id))), \
-        "completed..."
+    if verbose:
+        print "Model", str(int(i)) + "/" + str(int(np.max(unique_id))), \
+            "completed..."
 
     scores = []
     for model in models:

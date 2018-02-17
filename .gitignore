@@ -4,6 +4,7 @@ library
 .idea
 output
 benchmarks
+benchmark/*.dat
 
 ### PyCharm ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and Webstorm
