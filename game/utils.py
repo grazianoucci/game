@@ -16,6 +16,17 @@ import urllib
 import numpy as np
 
 
+def get_actual_class_name(class_name):
+    """
+    :param class_name: str
+        Class name of object
+    :return: str
+        Actual class name (without all path)
+    """
+
+    return str(type(class_name)).split("'")[-2].split(".")[-1]
+
+
 def download_library(
         download_file,
         url="http://cosmology.sns.it/library_game/library.tar.gz"

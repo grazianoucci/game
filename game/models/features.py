@@ -10,7 +10,6 @@
 
 import copy
 import os
-import time
 from functools import partial
 
 import numpy as np
@@ -22,7 +21,7 @@ from sklearn.preprocessing import Normalizer
 import game.utils as utils
 from game.alg import game
 from game.rw import write_optional_files, write_importances_files, \
-    write_models_info, get_input_files, get_output, FMT_PRINT, \
+    write_models_info, get_output, FMT_PRINT, \
     get_output_header
 
 
@@ -326,8 +325,6 @@ class Game(object):
             print "\nStarting Machine Learning algorithm for " \
                   + ", ".join(self.features) + " labels... "
 
-        timer = time.time()  # TIMER start
-
         # Definition of features and labels for Machine Learning. Searching
         # for values of the physical properties (for metallicity logarithm)
         if self.labels is None:
@@ -392,10 +389,8 @@ class Game(object):
             algorithm, self.n_processes, unique_id
         )
         self.results = list(self.results[0])  # tuple to int
-        timer = time.time() - timer  # TIMER end
         if self.verbose:
-            print "Elapsed seconds for ML:", timer
-            print "\nWriting output files..."
+            print "Writing output files..."
 
         self.write_results()
 
