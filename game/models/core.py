@@ -23,9 +23,10 @@ from game.files.read import get_output_header, get_output, \
     FMT_PRINT
 from game.files.write import write_optional_files, write_importances_files, \
     write_models_info
+from game.models.logs import Logger
 
 
-class Game(object):
+class Game(Logger):
     """ GAlaxy Machine learning for Emission lines """
 
     REGRESSOR = AdaBoostRegressor(
@@ -69,10 +70,10 @@ class Game(object):
             List of features to predict
         """
 
+        Logger.__init__(self, verbose)
         self.features = features
 
         # user interaction
-        self.verbose = verbose
         self.output_folder = output_folder
         self.optional_files = False
 
@@ -106,8 +107,7 @@ class Game(object):
         if not os.path.exists(self.output_folder):  # prepare output folder
             os.makedirs(self.output_folder)
 
-        if self.verbose:
-            print self.INTRO
+        self.log(self.INTRO)
 
     def parse_inputs_file(self):
         """
@@ -191,26 +191,24 @@ class Game(object):
 
         self.start()
 
-        if self.verbose:
-            print "\nProgram started..."
+        self.log("Program started...")
 
-        if additional_labels_file and self.verbose:
-            print ""
-            print "Running GAME with additional labels...\n"
+        if additional_labels_file:
+            self.log("Running GAME with additional labels...")
         else:
-            print ""
-            print "Running GAME with default labels...\n"
+            self.log("Running GAME with default labels...")
 
         self.parse_inputs_file()
         initial, models, unique_id = self.get_models()
 
-        if self.verbose:
-            print "# of input  models                     :", \
-                len(self.data[1:])
-            print "# of unique models for Machine Learning:", int(
-                np.max(unique_id))
-            print "\nStarting Machine Learning algorithm for " \
-                  + ", ".join(self.features) + " labels... "
+        self.log(
+            "# of input  models                     :", len(self.data[1:])
+        )
+        self.log(
+            "# of unique models for Machine Learning:", int(np.max(unique_id))
+        )
+        self.log("Starting Machine Learning algorithm for " + ", ".join(
+            self.features) + " labels... ")
 
         # Definition of features and labels for Machine Learning. Searching
         # for values of the physical properties (for metallicity logarithm)
@@ -276,9 +274,7 @@ class Game(object):
             algorithm, self.n_processes, unique_id
         )
         self.results = list(self.results[0])  # tuple to int
-        if self.verbose:
-            print "Writing output files..."
-
+        self.log("Writing output files...")
         self.write_results()
 
     def run_additional_labels(self, additional_features, output_filename,

@@ -18,8 +18,9 @@ LOG_TIME_FORMAT = "%m-%d %H:%M:%S"
 class Logger:
     """ Logs itself """
 
-    def __init__(self):
+    def __init__(self, verbose):
         self.class_name = get_actual_class_name(self)
+        self.verbose = bool(verbose)
 
     def log(self, *content):
         """
@@ -29,5 +30,7 @@ class Logger:
             Prints log
         """
 
-        print(datetime.now().strftime(LOG_TIME_FORMAT), self.class_name,
-              ">>>", " ".join([str(x) for x in content]))
+        if self.verbose:
+            now = datetime.now().strftime(LOG_TIME_FORMAT)
+            content = " ".join([str(x) for x in content])
+            print now, self.class_name, ">>>", content, "\n"
