@@ -24,7 +24,7 @@ def get_actual_class_name(class_name):
         Actual class name (without all path)
     """
 
-    return str(type(class_name)).split("'")[-2].split(".")[-1]
+    return str(class_name).split(" ")[0]
 
 
 def download_library(
