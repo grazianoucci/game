@@ -57,7 +57,7 @@ def main_algorithm_to_pool(i
     new_data = realization(filename_int, filename_err, n_repetition, mask)[:,
                initial[mask][0]]
     # Prediction of the physical properties
-    if additional_files == 'y':
+    if additional_files:
         for el in xrange(len(mask[0])):
             g0[mask[0][el], :] = model_g0.predict(new_data[el::len(mask[0])])
             n[mask[0][el], :] = model_n.predict(new_data[el::len(mask[0])])
@@ -72,7 +72,7 @@ def main_algorithm_to_pool(i
                                NH[mask[0][el], :],
                                U[mask[0][el], :],
                                Z[mask[0][el], :]])
-    if additional_files == 'n':
+    else:
         for el in xrange(len(mask[0])):
             result = np.zeros((len(new_data[el::len(mask[0])]), 5))
             result[:, 0] = model_g0.predict(new_data[el::len(mask[0])])

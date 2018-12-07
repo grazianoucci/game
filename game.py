@@ -19,7 +19,7 @@ def determination_models(data):
     models = np.zeros(len(initial))
     mask = np.where((initial == initial[0]).all(axis=1))[0]
     models[mask] = 1
-    check = True;
+    check = True
     i = 2
     while check:
         if (len(models[models == 0]) == 0):
@@ -102,7 +102,7 @@ def run_game(
     ######################################
     # Initialization of arrays and lists #
     ######################################
-    if additional_files == 'y':
+    if additional_files:
         g0 = np.zeros(shape=(len(data[1:]), n_repetition))
         n = np.zeros(shape=(len(data[1:]), n_repetition))
         NH = np.zeros(shape=(len(data[1:]), n_repetition))
@@ -158,15 +158,15 @@ def run_game(
     # find_ids are usefult to reorder the matrix with the ML determinations
     find_ids = list(chain.from_iterable(np.array(results)[:, 3]))
     temp_model_ids = list(chain.from_iterable(np.array(results)[:, 4]))
-    if additional_files == 'y':
+    if additional_files:
         temp_matrix_ml = np.array(
             list(chain.from_iterable(np.array(results)[:, 5])))
 
-    # Rearrange the matrix based on the find_ids indexes
-    matrix_ml = np.zeros(shape=temp_matrix_ml.shape)
-    for i in xrange(len(matrix_ml)):
-        matrix_ml[find_ids[i], :] = temp_matrix_ml[i, :]
-    if additional_files == 'n':
+        # Rearrange the matrix based on the find_ids indexes
+        matrix_ml = np.zeros(shape=temp_matrix_ml.shape)
+        for i in xrange(len(matrix_ml)):
+            matrix_ml[find_ids[i], :] = temp_matrix_ml[i, :]
+    else:
         temp_matrix_ml = np.array(
             list(chain.from_iterable(np.array(results)[:, 5]))).reshape(
             len(data[1:]), 15)
@@ -182,7 +182,7 @@ def run_game(
     #########################################
     # Write information on different models #
     #########################################
-    f = open(output_folder + 'model_ids.dat', 'w+')
+    f = open(os.path.join(output_folder, 'model_ids.dat'), 'w+')
     for i in xrange(len(sigmas)):
         f.write('##############################\n')
         f.write('Id model: %d\n' % (i + 1))
@@ -201,7 +201,6 @@ def run_game(
         f.write('List of input lines:\n')
         f.write('%s\n' % list_of_lines[i])
     f.write('##############################\n')
-    f.close()
 
     out_header = "id_model"
     out_ml = [model_ids]
@@ -210,112 +209,140 @@ def run_game(
         out_header += " mean[Log(G0)] median[Log(G0)] sigma[Log(G0)]"
         f.write('Cross-validation score for G0: %.3f +- %.3f\n' % (
             scores[i, 1], 2. * scores[i, 2]))
-        np.savetxt(output_folder + 'output_feature_importances_G0.dat',
+        np.savetxt(os.path.join(output_folder,
+                                'output_feature_importances_G0.dat'),
                    np.vstack((data[0], importances[0::5, :])), fmt='%.5f')
-        out_ml += [
-            np.log10(np.mean(10 ** matrix_ml[:, 0], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, 0], axis=1)),
-            np.std(matrix_ml[:, 0], axis=1),
-        ]
+
+        if additional_files:
+            out_ml += [
+                np.log10(np.mean(10 ** matrix_ml[:, 0], axis=1)),
+                np.log10(np.median(10 ** matrix_ml[:, 0], axis=1)),
+                np.std(matrix_ml[:, 0], axis=1),
+            ]
     if "n" in out_labels:
         out_header += " mean[Log(n)] median[Log(n)] sigma[Log(n)]"
         f.write('Cross-validation score for n:  %.3f +- %.3f\n' % (
             scores[i, 3], 2. * scores[i, 4]))
-        np.savetxt(output_folder + 'output_feature_importances_n.dat',
+        np.savetxt(os.path.join(output_folder,
+                                'output_feature_importances_n.dat'),
                    np.vstack((data[0], importances[1::5, :])), fmt='%.5f')
-        out_ml += [
-            np.log10(np.mean(10 ** matrix_ml[:, 1], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, 1], axis=1)),
-            np.std(matrix_ml[:, 1], axis=1)
-        ]
+        if additional_files:
+            out_ml += [
+                np.log10(np.mean(10 ** matrix_ml[:, 1], axis=1)),
+                np.log10(np.median(10 ** matrix_ml[:, 1], axis=1)),
+                np.std(matrix_ml[:, 1], axis=1)
+            ]
     if "NH" in out_labels:
         out_header += " mean[Log(NH)] median[Log(NH)] sigma[Log(NH)]"
         f.write('Cross-validation score for NH: %.3f +- %.3f\n' % (
             scores[i, 5], 2. * scores[i, 6]))
-        np.savetxt(output_folder + 'output_feature_importances_NH.dat',
+        np.savetxt(os.path.join(output_folder,
+                                'output_feature_importances_NH.dat'),
                    np.vstack((data[0], importances[2::5, :])), fmt='%.5f')
-        out_ml += [
-            np.log10(np.mean(10 ** matrix_ml[:, 2], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, 2], axis=1)),
-            np.std(matrix_ml[:, 2], axis=1)
-        ]
+        if additional_files:
+            out_ml += [
+                np.log10(np.mean(10 ** matrix_ml[:, 2], axis=1)),
+                np.log10(np.median(10 ** matrix_ml[:, 2], axis=1)),
+                np.std(matrix_ml[:, 2], axis=1)
+            ]
     if "U" in out_labels:
         out_header += " mean[Log(U)] median[Log(U)] sigma[Log(U)]"
         f.write('Cross-validation score for U:  %.3f +- %.3f\n' % (
             scores[i, 7], 2. * scores[i, 8]))
-        np.savetxt(output_folder + 'output_feature_importances_U.dat',
+        np.savetxt(os.path.join(output_folder,
+                                'output_feature_importances_U.dat'),
                    np.vstack((data[0], importances[3::5, :])), fmt='%.5f')
-        out_ml += [
-            np.log10(np.mean(10 ** matrix_ml[:, 3], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, 3], axis=1)),
-            np.std(matrix_ml[:, 3], axis=1)
-        ]
+        if additional_files:
+            out_ml += [
+                np.log10(np.mean(10 ** matrix_ml[:, 3], axis=1)),
+                np.log10(np.median(10 ** matrix_ml[:, 3], axis=1)),
+                np.std(matrix_ml[:, 3], axis=1)
+            ]
     if "Z" in out_labels:
         out_header += " mean[Log(Z)] median[Log(Z)] sigma[Log(Z)]"
         f.write('Cross-validation score for Z:  %.3f +- %.3f\n' % (
             scores[i, 9], 2. * scores[i, 10]))
-        np.savetxt(output_folder + 'output_feature_importances_Z.dat',
+        np.savetxt(os.path.join(output_folder,
+                                'output_feature_importances_Z.dat'),
                    np.vstack((data[0], importances[4::5, :])), fmt='%.5f')
-        out_ml += [
-            np.log10(np.mean(10 ** matrix_ml[:, 4], axis=1)),
-            np.log10(np.median(10 ** matrix_ml[:, 4], axis=1)),
-            np.std(matrix_ml[:, 4], axis=1)
-        ]
+        if additional_files:
+            out_ml += [
+                np.log10(np.mean(10 ** matrix_ml[:, 4], axis=1)),
+                np.log10(np.median(10 ** matrix_ml[:, 4], axis=1)),
+                np.std(matrix_ml[:, 4], axis=1)
+            ]
+
+    f.close()
 
     ##########################################################
     # Outputs relative to the Machine Learning determination #
     ##########################################################
-    if additional_files == 'y':
+    if additional_files:
         write_output = np.vstack(tuple(out_ml)).T
     else:
         write_output = np.column_stack((model_ids, matrix_ml))
 
-    np.savetxt(output_folder + 'output_ml.dat', write_output,
+    np.savetxt(os.path.join(output_folder, 'output_ml.dat'), write_output,
                header=out_header,
                fmt='%.5f')
 
     ##################
     # Optional files #
     ##################
-    if additional_files == 'y':
+    if additional_files:
         if "G0" in out_labels:
-            np.savetxt(output_folder + 'output_pred_G0.dat', preds[0::5, :],
+            np.savetxt(os.path.join(output_folder, 'output_pred_G0.dat'),
+                       preds[0::5, :],
                        fmt='%.5f')
-            np.savetxt(output_folder + 'output_true_G0.dat', trues[0::5, :],
+            np.savetxt(os.path.join(output_folder, 'output_true_G0.dat'),
+                       trues[0::5, :],
                        fmt='%.5f')
-            np.savetxt(output_folder + 'output_pdf_G0.dat', matrix_ml[:, 0],
+            np.savetxt(os.path.join(output_folder, 'output_pdf_G0.dat'),
+                       matrix_ml[:, 0],
                        fmt='%.5f')
 
         if "n" in out_labels:
-            np.savetxt(output_folder + 'output_pred_n.dat', preds[1::5, :],
+            np.savetxt(os.path.join(output_folder, 'output_pred_n.dat'),
+                       preds[1::5, :],
                        fmt='%.5f')
-            np.savetxt(output_folder + 'output_true_n.dat', trues[1::5, :],
+            np.savetxt(os.path.join(output_folder, 'output_true_n.dat'),
+                       trues[1::5, :],
                        fmt='%.5f')
-            np.savetxt(output_folder + 'output_pdf_n.dat', matrix_ml[:, 1],
+            np.savetxt(os.path.join(output_folder, 'output_pdf_n.dat'),
+                       matrix_ml[:, 1],
                        fmt='%.5f')
 
         if "NH" in out_labels:
-            np.savetxt(output_folder + 'output_pred_NH.dat', preds[2::5, :],
+            np.savetxt(os.path.join(output_folder, 'output_pred_NH.dat'),
+                       preds[2::5, :],
                        fmt='%.5f')
-            np.savetxt(output_folder + 'output_true_NH.dat', trues[2::5, :],
+            np.savetxt(os.path.join(output_folder, 'output_true_NH.dat'),
+                       trues[2::5, :],
                        fmt='%.5f')
-            np.savetxt(output_folder + 'output_pdf_NH.dat', matrix_ml[:, 2],
+            np.savetxt(os.path.join(output_folder, 'output_pdf_NH.dat'),
+                       matrix_ml[:, 2],
                        fmt='%.5f')
 
         if "U" in out_labels:
-            np.savetxt(output_folder + 'output_pred_U.dat', preds[3::5, :],
+            np.savetxt(os.path.join(output_folder, 'output_pred_U.dat'),
+                       preds[3::5, :],
                        fmt='%.5f')
-            np.savetxt(output_folder + 'output_true_U.dat', trues[3::5, :],
+            np.savetxt(os.path.join(output_folder, 'output_true_U.dat'),
+                       trues[3::5, :],
                        fmt='%.5f')
-            np.savetxt(output_folder + 'output_pdf_U.dat', matrix_ml[:, 3],
+            np.savetxt(os.path.join(output_folder, 'output_pdf_U.dat'),
+                       matrix_ml[:, 3],
                        fmt='%.5f')
 
         if "Z" in out_labels:
-            np.savetxt(output_folder + 'output_pred_Z.dat', preds[4::5, :],
+            np.savetxt(os.path.join(output_folder, 'output_pred_Z.dat'),
+                       preds[4::5, :],
                        fmt='%.5f')
-            np.savetxt(output_folder + 'output_true_Z.dat', trues[4::5, :],
+            np.savetxt(os.path.join(output_folder, 'output_true_Z.dat'),
+                       trues[4::5, :],
                        fmt='%.5f')
-            np.savetxt(output_folder + 'output_pdf_Z.dat', matrix_ml[:, 4],
+            np.savetxt(os.path.join(output_folder, 'output_pdf_Z.dat'),
+                       matrix_ml[:, 4],
                        fmt='%.5f')
 
     #####################
@@ -346,7 +373,7 @@ def run_game(
     ######################################
     # Initialization of arrays and lists #
     ######################################
-    if additional_files == 'y':
+    if additional_files:
         AV = np.zeros(shape=(len(data[1:]), n_repetition))
         fesc = np.zeros(shape=(len(data[1:]), n_repetition))
     ##############################################################
@@ -396,14 +423,14 @@ def run_game(
     # find_ids are usefult to reorder the matrix with the ML determinations
     find_ids = list(chain.from_iterable(np.array(results)[:, 3]))
     temp_model_ids = list(chain.from_iterable(np.array(results)[:, 4]))
-    if additional_files == 'y':
+    if additional_files:
         temp_matrix_ml = np.array(
             list(chain.from_iterable(np.array(results)[:, 5])))
         # Rearrange the matrix based on the find_ids indexes
         matrix_ml = np.zeros(shape=temp_matrix_ml.shape)
         for i in xrange(len(matrix_ml)):
             matrix_ml[find_ids[i], :] = temp_matrix_ml[i, :]
-    if additional_files == 'n':
+    else:
         temp_matrix_ml = np.array(
             list(chain.from_iterable(np.array(results)[:, 5]))).reshape(
             len(data[1:]), 6)
@@ -419,7 +446,7 @@ def run_game(
     #########################################
     # Write information on different models #
     #########################################
-    f = open(output_folder + 'model_ids_additional.dat', 'w+')
+    f = open(os.path.join(output_folder, 'model_ids_additional.dat'), 'w+')
     for i in xrange(len(sigmas)):
         f.write('##############################\n')
         f.write('Id model: %d\n' % (i + 1))
@@ -437,7 +464,6 @@ def run_game(
         f.write('List of input lines:\n')
         f.write('%s\n' % list_of_lines[i])
     f.write('##############################\n')
-    f.close()
 
     ##########################################################
     # Outputs relative to the Machine Learning determination #
@@ -450,56 +476,66 @@ def run_game(
         out_ml += [np.mean(matrix_ml[:, 0], axis=1),
                    np.median(matrix_ml[:, 0], axis=1),
                    np.std(matrix_ml[:, 0], axis=1)]
-        np.savetxt(output_folder + 'output_feature_importances_Av.dat',
+        np.savetxt(os.path.join(output_folder,
+                                'output_feature_importances_Av.dat'),
                    np.vstack((data[0], importances[0::2, :])), fmt='%.5f')
     if "fesc" in out_additional_labels:
         out_header += " id_model mean[fesc] median[fesc]"
         out_ml += [np.mean(matrix_ml[:, 1], axis=1),
                    np.median(matrix_ml[:, 1], axis=1),
                    np.std(matrix_ml[:, 1], axis=1)]
-        np.savetxt(output_folder + 'output_feature_importances_fesc.dat',
+        np.savetxt(os.path.join(output_folder,
+                                'output_feature_importances_fesc.dat'),
                    np.vstack((data[0], importances[1::2, :])), fmt='%.5f')
-    if additional_files == 'y':
+    if additional_files:
         write_output = np.vstack(tuple(out_ml)).T
-    if additional_files == 'n':
+    else:
         write_output = np.column_stack((model_ids, matrix_ml))
 
-    np.savetxt(output_folder + 'output_ml_additional.dat', write_output,
+    f.close()
+
+    np.savetxt(os.path.join(output_folder, 'output_ml_additional.dat'),
+               write_output,
                header=" sigma[fesc]",
                fmt='%.5f')
 
     ##################
     # Optional files #
     ##################
-    if additional_files == 'y':
+    if additional_files:
         if "Av" in out_additional_labels:
-            np.savetxt(output_folder + 'output_pred_Av.dat', preds[0::2, :],
+            np.savetxt(os.path.join(output_folder, 'output_pred_Av.dat'),
+                       preds[0::2, :],
                        fmt='%.5f')
-            np.savetxt(output_folder + 'output_true_Av.dat', trues[0::2, :],
+            np.savetxt(os.path.join(output_folder, 'output_true_Av.dat'),
+                       trues[0::2, :],
                        fmt='%.5f')
-            np.savetxt(output_folder + 'output_pdf_Av.dat', matrix_ml[:, 0],
+            np.savetxt(os.path.join(output_folder, 'output_pdf_Av.dat'),
+                       matrix_ml[:, 0],
                        fmt='%.5f')
 
         if "fesc" in out_additional_labels:
-            np.savetxt(output_folder + 'output_pred_fesc.dat', preds[1::2, :],
+            np.savetxt(os.path.join(output_folder, 'output_pred_fesc.dat'),
+                       preds[1::2, :],
                        fmt='%.5f')
-            np.savetxt(output_folder + 'output_true_fesc.dat', trues[1::2, :],
+            np.savetxt(os.path.join(output_folder, 'output_true_fesc.dat'),
+                       trues[1::2, :],
                        fmt='%.5f')
-            # This writes down the output relative to the PDFs of the physical properties
-            np.savetxt(output_folder + 'output_pdf_fesc.dat', matrix_ml[:, 1],
+            np.savetxt(os.path.join(output_folder, 'output_pdf_fesc.dat'),
+                       matrix_ml[:, 1],
                        fmt='%.5f')
 
 
 def main():
     input_folder = '/home/stefano/Work/sns/game/tests/input/small'
-    output_folder = os.path.join(os.getcwd(), 'output')
+    output_folder = os.path.join(os.getcwd(), 'output/')
 
     stat_library(os.getcwd())
     run_game(
         filename_int=os.path.join(input_folder, 'inputs.dat')
         , filename_err=os.path.join(input_folder, 'errors.dat')
         , filename_library=os.path.join(input_folder, 'labels.dat')
-        , additional_files='y'
+        , additional_files=True
         , n_proc=2
         , n_repetition=10000
         , output_folder=output_folder

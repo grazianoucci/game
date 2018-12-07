@@ -46,7 +46,7 @@ def main_algorithm_additional_to_pool(i
     new_data = realization(filename_int, filename_err, n_repetition, mask)[:,
                initial[mask][0]]
     # Prediction of the physical properties
-    if additional_files == 'y':
+    if additional_files:
         for el in xrange(len(mask[0])):
             AV[mask[0][el], :] = model_AV.predict(new_data[el::len(mask[0])])
             fesc[mask[0][el], :] = model_fesc.predict(
