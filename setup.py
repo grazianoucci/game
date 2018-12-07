@@ -22,7 +22,7 @@ DESCRIPTION = \
 
 setup(
     name="GAME",
-    version="1.1",
+    version="1.2",
     description="GAlaxy Machine learning for Emission lines",
     long_description=DESCRIPTION,
     keywords="machine learning",
