@@ -46,3 +46,23 @@ def machine_learning(feat, lab, physical_p, ml_regr):
     # Cross-validation score
     score = cross_val_score(ml_regr, feat, lab[:, physical_p], cv=5)
     return copy.copy(model), importances, np.mean(score), np.std(score)
+
+
+def determination_models(data):
+    initial = [data != 0][0]
+    models = np.zeros(len(initial))
+    mask = np.where((initial == initial[0]).all(axis=1))[0]
+    models[mask] = 1
+    check = True
+    i = 2
+    while check:
+        if (len(models[models == 0]) == 0):
+            check = False
+        else:
+            mask = \
+                np.where(
+                    (initial == initial[np.argmax(models == 0)]).all(axis=1))[
+                    0]
+            models[mask] = i
+            i += 1
+    return initial, models, np.unique(models)
