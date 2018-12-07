@@ -8,18 +8,21 @@ from sklearn.preprocessing import Normalizer
 
 def stat_library(folder):
     dir_path = os.path.join(folder, 'library/')
-    directory = os.path.dirname(dir_path)
+    library_file = os.path.join(dir_path, 'library.csv')
 
-    try:
-        os.stat(directory)
-    except:
-        urllib.urlretrieve(
-            "http://cosmology.sns.it/library_game/library.tar.gz",
-            filename="library.tar.gz")
-        tar = tarfile.open("library.tar.gz")
-        tar.extractall()
-        tar.close()
-        os.remove("library.tar.gz")
+    if not os.path.exists(library_file):
+        directory = os.path.dirname(dir_path)
+
+        try:
+            os.stat(directory)
+        except:
+            urllib.urlretrieve(
+                "http://cosmology.sns.it/library_game/library.tar.gz",
+                filename="library.tar.gz")
+            tar = tarfile.open("library.tar.gz")
+            tar.extractall()
+            tar.close()
+            os.remove("library.tar.gz")
 
 
 def read_emission_line_file(filename_int):

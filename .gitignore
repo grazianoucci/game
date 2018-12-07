@@ -2,7 +2,7 @@ game/.user_credentials
 c_code
 library
 .idea
-output
+output/
 benchmarks
 benchmark/output_*
 benchmark/model_ids*
