@@ -1,9 +1,7 @@
 import copy
 import multiprocessing
 import os
-import tarfile
 import time
-import urllib
 from functools import partial
 from itertools import chain
 
@@ -13,29 +11,8 @@ from sklearn.ensemble import AdaBoostRegressor
 from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import Normalizer
 
-
-def stat_library():
-    dir_path = 'library/'
-    directory = os.path.dirname(dir_path)
-    try:
-        os.stat(directory)
-    except:
-        urllib.urlretrieve(
-            "http://cosmology.sns.it/library_game/library.tar.gz",
-            filename="library.tar.gz")
-        tar = tarfile.open("library.tar.gz")
-        tar.extractall()
-        tar.close()
-        os.remove("library.tar.gz")
-
-
-def read_emission_line_file(filename_int):
-    data = np.loadtxt(filename_int)
-    mms = Normalizer(norm='max')
-    data[1:, :] = mms.fit_transform(data[1:, :])
-    lower = np.min(data[0, :])
-    upper = np.max(data[0, :])
-    return data, lower, upper
+from game.setup import read_emission_line_file
+from game.setup import read_library_file
 
 
 def realization(filename_int, filename_err, n_rep, mask):
@@ -62,29 +39,6 @@ def realization(filename_int, filename_err, n_rep, mask):
     mms = Normalizer(norm='max')
     repetition = mms.fit_transform(repetition)
     return repetition
-
-
-def read_library_file(filename_library):
-    # Reading the labels in the first row of the library
-    lines = np.array(open('library/library.csv').readline().split(','))
-    # Read the file containing the user-input labels
-    input_labels = open(filename_library).read().splitlines()
-    columns = []
-    for element in input_labels:
-        columns.append(np.where(lines == element)[0][0])
-    # Add the labels indexes to columns
-    columns.append(-5)  # Habing flux
-    columns.append(-4)  # density
-    columns.append(-3)  # column density
-    columns.append(-2)  # ionization parameter
-    columns.append(-1)  # metallicity
-    array = np.loadtxt('library/library.csv', skiprows=2, delimiter=',',
-                       usecols=columns)
-    # Normalization of the library for each row with respect to the maximum
-    # Be careful: do not normalize the labels!
-    mms = Normalizer(norm='max')
-    array[0:, :-5] = mms.fit_transform(array[0:, :-5])
-    return array, np.array(input_labels)
 
 
 def determination_models(data):
@@ -352,7 +306,8 @@ def run_game(
     # Input file reading
     data, lower, upper = read_emission_line_file(filename_int)
     # Library file reading
-    output, line_labels = read_library_file(filename_library)
+    library_file = os.path.join(os.getcwd(), 'library', 'library.csv')
+    output, line_labels = read_library_file(library_file, filename_library)
     # Determination of unique models based on the missing data
     # In this case missing data are values with zero intensities
     # Be careful because the first row in data there are wavelengths!
@@ -781,7 +736,7 @@ def main():
     input_folder = '/home/stefano/Work/sns/game/tests/input/small'
     output_folder = os.path.join(os.getcwd(), 'output')
 
-    stat_library()
+    # todo only if there is not a file stat_library(os.getcwd())
     run_game(
         filename_int=os.path.join(input_folder, 'inputs.dat')
         , filename_err=os.path.join(input_folder, 'errors.dat')
