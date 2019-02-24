@@ -8,10 +8,10 @@ import numpy as np
 from sklearn import tree
 from sklearn.ensemble import AdaBoostRegressor
 
-from game import main_algorithm_to_pool
+from game_alg import main_algorithm_to_pool
 from game_additional import main_algorithm_additional_to_pool
 from ml import determination_models
-from setup import read_emission_line_file, read_library_file
+from prepare import read_emission_line_file, read_library_file
 
 
 def game(

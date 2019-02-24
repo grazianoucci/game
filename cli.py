@@ -5,12 +5,12 @@ from models import FilesConfig, LabelsConfig, Game
 
 
 def main():
-    stat_library(os.getcwd())
-    input_folder = '/home/stefano/Work/sns/game/tests/input/small'
+    stat_library('/opt/game/')  # todo config
+    input_folder = '/opt/game/games/slack_22_02_2019/'  # todo config ??
     output_folder = os.path.join(os.getcwd(), 'output/')
 
     files = FilesConfig(
-        os.path.join(input_folder, 'inputs.dat'),
+        os.path.join(input_folder, 'lines.dat'),  # todo was 'inputs'
         os.path.join(input_folder, 'errors.dat'),
         os.path.join(input_folder, 'labels.dat'),
         output_folder,

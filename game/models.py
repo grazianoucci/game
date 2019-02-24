@@ -27,14 +27,14 @@ class Game:
 
     def run(self):
         game(
-            filename_int=self.filename_config.filename_,
-            filename_err=self.filename_config.filename_,
-            filename_library=self.filename_config.filename_,
+            filename_int=self.filename_config.filename_int,
+            filename_err=self.filename_config.filename_err,
+            filename_library=self.filename_config.filename_library,
             additional_files=self.filename_config.additional_files,
             n_proc=self.n_proc,
             n_repetition=self.n_repetition,
             output_folder=self.filename_config.output_folder,
-            verbose=False,
+            verbose=True,  # todo debug only
             out_labels=self.labels_config.output,
             out_additional_labels=self.labels_config.additional
         )
