@@ -29,7 +29,7 @@ def game(
     regr = AdaBoostRegressor(tree.DecisionTreeRegressor(criterion='mse',
                                                         splitter='best',
                                                         max_features=None),
-                             n_estimators=2,
+                             n_estimators=50,
                              random_state=0)
 
     ###########################################

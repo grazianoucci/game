@@ -7,7 +7,7 @@ from models import FilesConfig, LabelsConfig, Game
 def main():
     stat_library('/opt/game/')  # todo config
     input_folder = '/opt/game/games/slack_22_02_2019/'  # todo config ??
-    output_folder = os.path.join(os.getcwd(), 'output', 'out-test-1/')
+    output_folder = os.path.join(os.getcwd(), 'output', 'out-test-3/')
 
     files = FilesConfig(
         os.path.join(input_folder, 'lines.dat'),  # todo was 'inputs'
@@ -21,7 +21,7 @@ def main():
         ["Av", "fesc"]
     )
 
-    driver = Game(files, 3, 10000, labels)
+    driver = Game(files, 4, 10000, labels)
     driver.run()
 
 
