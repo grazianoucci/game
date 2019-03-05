@@ -51,8 +51,7 @@ def read_library_file(library_csv, filename_library):
     columns.append(-3)  # column density
     columns.append(-2)  # ionization parameter
     columns.append(-1)  # metallicity
-    array = np.loadtxt('library/library.csv', skiprows=2, delimiter=',',
-                       usecols=columns)
+    array = np.loadtxt(library_csv, delimiter=',', skiprows=2, usecols=columns)
 
     # Normalization of the library for each row with respect to the maximum
     # Be careful: do not normalize the labels!
