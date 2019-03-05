@@ -30,76 +30,76 @@ def main_algorithm_to_pool(i
     features_test = features[:, initial[mask][0]][limit:, :]
 
     # ML
-    if g0:
-        [g0_true, g0_pred, sigma_g0] = error_estimation(features_train,
+    if g0 is not None:
+        g0_true, g0_pred, sigma_g0 = error_estimation(features_train,
                                                         features_test,
                                                         labels_train[:, 0],
                                                         labels_test[:, 0], regr)
-        [model_g0, imp_g0, score_g0, std_g0] = machine_learning(
+        model_g0, imp_g0, score_g0, std_g0 = machine_learning(
             features[:, initial[mask][0]], labels, 0, regr)
     else:
         g0_true, g0_pred, sigma_g0, model_g0, imp_g0, score_g0, std_g0 = \
             None, None, None, None, None, None, None
 
-    if n:
-        [n_true, n_pred, sigma_n] = error_estimation(features_train, features_test,
+    if n is not None:
+        n_true, n_pred, sigma_n = error_estimation(features_train, features_test,
                                                      labels_train[:, 1],
                                                      labels_test[:, 1], regr)
-        [model_n, imp_n, score_n, std_n] = machine_learning(
+        model_n, imp_n, score_n, std_n = machine_learning(
             features[:, initial[mask][0]], labels, 1, regr)
     else:
         n_true, n_pred, sigma_n, model_n, imp_n, score_n, std_n = \
             None, None, None, None, None, None, None
 
-    if NH:
-        [NH_true, NH_pred, sigma_NH] = error_estimation(features_train,
+    if NH is not None:
+        NH_true, NH_pred, sigma_NH = error_estimation(features_train,
                                                         features_test,
                                                         labels_train[:, 2],
                                                         labels_test[:, 2], regr)
-        [model_NH, imp_NH, score_NH, std_NH] = machine_learning(
+        model_NH, imp_NH, score_NH, std_NH = machine_learning(
             features[:, initial[mask][0]], labels, 2, regr)
     else:
         NH_true, NH_pred, sigma_NH, model_NH, imp_NH, score_NH, std_NH = \
             None, None, None, None, None, None, None
 
-    if U:
-        [U_true, U_pred, sigma_U] = error_estimation(features_train, features_test,
+    if U is not None:
+        U_true, U_pred, sigma_U = error_estimation(features_train, features_test,
                                                      labels_train[:, 3],
                                                      labels_test[:, 3], regr)
-        [model_U, imp_U, score_U, std_U] = machine_learning(
+        model_U, imp_U, score_U, std_U = machine_learning(
             features[:, initial[mask][0]], labels, 3, regr)
     else:
         U_true, U_pred, sigma_U, model_U, imp_U, score_U, std_U = \
             None, None, None, None, None, None, None
 
-    if Z:
-        [Z_true, Z_pred, sigma_Z] = error_estimation(features_train, features_test,
+    if Z is not None:
+        Z_true, Z_pred, sigma_Z = error_estimation(features_train, features_test,
                                                      labels_train[:, 4],
                                                      labels_test[:, 4], regr)
-        [model_Z, imp_Z, score_Z, std_Z] = machine_learning(
+        model_Z, imp_Z, score_Z, std_Z = machine_learning(
             features[:, initial[mask][0]], labels, 4, regr)
     else:
         Z_true, Z_pred, sigma_Z, model_Z, imp_Z, score_Z, std_Z = \
             None, None, None, None, None, None, None
 
-    if AV:
-        [AV_true, AV_pred, sigma_AV] = error_estimation(features_train,
+    if AV is not None:
+        AV_true, AV_pred, sigma_AV = error_estimation(features_train,
                                                         features_test,
                                                         labels_train[:, 5],
                                                         labels_test[:, 5], regr)
-        [model_AV, imp_AV, score_AV, std_AV] = machine_learning(
+        model_AV, imp_AV, score_AV, std_AV = machine_learning(
             features[:, initial[mask][0]], labels, 5, regr)
     else:
         AV_true, AV_pred, sigma_AV, model_AV, imp_AV, score_AV, std_AV = \
             None, None, None, None, None, None, None
 
-    if fesc:
-        [fesc_true, fesc_pred, sigma_fesc] = error_estimation(features_train,
+    if fesc is not None:
+        fesc_true, fesc_pred, sigma_fesc = error_estimation(features_train,
                                                               features_test,
                                                               labels_train[:, 6],
                                                               labels_test[:, 6],
                                                               regr)
-        [model_fesc, imp_fesc, score_fesc, std_fesc] = machine_learning(
+        model_fesc, imp_fesc, score_fesc, std_fesc = machine_learning(
             features[:, initial[mask][0]], labels, 6, regr)
     else:
         fesc_true, fesc_pred, sigma_fesc, model_fesc, imp_fesc, score_fesc, std_fesc = \
@@ -112,58 +112,60 @@ def main_algorithm_to_pool(i
     # Prediction of the physical properties
     if additional_files:
         for el in xrange(len(mask[0])):
-            if model_g0:
+            if model_g0 is not None:
                 g0[mask[0][el], :] = model_g0.predict(new_data[el::len(mask[0])])
-            if model_n:
+            if model_n is not None:
                 n[mask[0][el], :] = model_n.predict(new_data[el::len(mask[0])])
-            if model_NH:
+            if model_NH is not None:
                 NH[mask[0][el], :] = model_NH.predict(new_data[el::len(mask[0])])
-            if model_U:
+            if model_U is not None:
                 U[mask[0][el], :] = model_U.predict(new_data[el::len(mask[0])])
-            if model_Z:
+            if model_Z is not None:
                 Z[mask[0][el], :] = model_Z.predict(new_data[el::len(mask[0])])
-            if model_AV:
+            if model_AV is not None:
                 AV[mask[0][el], :] = model_AV.predict(new_data[el::len(mask[0])])
-            if model_fesc:
+            if model_fesc is not None:
                 fesc[mask[0][el], :] = model_fesc.predict(new_data[el::len(mask[0])])
 
             # Model ids
             id_model.append(i)
             index_find.append(mask[0][el])
 
-            new_row = [None] * 7
-            if g0:
+            new_row = [np.zeros(n_repetition)] * 7  # default
+
+            if g0 is not None:
                 new_row[0] = g0[mask[0][el], :]
-            if n:
+            if n is not None:
                 new_row[1] = n[mask[0][el], :]
-            if NH:
+            if NH is not None:
                 new_row[2] = NH[mask[0][el], :]
-            if U:
+            if U is not None:
                 new_row[3] = U[mask[0][el], :]
-            if Z:
+            if Z is not None:
                 new_row[4] = Z[mask[0][el], :]
-            if AV:
+            if AV is not None:
                 new_row[5] = AV[mask[0][el], :]
-            if fesc:
+            if fesc is not None:
                 new_row[6] = fesc[mask[0][el], :]
 
             matrix_mms.append(new_row)
     else:
         for el in xrange(len(mask[0])):
             result = np.zeros((len(new_data[el::len(mask[0])]), 7))
-            if model_g0:
+
+            if model_g0 is not None:
                 result[:, 0] = model_g0.predict(new_data[el::len(mask[0])])
-            if model_n:
+            if model_n is not None:
                 result[:, 1] = model_n.predict(new_data[el::len(mask[0])])
-            if model_NH:
+            if model_NH is not None:
                 result[:, 2] = model_NH.predict(new_data[el::len(mask[0])])
-            if model_U:
+            if model_U is not None:
                 result[:, 3] = model_U.predict(new_data[el::len(mask[0])])
-            if model_Z:
+            if model_Z is not None:
                 result[:, 4] = model_Z.predict(new_data[el::len(mask[0])])
-            if model_AV:
+            if model_AV is not None:
                 result[:, 5] = model_AV.predict(new_data[el::len(mask[0])])
-            if model_fesc:
+            if model_fesc is not None:
                 result[:, 6] = model_fesc.predict(new_data[el::len(mask[0])])
 
             # Model ids
@@ -195,19 +197,19 @@ def main_algorithm_to_pool(i
             matrix_mms.append(vector_mms)
 
     # Importance matrixes
-    if imp_g0:
+    if imp_g0 is not None:
         importances_g0[initial[mask][0]] = imp_g0
-    if imp_n:
+    if imp_n is not None:
         importances_n[initial[mask][0]] = imp_n
-    if imp_NH:
+    if imp_NH is not None:
         importances_NH[initial[mask][0]] = imp_NH
-    if imp_U:
+    if imp_U is not None:
         importances_U[initial[mask][0]] = imp_U
-    if imp_Z:
+    if imp_Z is not None:
         importances_Z[initial[mask][0]] = imp_Z
-    if imp_AV:
+    if imp_AV is not None:
         importances_AV[initial[mask][0]] = imp_AV
-    if imp_fesc:
+    if imp_fesc is not None:
         importances_fesc[initial[mask][0]] = imp_fesc
 
     sigmas = [None] * 7
@@ -215,48 +217,52 @@ def main_algorithm_to_pool(i
     trues = [None] * 7
     preds = [None] * 7
 
-    if g0_true and g0_pred:
+    if g0_true is not None and g0_pred is not None:
         trues[0] = np.array(g0_true)
         preds[0] = np.array(g0_pred)
         sigmas[0] = sigma_g0
         scores[1] = score_g0
         scores[2] = std_g0
-    if n_true and n_pred:
+    if n_true is not None and n_pred is not None:
         trues[1] = np.array(n_true)
         preds[1] = np.array(n_pred)
         sigmas[1] = sigma_n
         scores[3] = score_n
         scores[4] = std_n
-    if NH_true and NH_pred:
+    if NH_true is not None and NH_pred is not None:
         trues[2] = np.array(NH_true)
         preds[2] = np.array(NH_pred)
         sigmas[2] = sigma_NH
         scores[5] = score_NH
         scores[6] = std_NH
-    if U_true and U_pred:
+    if U_true is not None and U_pred is not None:
         trues[3] = np.array(U_true)
         preds[3] = np.array(U_pred)
         sigmas[3] = sigma_U
         scores[7] = score_U
         scores[8] = std_U
-    if Z_true and Z_pred:
+    if Z_true is not None and Z_pred is not None:
         trues[4] = np.array(Z_true)
         preds[4] = np.array(Z_pred)
         sigmas[4] = sigma_Z
         scores[9] = score_Z
         scores[10] = std_Z
-    if AV_true and AV_pred:
+    if AV_true is not None and AV_pred is not None:
         trues[5] = np.array(AV_true)
         preds[5] = np.array(AV_pred)
         sigmas[5] = sigma_AV
         scores[11] = score_AV
         scores[12] = std_AV
-    if fesc_true and fesc_pred:
+    if fesc_true is not None and fesc_pred is not None:
         trues[6] = np.array(fesc_true)
         preds[6] = np.array(fesc_pred)
         sigmas[6] = sigma_fesc
         scores[13] = score_fesc
         scores[14] = std_fesc
+
+    importances = [importances_g0, importances_n, importances_NH,
+                   importances_g0,  # todo g0 -> U
+            importances_Z, importances_AV, importances_fesc]
 
     print 'Model', str(int(i)) + '/' + str(int(np.max(unique_id))), 'completed...'
 
@@ -264,7 +270,10 @@ def main_algorithm_to_pool(i
            scores, \
            line_labels[initial[mask][0]], \
            index_find, id_model, matrix_mms, \
-           [importances_g0, importances_n, importances_NH, importances_U,
-            importances_Z, importances_AV, importances_fesc], \
-           trues, \
-           preds
+           importances, \
+           [np.array(g0_true), np.array(n_true), np.array(NH_true),
+            # todo g0 -> U
+            np.array(g0_true), np.array(Z_true), np.array(AV_true), np.array(fesc_true)], \
+           [np.array(g0_pred), np.array(n_pred), np.array(NH_pred), np.array(
+               g0_pred), np.array(Z_pred), np.array(AV_pred), np.array(
+               fesc_pred)]  # todo g0 -> U

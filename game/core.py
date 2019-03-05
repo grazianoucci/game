@@ -48,14 +48,6 @@ def game(
     # In this case missing data are values with zero intensities
     # Be careful because the first row in data there are wavelengths!
     initial, models, unique_id = determination_models(data[1:])
-    # This creates arrays useful to save the output for the feature importances
-    importances_g0 = np.zeros(len(data[0]))
-    importances_n = np.zeros(len(data[0]))
-    importances_NH = np.zeros(len(data[0]))
-    importances_U = np.zeros(len(data[0]))
-    importances_Z = np.zeros(len(data[0]))
-    importances_AV = np.zeros(len(data[0]))
-    importances_fesc = np.zeros(len(data[0]))
 
     ###################################################################################################
     # Testing, test_size is the percentage of the library to use as testing set to determine the PDFs #
@@ -92,17 +84,52 @@ def game(
     ######################################
     # Initialization of arrays and lists #
     ######################################
-    g0 = np.zeros(shape=(len(data[1:]), n_repetition))
-    n = np.zeros(shape=(len(data[1:]), n_repetition))
-    NH = np.zeros(shape=(len(data[1:]), n_repetition))
-    U = np.zeros(shape=(len(data[1:]), n_repetition))
-    Z = np.zeros(shape=(len(data[1:]), n_repetition))
-    AV = np.zeros(shape=(len(data[1:]), n_repetition))
-    fesc = np.zeros(shape=(len(data[1:]), n_repetition))
+    if "g0" in out_labels:
+        g0 = np.zeros(shape=(len(data[1:]), n_repetition))
+        importances_g0 = np.zeros(len(data[0]))
+    else:
+        g0, importances_g0 = None, None
+
+    if "n" in out_labels:
+        n = np.zeros(shape=(len(data[1:]), n_repetition))
+        importances_n = np.zeros(len(data[0]))
+    else:
+        n, importances_n = None, None
+
+    if "NH" in out_labels:
+        NH = np.zeros(shape=(len(data[1:]), n_repetition))
+        importances_NH = np.zeros(len(data[0]))
+    else:
+        NH, importances_NH = None, None
+
+    if "U" in out_labels:
+        U = np.zeros(shape=(len(data[1:]), n_repetition))
+        importances_U = np.zeros(len(data[0]))
+    else:
+        U, importances_U = None, None
+
+    if "Z" in out_labels:
+        Z = np.zeros(shape=(len(data[1:]), n_repetition))
+        importances_Z = np.zeros(len(data[0]))
+    else:
+        Z, importances_Z = None, None
+
+    if "AV" in out_labels:
+        AV = np.zeros(shape=(len(data[1:]), n_repetition))
+        importances_AV = np.zeros(len(data[0]))
+    else:
+        AV, importances_AV = None, None
+
+    if "fesc" in out_labels:
+        fesc = np.zeros(shape=(len(data[1:]), n_repetition))
+        importances_fesc = np.zeros(len(data[0]))
+    else:
+        fesc, importances_fesc = None, None
 
     ################
     # Pool calling #
     ################
+
     main_algorithm = partial(main_algorithm_to_pool,
                              models=models, unique_id=unique_id,
                              initial=initial, limit=limit
@@ -122,6 +149,7 @@ def game(
                              n_repetition=n_repetition,
                              additional_files=additional_files
                              )
+
     pool = multiprocessing.Pool(processes=n_proc)
     results = pool.map(main_algorithm,
                        np.arange(1, np.max(unique_id.astype(int)) + 1, 1))
@@ -151,6 +179,7 @@ def game(
     # find_ids are useful to reorder the matrix with the ML determinations
     find_ids = list(chain.from_iterable(np.array(results)[:, 3]))
     temp_model_ids = list(chain.from_iterable(np.array(results)[:, 4]))
+
     if additional_files:
         temp_matrix_ml = np.array(
             list(chain.from_iterable(np.array(results)[:, 5])))
@@ -183,7 +212,7 @@ def game(
         f.write('##############################\n')
         f.write('Id model: %d\n' % (i + 1))
 
-        if "G0" in out_labels:
+        if "g0" in out_labels:
             f.write('Standard deviation of log(G0): %.3f\n' % sigmas[i, 0])
         if "n" in out_labels:
             f.write('Standard deviation of log(n):  %.3f\n' % sigmas[i, 1])
@@ -193,7 +222,7 @@ def game(
             f.write('Standard deviation of log(U):  %.3f\n' % sigmas[i, 3])
         if "Z" in out_labels:
             f.write('Standard deviation of log(Z):  %.3f\n' % sigmas[i, 4])
-        if "Av" in out_labels:
+        if "AV" in out_labels:
             f.write('Standard deviation of Av:  %.3f\n' % sigmas[i, 5])
         if "fesc" in out_labels:
             f.write('Standard deviation of fesc:  %.3f\n' % sigmas[i, 6])
@@ -205,7 +234,7 @@ def game(
     out_header = "id_model"
     out_ml = [model_ids]
 
-    if "G0" in out_labels:
+    if "g0" in out_labels:
         out_header += " mean[Log(G0)] median[Log(G0)] sigma[Log(G0)]"
         f.write('Cross-validation score for G0: %.3f +- %.3f\n' % (
             scores[i, 1], 2. * scores[i, 2]))
@@ -271,7 +300,7 @@ def game(
                 np.log10(np.median(10 ** matrix_ml[:, 4], axis=1)),
                 np.std(matrix_ml[:, 4], axis=1)
             ]
-    if "Av" in out_labels:
+    if "AV" in out_labels:
         out_header += " mean[Av] median[Av] sigma[Av]"
         f.write('Cross-validation score for Av:   %.3f +- %.3f\n' % (
             scores[i, 11], 2. * scores[i, 12]))
@@ -319,7 +348,7 @@ def game(
     # Optional files #
     ##################
     if additional_files:
-        if "G0" in out_labels:
+        if "g0" in out_labels:
             np.savetxt(os.path.join(output_folder, 'output_pred_G0.dat'),
                        preds[0::7, :],
                        fmt='%.5f')
@@ -374,7 +403,7 @@ def game(
                        matrix_ml[:, 4],
                        fmt='%.5f')
 
-        if "Av" in out_labels:
+        if "AV" in out_labels:
             np.savetxt(os.path.join(output_folder, 'output_pred_Av.dat'),
                        preds[5::2, :],
                        fmt='%.5f')

@@ -21,7 +21,7 @@ def main():
         additional_files=True
     )
     labels = LabelsConfig(
-        ["G0", "n", "NH", "U", "Z", "AV", "fesc"],
+        ["g0", "n", "NH", "Z", "AV", "fesc"],
     )
 
     driver = Game(files, 2, 10, labels)
