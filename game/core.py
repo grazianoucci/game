@@ -317,7 +317,7 @@ def game(
             ]
 
     if "fesc" in out_labels:
-        out_header += " id_model mean[fesc] median[fesc]"
+        out_header += " mean[fesc] median[fesc]"
         f.write('Cross-validation score for fesc: %.3f +- %.3f\n' % (
             scores[i, 13], 2. * scores[i, 14]))
         np.savetxt(os.path.join(output_folder,
@@ -425,8 +425,3 @@ def game(
             np.savetxt(os.path.join(output_folder, 'output_pdf_fesc.dat'),
                        matrix_ml[:, 6],
                        fmt='%.5f')
-
-    np.savetxt(os.path.join(output_folder, 'output_ml_additional.dat'),
-               write_output,
-               header=" sigma[fesc]",
-               fmt='%.5f')

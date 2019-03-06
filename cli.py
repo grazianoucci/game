@@ -5,11 +5,11 @@ from models import FilesConfig, LabelsConfig, Game
 
 
 def main():
-    # stat_library('/opt/game/')
-    # input_folder = '/opt/game/games/slack_22_02_2019/'
+    stat_library('/opt/game/')
+    input_folder = '/opt/game/games/slack_22_02_2019/'
 
-    stat_library('/home/stefano/Work/sns/game/code/game')
-    input_folder = '/home/stefano/Downloads/slack/'
+    # stat_library('/home/stefano/Work/sns/game/code/game')
+    # input_folder = '/home/stefano/Downloads/slack/'
 
     output_folder = os.path.join(os.getcwd(), 'output')
 
@@ -21,7 +21,7 @@ def main():
         additional_files=True
     )
     labels = LabelsConfig(
-        ["g0", "n", "NH", "U", "Z", "AV", "fesc"],
+        ["g0", "n", "NH", "AV", "fesc"],
     )
 
     driver = Game(files, 2, 12, labels)
