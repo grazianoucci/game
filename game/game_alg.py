@@ -7,9 +7,9 @@ def main_algorithm_to_pool(i
                            , models, unique_id, initial, limit
                            , features, labels_train, labels_test
                            , labels, regr, line_labels
-                           , g0, n, NH, U, Z, AV, fesc
+                           , g0, n, NH, U, Z, Av, fesc
                            , importances_g0, importances_n, importances_NH,
-                           importances_U, importances_Z, importances_AV,
+                           importances_U, importances_Z, importances_Av,
                            importances_fesc
                            , filename_int, filename_err, n_repetition,
                            additional_files
@@ -24,7 +24,7 @@ def main_algorithm_to_pool(i
     id_model = []
 
     # Indexes for the labels:
-    # G/G0: 0, n: 1, NH: 2, U: 3, Z: 4, AV: 5, fesc: 6
+    # G/G0: 0, n: 1, NH: 2, U: 3, Z: 4, Av: 5, fesc: 6
     # Definition of training / testing
     features_train = features[:, initial[mask][0]][:limit, :]
     features_test = features[:, initial[mask][0]][limit:, :]
@@ -82,15 +82,15 @@ def main_algorithm_to_pool(i
         Z_true, Z_pred, sigma_Z, model_Z, imp_Z, score_Z, std_Z = \
             None, None, None, None, None, None, None
 
-    if AV is not None:
-        AV_true, AV_pred, sigma_AV = error_estimation(features_train,
+    if Av is not None:
+        Av_true, Av_pred, sigma_Av = error_estimation(features_train,
                                                         features_test,
                                                         labels_train[:, 5],
                                                         labels_test[:, 5], regr)
-        model_AV, imp_AV, score_AV, std_AV = machine_learning(
+        model_Av, imp_Av, score_Av, std_Av = machine_learning(
             features[:, initial[mask][0]], labels, 5, regr)
     else:
-        AV_true, AV_pred, sigma_AV, model_AV, imp_AV, score_AV, std_AV = \
+        Av_true, Av_pred, sigma_Av, model_Av, imp_Av, score_Av, std_Av = \
             None, None, None, None, None, None, None
 
     if fesc is not None:
@@ -122,8 +122,8 @@ def main_algorithm_to_pool(i
                 U[mask[0][el], :] = model_U.predict(new_data[el::len(mask[0])])
             if model_Z is not None:
                 Z[mask[0][el], :] = model_Z.predict(new_data[el::len(mask[0])])
-            if model_AV is not None:
-                AV[mask[0][el], :] = model_AV.predict(new_data[el::len(mask[0])])
+            if model_Av is not None:
+                Av[mask[0][el], :] = model_Av.predict(new_data[el::len(mask[0])])
             if model_fesc is not None:
                 fesc[mask[0][el], :] = model_fesc.predict(new_data[el::len(mask[0])])
 
@@ -143,8 +143,8 @@ def main_algorithm_to_pool(i
                 new_row[3] = U[mask[0][el], :]
             if Z is not None:
                 new_row[4] = Z[mask[0][el], :]
-            if AV is not None:
-                new_row[5] = AV[mask[0][el], :]
+            if Av is not None:
+                new_row[5] = Av[mask[0][el], :]
             if fesc is not None:
                 new_row[6] = fesc[mask[0][el], :]
 
@@ -163,8 +163,8 @@ def main_algorithm_to_pool(i
                 result[:, 3] = model_U.predict(new_data[el::len(mask[0])])
             if model_Z is not None:
                 result[:, 4] = model_Z.predict(new_data[el::len(mask[0])])
-            if model_AV is not None:
-                result[:, 5] = model_AV.predict(new_data[el::len(mask[0])])
+            if model_Av is not None:
+                result[:, 5] = model_Av.predict(new_data[el::len(mask[0])])
             if model_fesc is not None:
                 result[:, 6] = model_fesc.predict(new_data[el::len(mask[0])])
 
@@ -182,7 +182,7 @@ def main_algorithm_to_pool(i
             print 'result[:, 6]', result[:, 6].size
             print 'vector_mms', vector_mms.size
 
-            # AV and fesc do NOT require log
+            # Av and fesc do NOT require log
             # todo proposed solution
             vector_mms[15::3] = np.log10(np.mean(10 ** result[:, 5], axis=0))
             vector_mms[16::3] = np.log10(np.median(10 ** result[:, 5], axis=0))
@@ -207,8 +207,8 @@ def main_algorithm_to_pool(i
         importances_U[initial[mask][0]] = imp_U
     if imp_Z is not None:
         importances_Z[initial[mask][0]] = imp_Z
-    if imp_AV is not None:
-        importances_AV[initial[mask][0]] = imp_AV
+    if imp_Av is not None:
+        importances_Av[initial[mask][0]] = imp_Av
     if imp_fesc is not None:
         importances_fesc[initial[mask][0]] = imp_fesc
 
@@ -270,13 +270,13 @@ def main_algorithm_to_pool(i
         scores[9] = score_Z
         scores[10] = std_Z
 
-    if AV_true is not None and AV_pred is not None and importances_AV is not None:
-        importances[5] = importances_AV
-        trues[5] = np.array(AV_true)
-        preds[5] = np.array(AV_pred)
-        sigmas[5] = sigma_AV
-        scores[11] = score_AV
-        scores[12] = std_AV
+    if Av_true is not None and Av_pred is not None and importances_Av is not None:
+        importances[5] = importances_Av
+        trues[5] = np.array(Av_true)
+        preds[5] = np.array(Av_pred)
+        sigmas[5] = sigma_Av
+        scores[11] = score_Av
+        scores[12] = std_Av
 
     if fesc_true is not None and fesc_pred is not None and importances_fesc \
             is not None:

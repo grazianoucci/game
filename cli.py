@@ -11,7 +11,7 @@ def main():
     # stat_library('/home/stefano/Work/sns/game/code/game')
     # input_folder = '/home/stefano/Downloads/slack/'
 
-    output_folder = '/opt/game/game/output/out-test-5'
+    output_folder = '/opt/game/game/output/out-test-6'
 
     files = FilesConfig(
         os.path.join(input_folder, 'lines.dat'),  # todo was 'inputs'
@@ -21,7 +21,7 @@ def main():
         additional_files=True
     )
     labels = LabelsConfig(
-        ["g0", "n", "NH", "U", "Z", "AV", "fesc"],
+        ["g0", "n", "NH", "U", "Z", "Av", "fesc"],
     )
 
     driver = Game(files, 4, 10, labels)

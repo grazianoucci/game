@@ -123,11 +123,11 @@ def game(
     else:
         Z, importances_Z = None, None
 
-    if "AV" in out_labels:
-        AV = np.zeros(shape=(len(data[1:]), n_repetition))
-        importances_AV = np.zeros(len(data[0]))
+    if "Av" in out_labels:
+        Av = np.zeros(shape=(len(data[1:]), n_repetition))
+        importances_Av = np.zeros(len(data[0]))
     else:
-        AV, importances_AV = None, None
+        Av, importances_Av = None, None
 
     if "fesc" in out_labels:
         fesc = np.zeros(shape=(len(data[1:]), n_repetition))
@@ -145,13 +145,13 @@ def game(
                              , features=features, labels_train=labels_train,
                              labels_test=labels_test
                              , labels=labels, regr=regr, line_labels=line_labels
-                             , g0=g0, n=n, NH=NH, U=U, Z=Z, AV=AV, fesc=fesc
+                             , g0=g0, n=n, NH=NH, U=U, Z=Z, Av=Av, fesc=fesc
                              , importances_g0=importances_g0
                              , importances_n=importances_n
                              , importances_NH=importances_NH
                              , importances_U=importances_U
                              , importances_Z=importances_Z
-                             , importances_AV=importances_AV
+                             , importances_Av=importances_Av
                              , importances_fesc=importances_fesc
                              , filename_int=filename_int,
                              filename_err=filename_err,
@@ -231,8 +231,8 @@ def game(
             f.write('Standard deviation of log(U):  %.3f\n' % sigmas[i, 3])
         if "Z" in out_labels:
             f.write('Standard deviation of log(Z):  %.3f\n' % sigmas[i, 4])
-        if "AV" in out_labels:
-            f.write('Standard deviation of Av:  %.3f\n' % sigmas[i, 5])
+        if "Av" in out_labels:
+            f.write('Standard deviation of log(Av):  %.3f\n' % sigmas[i, 5])
         if "fesc" in out_labels:
             f.write('Standard deviation of fesc:  %.3f\n' % sigmas[i, 6])
 
@@ -255,7 +255,7 @@ def game(
         if "Z" in out_labels:
             f.write('Cross-validation score for Z:  %.3f +- %.3f\n' % (
                 scores[i, 9], 2. * scores[i, 10]))
-        if "AV" in out_labels:
+        if "Av" in out_labels:
             f.write('Cross-validation score for Av:   %.3f +- %.3f\n' % (
                 scores[i, 11], 2. * scores[i, 12]))
         if "fesc" in out_labels:
@@ -321,8 +321,8 @@ def game(
                 np.log10(np.median(10 ** matrix_ml[:, 4], axis=1)),
                 np.std(matrix_ml[:, 4], axis=1)
             ]
-    if "AV" in out_labels:
-        out_header += " mean[Av] median[Av] sigma[Av]"
+    if "Av" in out_labels:
+        out_header += " mean[Log(Av)] median[Log(Av)] sigma[Log(Av)]"
         np.savetxt(os.path.join(output_folder,
                                 'output_feature_importances_Av.dat'),
                    np.vstack((data[0], importances[5::7, :])), fmt='%.5f')
@@ -420,7 +420,7 @@ def game(
                        matrix_ml[:, 4],
                        fmt='%.5f')
 
-        if "AV" in out_labels:
+        if "Av" in out_labels:
             np.savetxt(os.path.join(output_folder, 'output_pred_Av.dat'),
                        preds[5::2, :],
                        fmt='%.5f')
