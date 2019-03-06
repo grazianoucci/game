@@ -42,7 +42,8 @@ def game(
     # Input file reading
     data, lower, upper = read_emission_line_file(filename_int)
     # Library file reading
-    library_file = os.path.join(os.getcwd(), 'library', 'library.csv')
+    lib_folder = os.path.join(os.getcwd(), 'library')
+    library_file = os.path.join(lib_folder, 'library.csv')
     output, line_labels = read_library_file(library_file, filename_library)
     # Determination of unique models based on the missing data
     # In this case missing data are values with zero intensities

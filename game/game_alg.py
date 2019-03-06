@@ -212,11 +212,15 @@ def main_algorithm_to_pool(i
     if imp_fesc is not None:
         importances_fesc[initial[mask][0]] = imp_fesc
 
-    sigmas = [None] * 7
-    scores = [i] + [None] * 7 * 2  # will contain also std
-    trues = [None] * 7
-    preds = [None] * 7
-    importances = [np.zeros(17)] * 7
+    sigmas = [0.0] * 7
+    scores = [i] + [0.0] * 7 * 2  # will contain also std
+
+    len_arrays = features.shape[0] / 10
+    trues = [np.zeros(len_arrays)] * 7
+    preds = [np.zeros(len_arrays)] * 7
+
+    len_importances = line_labels.shape[0]
+    importances = [np.zeros(len_importances)] * 7
 
     if g0_true is not None and g0_pred is not None and importances_g0 is not \
             None:
