@@ -216,53 +216,72 @@ def main_algorithm_to_pool(i
     scores = [i] + [None] * 7 * 2  # will contain also std
     trues = [None] * 7
     preds = [None] * 7
+    importances = [np.zeros(17)] * 7
 
-    if g0_true is not None and g0_pred is not None:
+    if g0_true is not None and g0_pred is not None and importances_g0 is not \
+            None:
+        importances[0] = importances_g0
         trues[0] = np.array(g0_true)
         preds[0] = np.array(g0_pred)
         sigmas[0] = sigma_g0
         scores[1] = score_g0
         scores[2] = std_g0
-    if n_true is not None and n_pred is not None:
+
+    if n_true is not None and n_pred is not None and importances_n is not None:
+        importances[1] = importances_n
         trues[1] = np.array(n_true)
         preds[1] = np.array(n_pred)
         sigmas[1] = sigma_n
         scores[3] = score_n
         scores[4] = std_n
-    if NH_true is not None and NH_pred is not None:
+
+    if NH_true is not None and NH_pred is not None and importances_NH is not \
+            None:
+        importances[2] = importances_NH
         trues[2] = np.array(NH_true)
         preds[2] = np.array(NH_pred)
         sigmas[2] = sigma_NH
         scores[5] = score_NH
         scores[6] = std_NH
-    if U_true is not None and U_pred is not None:
+
+    if U_true is not None and U_pred is not None and importances_U is not None:
+        importances[3] = importances_U
         trues[3] = np.array(U_true)
         preds[3] = np.array(U_pred)
         sigmas[3] = sigma_U
         scores[7] = score_U
         scores[8] = std_U
-    if Z_true is not None and Z_pred is not None:
+    else:  # todo g0 -> U
+        trues[3] = np.array(g0_true)
+        preds[3] = np.array(g0_pred)
+        sigmas[3] = sigma_g0
+        scores[7] = score_g0
+        scores[8] = std_g0
+
+    if Z_true is not None and Z_pred is not None and importances_Z is not None:
+        importances[4] = importances_Z
         trues[4] = np.array(Z_true)
         preds[4] = np.array(Z_pred)
         sigmas[4] = sigma_Z
         scores[9] = score_Z
         scores[10] = std_Z
-    if AV_true is not None and AV_pred is not None:
+
+    if AV_true is not None and AV_pred is not None and importances_AV is not None:
+        importances[5] = importances_AV
         trues[5] = np.array(AV_true)
         preds[5] = np.array(AV_pred)
         sigmas[5] = sigma_AV
         scores[11] = score_AV
         scores[12] = std_AV
-    if fesc_true is not None and fesc_pred is not None:
+
+    if fesc_true is not None and fesc_pred is not None and importances_fesc \
+            is not None:
+        importances[6] = importances_fesc
         trues[6] = np.array(fesc_true)
         preds[6] = np.array(fesc_pred)
         sigmas[6] = sigma_fesc
         scores[13] = score_fesc
         scores[14] = std_fesc
-
-    importances = [importances_g0, importances_n, importances_NH,
-                   importances_g0,  # todo g0 -> U
-            importances_Z, importances_AV, importances_fesc]
 
     print 'Model', str(int(i)) + '/' + str(int(np.max(unique_id))), 'completed...'
 
@@ -271,9 +290,5 @@ def main_algorithm_to_pool(i
            line_labels[initial[mask][0]], \
            index_find, id_model, matrix_mms, \
            importances, \
-           [np.array(g0_true), np.array(n_true), np.array(NH_true),
-            # todo g0 -> U
-            np.array(g0_true), np.array(Z_true), np.array(AV_true), np.array(fesc_true)], \
-           [np.array(g0_pred), np.array(n_pred), np.array(NH_pred), np.array(
-               g0_pred), np.array(Z_pred), np.array(AV_pred), np.array(
-               fesc_pred)]  # todo g0 -> U
+           trues, \
+           preds
