@@ -27,7 +27,7 @@ def game(
     regr = AdaBoostRegressor(tree.DecisionTreeRegressor(criterion='mse',
                                                         splitter='best',
                                                         max_features=None),
-                             n_estimators=1,
+                             n_estimators=2,
                              random_state=0)
 
     ###########################################
@@ -67,7 +67,7 @@ def game(
     ##########################################################
     features = output[:, :-5]
     labels = np.double(output[:, len(output[0]) - 7:len(output[0])])
-    labels[:, -1] = np.log10(labels[:, -1])
+    labels[:, -3] = np.log10(labels[:, -3])
     labels[:, -2:] = np.loadtxt('library/additional_labels.dat')
 
     # This code is inserted in order to work with logarithms!
