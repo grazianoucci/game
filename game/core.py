@@ -55,20 +55,28 @@ def game(
     ###################################################################################################
     test_size = 0.10
     if verbose:
-        print '# of input  models                     :', len(data[1:])
-        print '# of unique models for Machine Learning:', int(np.max(unique_id))
-        print ''
-        print 'Starting of Machine Learning algorithm for the default labels...'
+        print '# of input  models:', len(data[1:])
+        print '# of unique models:', int(np.max(unique_id))
+    
     start_time = time.time()
 
     ##########################################################
     # Definition of features and labels for Machine Learning #
     #      (for metallicity logarithm has been used)         #
     ##########################################################
+
     features = output[:, :-5]
-    labels = np.double(output[:, len(output[0]) - 7:len(output[0])])
-    labels[:, -3] = np.log10(labels[:, -3])
-    labels[:, -2:] = np.loadtxt(os.path.join(lib_folder, 'additional_labels.dat'))
+    labels = np.double(output[:, len(output[0]) - 5:len(output[0])])
+    labels[:, -1] = np.log10(labels[:, -1])
+
+    labels_rows = labels.shape[0]
+    additional_columns = 2
+    labels = np.append(
+        labels,
+        np.zeros(shape=(labels_rows, additional_columns)),
+        axis=1
+    )  # make room for additional labels
+    labels[:, -2:] = np.loadtxt('library/additional_labels.dat')
 
     # This code is inserted in order to work with logarithms!
     # If there is a zero, we substitute it with 1e-9
@@ -230,15 +238,35 @@ def game(
 
         f.write('List of input lines:\n')
         f.write('%s\n' % list_of_lines[i])
-    f.write('##############################\n')
+        f.write('##############################\n')
+
+        if "g0" in out_labels:
+            f.write('Cross-validation score for G0: %.3f +- %.3f\n' % (
+                scores[i, 1], 2. * scores[i, 2]))
+        if "n" in out_labels:
+            f.write('Cross-validation score for n:  %.3f +- %.3f\n' % (
+                scores[i, 3], 2. * scores[i, 4]))
+        if "NH" in out_labels:
+            f.write('Cross-validation score for NH: %.3f +- %.3f\n' % (
+                scores[i, 5], 2. * scores[i, 6]))
+        if "U" in out_labels:
+            f.write('Cross-validation score for U:  %.3f +- %.3f\n' % (
+                scores[i, 7], 2. * scores[i, 8]))
+        if "Z" in out_labels:
+            f.write('Cross-validation score for Z:  %.3f +- %.3f\n' % (
+                scores[i, 9], 2. * scores[i, 10]))
+        if "AV" in out_labels:
+            f.write('Cross-validation score for Av:   %.3f +- %.3f\n' % (
+                scores[i, 11], 2. * scores[i, 12]))
+        if "fesc" in out_labels:
+            f.write('Cross-validation score for fesc: %.3f +- %.3f\n' % (
+                scores[i, 13], 2. * scores[i, 14]))
 
     out_header = "id_model"
     out_ml = [model_ids]
 
     if "g0" in out_labels:
         out_header += " mean[Log(G0)] median[Log(G0)] sigma[Log(G0)]"
-        f.write('Cross-validation score for G0: %.3f +- %.3f\n' % (
-            scores[i, 1], 2. * scores[i, 2]))
         np.savetxt(os.path.join(output_folder,
                                 'output_feature_importances_G0.dat'),
                    np.vstack((data[0], importances[0::7, :])), fmt='%.5f')
@@ -251,8 +279,6 @@ def game(
             ]
     if "n" in out_labels:
         out_header += " mean[Log(n)] median[Log(n)] sigma[Log(n)]"
-        f.write('Cross-validation score for n:  %.3f +- %.3f\n' % (
-            scores[i, 3], 2. * scores[i, 4]))
         np.savetxt(os.path.join(output_folder,
                                 'output_feature_importances_n.dat'),
                    np.vstack((data[0], importances[1::7, :])), fmt='%.5f')
@@ -264,8 +290,6 @@ def game(
             ]
     if "NH" in out_labels:
         out_header += " mean[Log(NH)] median[Log(NH)] sigma[Log(NH)]"
-        f.write('Cross-validation score for NH: %.3f +- %.3f\n' % (
-            scores[i, 5], 2. * scores[i, 6]))
         np.savetxt(os.path.join(output_folder,
                                 'output_feature_importances_NH.dat'),
                    np.vstack((data[0], importances[2::7, :])), fmt='%.5f')
@@ -277,8 +301,6 @@ def game(
             ]
     if "U" in out_labels:
         out_header += " mean[Log(U)] median[Log(U)] sigma[Log(U)]"
-        f.write('Cross-validation score for U:  %.3f +- %.3f\n' % (
-            scores[i, 7], 2. * scores[i, 8]))
         np.savetxt(os.path.join(output_folder,
                                 'output_feature_importances_U.dat'),
                    np.vstack((data[0], importances[3::7, :])), fmt='%.5f')
@@ -290,8 +312,6 @@ def game(
             ]
     if "Z" in out_labels:
         out_header += " mean[Log(Z)] median[Log(Z)] sigma[Log(Z)]"
-        f.write('Cross-validation score for Z:  %.3f +- %.3f\n' % (
-            scores[i, 9], 2. * scores[i, 10]))
         np.savetxt(os.path.join(output_folder,
                                 'output_feature_importances_Z.dat'),
                    np.vstack((data[0], importances[4::7, :])), fmt='%.5f')
@@ -303,8 +323,6 @@ def game(
             ]
     if "AV" in out_labels:
         out_header += " mean[Av] median[Av] sigma[Av]"
-        f.write('Cross-validation score for Av:   %.3f +- %.3f\n' % (
-            scores[i, 11], 2. * scores[i, 12]))
         np.savetxt(os.path.join(output_folder,
                                 'output_feature_importances_Av.dat'),
                    np.vstack((data[0], importances[5::7, :])), fmt='%.5f')
@@ -318,8 +336,6 @@ def game(
 
     if "fesc" in out_labels:
         out_header += " mean[fesc] median[fesc]"
-        f.write('Cross-validation score for fesc: %.3f +- %.3f\n' % (
-            scores[i, 13], 2. * scores[i, 14]))
         np.savetxt(os.path.join(output_folder,
                                 'output_feature_importances_fesc.dat'),
                    np.vstack((data[0], importances[6::7, :])), fmt='%.5f')

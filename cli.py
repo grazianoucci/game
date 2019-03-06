@@ -11,7 +11,7 @@ def main():
     # stat_library('/home/stefano/Work/sns/game/code/game')
     # input_folder = '/home/stefano/Downloads/slack/'
 
-    output_folder = '/opt/game/game/output/out-test-4'
+    output_folder = '/opt/game/game/output/out-test-5'
 
     files = FilesConfig(
         os.path.join(input_folder, 'lines.dat'),  # todo was 'inputs'
