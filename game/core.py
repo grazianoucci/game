@@ -236,10 +236,6 @@ def game(
         if "fesc" in out_labels:
             f.write('Standard deviation of fesc:  %.3f\n' % sigmas[i, 6])
 
-        f.write('List of input lines:\n')
-        f.write('%s\n' % list_of_lines[i])
-        f.write('##############################\n')
-
         if "g0" in out_labels:
             f.write('Cross-validation score for G0: %.3f +- %.3f\n' % (
                 scores[i, 1], 2. * scores[i, 2]))
@@ -261,7 +257,10 @@ def game(
         if "fesc" in out_labels:
             f.write('Cross-validation score for fesc: %.3f +- %.3f\n' % (
                 scores[i, 13], 2. * scores[i, 14]))
-
+        
+        f.write('List of input lines:\n')
+        f.write('%s\n' % list_of_lines[i])
+    
     out_header = "id_model"
     out_ml = [model_ids]
 
