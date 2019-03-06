@@ -68,7 +68,7 @@ def game(
     features = output[:, :-5]
     labels = np.double(output[:, len(output[0]) - 7:len(output[0])])
     labels[:, -3] = np.log10(labels[:, -3])
-    labels[:, -2:] = np.loadtxt('library/additional_labels.dat')
+    labels[:, -2:] = np.loadtxt(os.path.join(lib_folder, 'additional_labels.dat'))
 
     # This code is inserted in order to work with logarithms!
     # If there is a zero, we substitute it with 1e-9
