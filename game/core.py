@@ -27,7 +27,7 @@ def game(
     regr = AdaBoostRegressor(tree.DecisionTreeRegressor(criterion='mse',
                                                         splitter='best',
                                                         max_features=None),
-                             n_estimators=2,
+                             n_estimators=22
                              random_state=0)
 
     ###########################################
@@ -234,7 +234,7 @@ def game(
         if "Av" in out_labels:
             f.write('Standard deviation of log(Av):  %.3f\n' % sigmas[i, 5])
         if "fesc" in out_labels:
-            f.write('Standard deviation of fesc:  %.3f\n' % sigmas[i, 6])
+            f.write('Standard deviation of log(fesc):  %.3f\n' % sigmas[i, 6])
 
         if "g0" in out_labels:
             f.write('Cross-validation score for G0: %.3f +- %.3f\n' % (
@@ -255,7 +255,7 @@ def game(
             f.write('Cross-validation score for Av:   %.3f +- %.3f\n' % (
                 scores[i, 11], 2. * scores[i, 12]))
         if "fesc" in out_labels:
-            f.write('Cross-validation score for fesc: %.3f +- %.3f\n' % (
+            f.write('Cross-validation score for log(fesc): %.3f +- %.3f\n' % (
                 scores[i, 13], 2. * scores[i, 14]))
         
         f.write('List of input lines:\n')
@@ -334,7 +334,7 @@ def game(
             ]
 
     if "fesc" in out_labels:
-        out_header += " mean[fesc] median[fesc]"
+        out_header += " mean[Log(fesc)] median[Log(fesc)] sigma[Log(fesc)]"
         np.savetxt(os.path.join(output_folder,
                                 'output_feature_importances_fesc.dat'),
                    np.vstack((data[0], importances[6::7, :])), fmt='%.5f')

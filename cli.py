@@ -7,11 +7,7 @@ from models import FilesConfig, LabelsConfig, Game
 def main():
     stat_library('/opt/game/game')
     input_folder = '/opt/game/games/slack_22_02_2019/'
-
-    # stat_library('/home/stefano/Work/sns/game/code/game')
-    # input_folder = '/home/stefano/Downloads/slack/'
-
-    output_folder = '/opt/game/game/output/out-test-6'
+    output_folder = '/opt/game/game/output/out-test-10/'
 
     files = FilesConfig(
         os.path.join(input_folder, 'lines.dat'),  # todo was 'inputs'
@@ -24,7 +20,7 @@ def main():
         ["g0", "n", "NH", "U", "Z", "Av", "fesc"],
     )
 
-    driver = Game(files, 4, 10, labels)
+    driver = Game(files, 4, 5, labels)
     driver.run()
 
 
