@@ -27,7 +27,7 @@ def game(
     regr = AdaBoostRegressor(tree.DecisionTreeRegressor(criterion='mse',
                                                         splitter='best',
                                                         max_features=None),
-                             n_estimators=22
+                             n_estimators=2,
                              random_state=0)
 
     ###########################################
@@ -255,7 +255,7 @@ def game(
             f.write('Cross-validation score for Av:   %.3f +- %.3f\n' % (
                 scores[i, 11], 2. * scores[i, 12]))
         if "fesc" in out_labels:
-            f.write('Cross-validation score for log(fesc): %.3f +- %.3f\n' % (
+            f.write('Cross-validation score for fesc: %.3f +- %.3f\n' % (
                 scores[i, 13], 2. * scores[i, 14]))
         
         f.write('List of input lines:\n')
