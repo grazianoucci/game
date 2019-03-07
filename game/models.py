@@ -17,10 +17,11 @@ class LabelsConfig:
 
 
 class Game:
-    def __init__(self, filename_config, n_proc, n_repetition, labels_config):
+    def __init__(self, filename_config, n_proc, n_repetition, n_estimators, labels_config):
         self.filename_config = filename_config
         self.n_proc = n_proc
         self.n_repetition = n_repetition
+        self.n_estimators = n_estimators
         self.labels_config = labels_config
 
     def run(self):
@@ -31,7 +32,8 @@ class Game:
             additional_files=self.filename_config.additional_files,
             n_proc=self.n_proc,
             n_repetition=self.n_repetition,
+            n_estimators=self.n_estimators,
             output_folder=self.filename_config.output_folder,
-            verbose=True,  # todo debug only
+            verbose=True,  # debug
             out_labels=self.labels_config.output
         )

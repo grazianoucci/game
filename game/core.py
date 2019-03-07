@@ -20,15 +20,17 @@ def game(
         , additional_files
         , n_proc
         , n_repetition
+        , n_estimators
         , output_folder
         , verbose
         , out_labels
 ):
-    regr = AdaBoostRegressor(tree.DecisionTreeRegressor(criterion='mse',
-                                                        splitter='best',
-                                                        max_features=None),
-                             n_estimators=2,
-                             random_state=0)
+    tree_regr = tree.DecisionTreeRegressor(criterion='mse', splitter='best', max_features=None)
+    regr = AdaBoostRegressor(
+        tree_regr
+        n_estimators=n_estimators,
+        random_state=0
+    )
 
     ###########################################
     # Create output directory if not existing #
@@ -54,9 +56,11 @@ def game(
     # Testing, test_size is the percentage of the library to use as testing set to determine the PDFs #
     ###################################################################################################
     test_size = 0.10
+    n_unique_models = int(np.max(unique_id))
+
     if verbose:
         print '# of input  models:', len(data[1:])
-        print '# of unique models:', int(np.max(unique_id))
+        print '# of unique models:', n_unique_models
     
     start_time = time.time()
 
