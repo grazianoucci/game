@@ -19,7 +19,7 @@ def game(
         , filename_library
         , additional_files
         , n_proc
-        , n_repetition
+        , n_repetitions
         , n_estimators
         , output_folder
         , verbose

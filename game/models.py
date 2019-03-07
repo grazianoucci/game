@@ -17,12 +17,23 @@ class LabelsConfig:
 
 
 class Game:
-    def __init__(self, filename_config, n_proc, n_repetition, n_estimators, labels_config):
+    def __init__(self, filename_config, n_proc, n_repetitions, n_estimators, labels_config):
         self.filename_config = filename_config
         self.n_proc = n_proc
-        self.n_repetition = n_repetition
+        self.n_repetitions = n_repetitions
         self.n_estimators = n_estimators
         self.labels_config = labels_config
+
+    def debug_params():
+        print 'labels', self.labels_config.output
+        print 'inputs', self.filename_config.filename_int
+        print 'errors', self.filename_config.filename_err
+        print 'library', self.filename_config.filename_library
+        print 'output', self.filename_config.output_folder
+        print 'additional files?', self.filename_config.additional_files
+        print 'n processors', self.n_proc
+        print 'n repetitions', self.n_repetitions
+        print 'n estimators', self.n_estimators
 
     def run(self):
         game(
@@ -31,7 +42,7 @@ class Game:
             filename_library=self.filename_config.filename_library,
             additional_files=self.filename_config.additional_files,
             n_proc=self.n_proc,
-            n_repetition=self.n_repetition,
+            n_repetitions=self.n_repetitions,
             n_estimators=self.n_estimators,
             output_folder=self.filename_config.output_folder,
             verbose=True,  # debug

@@ -11,6 +11,7 @@ def read_config(file_path):
         data = json.loads(data)  # then parse json
         return data
 
+
 def get_config(file_path='config.json'):
     data = read_config(file_path)
     input_folder = data['input']
@@ -35,23 +36,14 @@ def get_config(file_path='config.json'):
 
 
 def main():
-    stat_library('/opt/game/game')
-    input_folder = '/opt/game/games/slack_22_02_2019/'
-    output_folder = '/opt/game/game/output/out-test-10/'
+    this_folder = os.path.dirname(os.path.realpath(__file__))
+    stat_library(this_folder)  # searches for library files in this folder
+    files_config, labels_config, n_repetitions, n_estimators = get_config()  # parses config
 
-    files = FilesConfig(
-        os.path.join(input_folder, 'lines.dat'),  # todo was 'inputs'
-        os.path.join(input_folder, 'errors.dat'),
-        os.path.join(input_folder, 'labels.dat'),
-        output_folder,
-        additional_files=True
-    )
-    labels = LabelsConfig(
-        ["g0", "n", "NH", "U", "Z", "Av", "fesc"],
-    )
-
-    driver = Game(files, 4, 5, labels)
-    driver.run()
+    n_cores = 4
+    driver = Game(files, n_cores, n_repetitions, n_estimators, labels)
+    driver.debug_params()
+    # driver.run()
 
 
 if __name__ == "__main__":
