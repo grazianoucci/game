@@ -8,14 +8,12 @@ class FilesConfig:
         self.filename_err = filename_err
         self.filename_library = filename_library
         self.output_folder = output_folder
-
         self.additional_files = additional_files
 
 
 class LabelsConfig:
-    def __init__(self, output, additional):
+    def __init__(self, output):
         self.output = output
-        self.additional = additional
 
 
 class Game:
@@ -27,14 +25,13 @@ class Game:
 
     def run(self):
         game(
-            filename_int=self.filename_config.filename_,
-            filename_err=self.filename_config.filename_,
-            filename_library=self.filename_config.filename_,
+            filename_int=self.filename_config.filename_int,
+            filename_err=self.filename_config.filename_err,
+            filename_library=self.filename_config.filename_library,
             additional_files=self.filename_config.additional_files,
             n_proc=self.n_proc,
             n_repetition=self.n_repetition,
             output_folder=self.filename_config.output_folder,
-            verbose=False,
-            out_labels=self.labels_config.output,
-            out_additional_labels=self.labels_config.additional
+            verbose=True,  # todo debug only
+            out_labels=self.labels_config.output
         )
