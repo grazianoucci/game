@@ -41,9 +41,9 @@ def main():
     files_config, labels_config, n_repetitions, n_estimators = get_config()  # parses config
 
     n_cores = 4
-    driver = Game(files, n_cores, n_repetitions, n_estimators, labels)
+    driver = Game(files_config, n_cores, n_repetitions, n_estimators, labels_config)
     driver.debug_params()
-    # driver.run()
+    driver.run()
 
 
 if __name__ == "__main__":

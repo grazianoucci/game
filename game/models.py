@@ -24,7 +24,7 @@ class Game:
         self.n_estimators = n_estimators
         self.labels_config = labels_config
 
-    def debug_params():
+    def debug_params(self):
         print 'labels', self.labels_config.output
         print 'inputs', self.filename_config.filename_int
         print 'errors', self.filename_config.filename_err

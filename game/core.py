@@ -27,7 +27,7 @@ def game(
 ):
     tree_regr = tree.DecisionTreeRegressor(criterion='mse', splitter='best', max_features=None)
     regr = AdaBoostRegressor(
-        tree_regr
+        tree_regr,
         n_estimators=n_estimators,
         random_state=0
     )
@@ -98,43 +98,43 @@ def game(
     # Initialization of arrays and lists #
     ######################################
     if "g0" in out_labels:
-        g0 = np.zeros(shape=(len(data[1:]), n_repetition))
+        g0 = np.zeros(shape=(len(data[1:]), n_repetitions))
         importances_g0 = np.zeros(len(data[0]))
     else:
         g0, importances_g0 = None, None
 
     if "n" in out_labels:
-        n = np.zeros(shape=(len(data[1:]), n_repetition))
+        n = np.zeros(shape=(len(data[1:]), n_repetitions))
         importances_n = np.zeros(len(data[0]))
     else:
         n, importances_n = None, None
 
     if "NH" in out_labels:
-        NH = np.zeros(shape=(len(data[1:]), n_repetition))
+        NH = np.zeros(shape=(len(data[1:]), n_repetitions))
         importances_NH = np.zeros(len(data[0]))
     else:
         NH, importances_NH = None, None
 
     if "U" in out_labels:
-        U = np.zeros(shape=(len(data[1:]), n_repetition))
+        U = np.zeros(shape=(len(data[1:]), n_repetitions))
         importances_U = np.zeros(len(data[0]))
     else:
         U, importances_U = None, None
 
     if "Z" in out_labels:
-        Z = np.zeros(shape=(len(data[1:]), n_repetition))
+        Z = np.zeros(shape=(len(data[1:]), n_repetitions))
         importances_Z = np.zeros(len(data[0]))
     else:
         Z, importances_Z = None, None
 
     if "Av" in out_labels:
-        Av = np.zeros(shape=(len(data[1:]), n_repetition))
+        Av = np.zeros(shape=(len(data[1:]), n_repetitions))
         importances_Av = np.zeros(len(data[0]))
     else:
         Av, importances_Av = None, None
 
     if "fesc" in out_labels:
-        fesc = np.zeros(shape=(len(data[1:]), n_repetition))
+        fesc = np.zeros(shape=(len(data[1:]), n_repetitions))
         importances_fesc = np.zeros(len(data[0]))
     else:
         fesc, importances_fesc = None, None
@@ -159,7 +159,7 @@ def game(
                              , importances_fesc=importances_fesc
                              , filename_int=filename_int,
                              filename_err=filename_err,
-                             n_repetition=n_repetition,
+                             n_repetition=n_repetitions,
                              additional_files=additional_files
                              )
 
