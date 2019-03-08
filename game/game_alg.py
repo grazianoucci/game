@@ -17,7 +17,7 @@ def main_algorithm_to_pool(i
     time_now = datetime.datetime.now()
     format_date_time = '%Y-%m-%d %H:%M:%S'
     time_now = time_now.strftime(format_date_time)
-    print time_now, 'started pool', i
+    print time_now, 'started pool', i, 'will do', n_repetition, 'repetitions'
 
     mask = np.where(models == unique_id[i - 1])
 

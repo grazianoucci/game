@@ -31,6 +31,7 @@ def game(
         n_estimators=n_estimators,
         random_state=0
     )
+    print 'built AdaBoostRegressor with', n_estimators, 'estimators'
 
     ###########################################
     # Create output directory if not existing #
@@ -100,49 +101,42 @@ def game(
     if "g0" in out_labels:
         g0 = np.zeros(shape=(len(data[1:]), n_repetitions))
         importances_g0 = np.zeros(len(data[0]))
-        print 'read g0'
     else:
         g0, importances_g0 = None, None
 
     if "n" in out_labels:
         n = np.zeros(shape=(len(data[1:]), n_repetitions))
         importances_n = np.zeros(len(data[0]))
-        print 'read n'
     else:
         n, importances_n = None, None
 
     if "NH" in out_labels:
         NH = np.zeros(shape=(len(data[1:]), n_repetitions))
         importances_NH = np.zeros(len(data[0]))
-        print 'read NH'
     else:
         NH, importances_NH = None, None
 
     if "U" in out_labels:
         U = np.zeros(shape=(len(data[1:]), n_repetitions))
         importances_U = np.zeros(len(data[0]))
-        print 'read U'
     else:
         U, importances_U = None, None
 
     if "Z" in out_labels:
         Z = np.zeros(shape=(len(data[1:]), n_repetitions))
         importances_Z = np.zeros(len(data[0]))
-        print 'read Z'
     else:
         Z, importances_Z = None, None
 
     if "Av" in out_labels:
         Av = np.zeros(shape=(len(data[1:]), n_repetitions))
         importances_Av = np.zeros(len(data[0]))
-        print 'read Av'
     else:
         Av, importances_Av = None, None
 
     if "fesc" in out_labels:
         fesc = np.zeros(shape=(len(data[1:]), n_repetitions))
         importances_fesc = np.zeros(len(data[0]))
-        print 'read fesc'
     else:
         fesc, importances_fesc = None, None
 
