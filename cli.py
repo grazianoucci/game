@@ -40,7 +40,7 @@ def main():
     stat_library(this_folder)  # searches for library files in this folder
     files_config, labels_config, n_repetitions, n_estimators = get_config()  # parses config
 
-    n_cores = 4
+    n_cores = 12
     driver = Game(files_config, n_cores, n_repetitions, n_estimators, labels_config)
     driver.debug_params()
     driver.run()

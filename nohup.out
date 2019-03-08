@@ -1,0 +1,11 @@
+labels [u'g0', u'n', u'NH', u'U', u'Z', u'Av', u'fesc']
+inputs /opt/game/games/slack_22_02_2019/lines.dat
+errors /opt/game/games/slack_22_02_2019/errors.dat
+library /opt/game/games/slack_22_02_2019/labels.dat
+output /opt/game/game/output/out-test-13/
+additional files? False
+n processors 12
+n repetitions 10000
+n estimators 50
+# of input  models: 8
+# of unique models: 4

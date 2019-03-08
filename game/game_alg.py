@@ -1,5 +1,5 @@
 import numpy as np
-
+import datetime
 from ml import error_estimation, machine_learning, realization
 
 
@@ -14,6 +14,11 @@ def main_algorithm_to_pool(i
                            , filename_int, filename_err, n_repetition,
                            additional_files
                            ):
+    time_now = datetime.datetime.now()
+    format_date_time = '%Y-%m-%d %H:%M:%S'
+    time_now = time_now.strftime(format_date_time)
+    print time_now, 'started pool', i
+
     mask = np.where(models == unique_id[i - 1])
 
     # matrix_mms is useful to save physical properties
@@ -176,11 +181,6 @@ def main_algorithm_to_pool(i
             vector_mms[0::3] = np.log10(np.mean(10 ** result, axis=0))
             vector_mms[1::3] = np.log10(np.median(10 ** result, axis=0))
             vector_mms[2::3] = np.std(result, axis=0)
-
-            print 'result', result.size
-            print 'result[:, 5]', result[:, 5].size
-            print 'result[:, 6]', result[:, 6].size
-            print 'vector_mms', vector_mms.size
 
             # Av and fesc do NOT require log
             # todo proposed solution
