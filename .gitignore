@@ -1,4 +1,6 @@
 config.json
+nohup.out
+
 game/.user_credentials
 c_code
 library
