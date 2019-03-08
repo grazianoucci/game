@@ -12,7 +12,7 @@ def main_algorithm_to_pool(i
                            importances_U, importances_Z, importances_Av,
                            importances_fesc
                            , filename_int, filename_err, n_repetition,
-                           additional_files
+                           additional_files, out_labels
                            ):
     time_now = datetime.datetime.now()
     format_date_time = '%Y-%m-%d %H:%M:%S'
@@ -35,7 +35,7 @@ def main_algorithm_to_pool(i
     features_test = features[:, initial[mask][0]][limit:, :]
 
     # ML
-    if g0 is not None:
+    if 'g0' in out_labels:
         g0_true, g0_pred, sigma_g0 = error_estimation(features_train,
                                                         features_test,
                                                         labels_train[:, 0],
@@ -46,7 +46,7 @@ def main_algorithm_to_pool(i
         g0_true, g0_pred, sigma_g0, model_g0, imp_g0, score_g0, std_g0 = \
             None, None, None, None, None, None, None
 
-    if n is not None:
+    if 'n' in out_labels:
         n_true, n_pred, sigma_n = error_estimation(features_train, features_test,
                                                      labels_train[:, 1],
                                                      labels_test[:, 1], regr)
@@ -56,7 +56,7 @@ def main_algorithm_to_pool(i
         n_true, n_pred, sigma_n, model_n, imp_n, score_n, std_n = \
             None, None, None, None, None, None, None
 
-    if NH is not None:
+    if 'NH' in out_labels:
         NH_true, NH_pred, sigma_NH = error_estimation(features_train,
                                                         features_test,
                                                         labels_train[:, 2],
@@ -67,7 +67,7 @@ def main_algorithm_to_pool(i
         NH_true, NH_pred, sigma_NH, model_NH, imp_NH, score_NH, std_NH = \
             None, None, None, None, None, None, None
 
-    if U is not None:
+    if 'U' in out_labels:
         U_true, U_pred, sigma_U = error_estimation(features_train, features_test,
                                                      labels_train[:, 3],
                                                      labels_test[:, 3], regr)
@@ -77,7 +77,7 @@ def main_algorithm_to_pool(i
         U_true, U_pred, sigma_U, model_U, imp_U, score_U, std_U = \
             None, None, None, None, None, None, None
 
-    if Z is not None:
+    if 'Z' in out_labels:
         Z_true, Z_pred, sigma_Z = error_estimation(features_train, features_test,
                                                      labels_train[:, 4],
                                                      labels_test[:, 4], regr)
@@ -87,7 +87,7 @@ def main_algorithm_to_pool(i
         Z_true, Z_pred, sigma_Z, model_Z, imp_Z, score_Z, std_Z = \
             None, None, None, None, None, None, None
 
-    if Av is not None:
+    if 'Av' in out_labels:
         Av_true, Av_pred, sigma_Av = error_estimation(features_train,
                                                         features_test,
                                                         labels_train[:, 5],
@@ -98,7 +98,7 @@ def main_algorithm_to_pool(i
         Av_true, Av_pred, sigma_Av, model_Av, imp_Av, score_Av, std_Av = \
             None, None, None, None, None, None, None
 
-    if fesc is not None:
+    if 'fesc' in out_labels:
         fesc_true, fesc_pred, sigma_fesc = error_estimation(features_train,
                                                               features_test,
                                                               labels_train[:, 6],
@@ -255,12 +255,6 @@ def main_algorithm_to_pool(i
         sigmas[3] = sigma_U
         scores[7] = score_U
         scores[8] = std_U
-    else:  # todo g0 -> U
-        trues[3] = np.array(g0_true)
-        preds[3] = np.array(g0_pred)
-        sigmas[3] = sigma_g0
-        scores[7] = score_g0
-        scores[8] = std_g0
 
     if Z_true is not None and Z_pred is not None and importances_Z is not None:
         importances[4] = importances_Z

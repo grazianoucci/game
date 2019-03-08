@@ -98,54 +98,80 @@ def game(
     ######################################
     # Initialization of arrays and lists #
     ######################################
+
     if "g0" in out_labels:
-        g0 = np.zeros(shape=(len(data[1:]), n_repetitions))
+        if additional_files:
+            g0 = np.zeros(shape=(len(data[1:]), n_repetitions))
+        else:
+            g0 = None
+
         importances_g0 = np.zeros(len(data[0]))
     else:
         g0, importances_g0 = None, None
 
     if "n" in out_labels:
-        n = np.zeros(shape=(len(data[1:]), n_repetitions))
+        if additional_files:
+            n = np.zeros(shape=(len(data[1:]), n_repetitions))
+        else:
+            n = None
+
         importances_n = np.zeros(len(data[0]))
     else:
         n, importances_n = None, None
 
     if "NH" in out_labels:
-        NH = np.zeros(shape=(len(data[1:]), n_repetitions))
+        if additional_files:
+            NH = np.zeros(shape=(len(data[1:]), n_repetitions))
+        else:
+            NH = None
+
         importances_NH = np.zeros(len(data[0]))
     else:
         NH, importances_NH = None, None
 
     if "U" in out_labels:
-        U = np.zeros(shape=(len(data[1:]), n_repetitions))
+        if additional_files:
+            U = np.zeros(shape=(len(data[1:]), n_repetitions))
+        else:
+            U = None
+
         importances_U = np.zeros(len(data[0]))
     else:
         U, importances_U = None, None
 
     if "Z" in out_labels:
-        Z = np.zeros(shape=(len(data[1:]), n_repetitions))
+        if additional_files:
+            Z = np.zeros(shape=(len(data[1:]), n_repetitions))
+        else:
+            Z = None
+
         importances_Z = np.zeros(len(data[0]))
     else:
         Z, importances_Z = None, None
 
     if "Av" in out_labels:
-        Av = np.zeros(shape=(len(data[1:]), n_repetitions))
+        if additional_files:
+            Av = np.zeros(shape=(len(data[1:]), n_repetitions))
+        else:
+            Av = None
+
         importances_Av = np.zeros(len(data[0]))
     else:
         Av, importances_Av = None, None
 
     if "fesc" in out_labels:
-        fesc = np.zeros(shape=(len(data[1:]), n_repetitions))
+        if additional_files:
+            fesc = np.zeros(shape=(len(data[1:]), n_repetitions))
+        else:
+            fesc = None
+
         importances_fesc = np.zeros(len(data[0]))
     else:
         fesc, importances_fesc = None, None
 
-    print 'calling pool'
-
     ################
     # Pool calling #
     ################
-
     main_algorithm = partial(main_algorithm_to_pool,
                              models=models, unique_id=unique_id,
                              initial=initial, limit=limit
@@ -160,10 +186,11 @@ def game(
                              , importances_Z=importances_Z
                              , importances_Av=importances_Av
                              , importances_fesc=importances_fesc
-                             , filename_int=filename_int,
-                             filename_err=filename_err,
-                             n_repetition=n_repetitions,
-                             additional_files=additional_files
+                             , filename_int=filename_int
+                             , filename_err=filename_err
+                             , n_repetition=n_repetitions
+                             , additional_files=additional_files
+                             , out_labels=out_labels
                              )
 
     pool = multiprocessing.Pool(processes=n_proc)
