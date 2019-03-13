@@ -17,12 +17,15 @@ class LabelsConfig:
 
 
 class Game:
+    DEFAULT_LIB_FOLDER = '/opt/game/game/library'
+
     def __init__(self, filename_config, n_proc, n_repetitions, n_estimators, labels_config):
         self.filename_config = filename_config
         self.n_proc = n_proc
         self.n_repetitions = n_repetitions
         self.n_estimators = n_estimators
         self.labels_config = labels_config
+        self.lib_folder = self.DEFAULT_LIB_FOLDER
 
     def debug_params(self):
         print 'labels', self.labels_config.output
@@ -46,5 +49,6 @@ class Game:
             n_estimators=self.n_estimators,
             output_folder=self.filename_config.output_folder,
             verbose=True,  # debug
-            out_labels=self.labels_config.output
+            out_labels=self.labels_config.output,
+            lib_folder=self.lib_folder
         )

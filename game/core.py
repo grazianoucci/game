@@ -24,6 +24,7 @@ def game(
         , output_folder
         , verbose
         , out_labels
+        , lib_folder
 ):
     tree_regr = tree.DecisionTreeRegressor(criterion='mse', splitter='best', max_features=None)
     regr = AdaBoostRegressor(
@@ -31,21 +32,12 @@ def game(
         n_estimators=n_estimators,
         random_state=0
     )
-    print 'built AdaBoostRegressor with', n_estimators, 'estimators'
-
-    ###########################################
-    # Create output directory if not existing #
-    ###########################################
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
 
-    ###################################################
-    # Number of repetition for the PDFs determination #
-    ###################################################
-    # Input file reading
     data, lower, upper = read_emission_line_file(filename_int)
+
     # Library file reading
-    lib_folder = os.path.join(os.getcwd(), 'library')
     library_file = os.path.join(lib_folder, 'library.csv')
     additional_labels_lib_file = os.path.join(lib_folder, 'additional_labels.dat')
 
@@ -55,9 +47,6 @@ def game(
     # Be careful because the first row in data there are wavelengths!
     initial, models, unique_id = determination_models(data[1:])
 
-    ###################################################################################################
-    # Testing, test_size is the percentage of the library to use as testing set to determine the PDFs #
-    ###################################################################################################
     test_size = 0.10
     n_unique_models = int(np.max(unique_id))
 
@@ -66,11 +55,6 @@ def game(
         print '# of unique models:', n_unique_models
     
     start_time = time.time()
-
-    ##########################################################
-    # Definition of features and labels for Machine Learning #
-    #      (for metallicity logarithm has been used)         #
-    ##########################################################
 
     features = output[:, :-5]
     labels = np.double(output[:, len(output[0]) - 5:len(output[0])])
@@ -97,11 +81,7 @@ def game(
     labels_train = labels[:limit, :]
     labels_test = labels[limit:, :]
 
-    ######################################
-    # Initialization of arrays and lists #
-    ######################################
-
-    # checks to enable model    
+    # checks to enable model
     if additional_files:
         matrix_size = len(data[1:]) * n_repetitions
         all_matrices_size = matrix_size * len(out_labels)
@@ -182,9 +162,6 @@ def game(
     else:
         fesc, importances_fesc = None, None
 
-    ################
-    # Pool calling #
-    ################
     main_algorithm = partial(main_algorithm_to_pool,
                              models=models, unique_id=unique_id,
                              initial=initial, limit=limit
@@ -217,9 +194,6 @@ def game(
         print 'Elapsed time for ML:', (end_time - start_time)
         print 'Writing output files'
 
-    ###########################################
-    # Rearrange based on the find_ids indexes #
-    ###########################################
     sigmas = np.array(
         list(chain.from_iterable(np.array(results)[:, 0]))).reshape(
         len(unique_id.astype(int)), 7)
@@ -258,9 +232,6 @@ def game(
     for i in xrange(len(temp_model_ids)):
         model_ids[find_ids[i]] = temp_model_ids[i]
 
-    #########################################
-    # Write information on different models #
-    #########################################
     f = open(os.path.join(output_folder, 'model_ids.dat'), 'w+')
 
     for i in xrange(len(sigmas)):
@@ -394,9 +365,6 @@ def game(
 
     f.close()
 
-    ##########################################################
-    # Outputs relative to the Machine Learning determination #
-    ##########################################################
     if additional_files:
         write_output = np.vstack(tuple(out_ml)).T
     else:
@@ -406,9 +374,6 @@ def game(
                header=out_header,
                fmt='%.5f')
 
-    ##################
-    # Optional files #
-    ##################
     if additional_files:
         if "g0" in out_labels:
             np.savetxt(os.path.join(output_folder, 'output_pred_G0.dat'),
