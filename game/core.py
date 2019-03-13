@@ -10,9 +10,43 @@ import numpy as np
 from sklearn import tree
 from sklearn.ensemble import AdaBoostRegressor
 
+from errors import GameException
 from game_alg import main_algorithm_to_pool
 from ml import determination_models
 from prepare import read_emission_line_file, read_library_file
+
+MODELS_FORMAT = '# of input  models: {}\n# of unique models: {}'
+END_RUN_FORMAT = 'Elapsed time for ML: {}'
+
+MATRIX_TO_GB = 0.000000008
+GAME_MAX_CORES = 30
+MAX_MEM = 0.95 * 256  # GB
+TOO_MUCH_MEMORY_REQUIRED_FORMAT = 'Memory required is {} GB: too much!'
+
+OUTPUT_PRED_FORMAT = 'output_pred_{}.dat'
+OUTPUT_TRUE_FORMAT = 'output_pred_{}.dat'
+OUTPUT_PDF_FORMAT = 'output_pred_{}.dat'
+OUTPUT_IMPORTANCES_FORMAT = 'output_feature_importances_{}.dat'
+OUTPUT_ML = 'output_ml.dat'
+OUTPUT_MODELS_IDS = 'model_ids.dat'
+NUM_FORMAT = '%.5f'
+
+STD_FORMAT = 'Standard deviation of log({}): {:.3f}\n'
+CROSS_VAL_FORMAT = 'Cross-validation score for: {:.3f} +- {:.3f}\n'
+OUT_HEADER_FORMAT = ' mean[Log({0})] median[Log({0})] sigma[Log({0})]'
+
+
+def perform_checks(input_data_len, n_repetitions, additional_files, out_labels):
+    if additional_files:
+        matrix_size = input_data_len * n_repetitions
+        all_matrices_size = matrix_size * len(out_labels)
+        all_matrices_weight = all_matrices_size * MATRIX_TO_GB  # GB
+        total_worst_weight = all_matrices_weight * GAME_MAX_CORES
+
+        if total_worst_weight >= MAX_MEM:  # critical memory saturation
+            message = TOO_MUCH_MEMORY_REQUIRED_FORMAT.format(total_worst_weight)
+            exception = GameException.build_too_much_memory_exception(message)
+            raise exception
 
 
 def game(
@@ -55,8 +89,7 @@ def game(
     n_unique_models = int(np.max(unique_id))
 
     if verbose:
-        print '# of input  models:', len(data[1:])
-        print '# of unique models:', n_unique_models
+        print MODELS_FORMAT.format(len(data[1:]), n_unique_models)
 
     start_time = time.time()
 
@@ -86,19 +119,9 @@ def game(
     labels_test = labels[limit:, :]
 
     # checks to enable model
-    if additional_files:
-        matrix_size = len(data[1:]) * n_repetitions
-        all_matrices_size = matrix_size * len(out_labels)
-        all_matrices_weight = all_matrices_size * 0.000000008  # GB
-        total_worst_weight = all_matrices_weight * 30  # max processes of GAME
-        if total_worst_weight >= 0.95 * 256:  # critical memoery saturation
-            raise ValueError(
-                'Cannot start GAME: too much memory required with {} repetitions'.format(
-                    n_repetitions))
-    else:
-        pass
+    perform_checks(len(data[1:]), n_repetitions, additional_files, out_labels)
 
-    if "g0" in out_labels:
+    if 'g0' in out_labels:
         if additional_files:
             g0 = np.zeros(shape=(len(data[1:]), n_repetitions))
         else:
@@ -108,7 +131,7 @@ def game(
     else:
         g0, importances_g0 = None, None
 
-    if "n" in out_labels:
+    if 'n' in out_labels:
         if additional_files:
             n = np.zeros(shape=(len(data[1:]), n_repetitions))
         else:
@@ -118,7 +141,7 @@ def game(
     else:
         n, importances_n = None, None
 
-    if "NH" in out_labels:
+    if 'NH' in out_labels:
         if additional_files:
             NH = np.zeros(shape=(len(data[1:]), n_repetitions))
         else:
@@ -128,7 +151,7 @@ def game(
     else:
         NH, importances_NH = None, None
 
-    if "U" in out_labels:
+    if 'U' in out_labels:
         if additional_files:
             U = np.zeros(shape=(len(data[1:]), n_repetitions))
         else:
@@ -138,7 +161,7 @@ def game(
     else:
         U, importances_U = None, None
 
-    if "Z" in out_labels:
+    if 'Z' in out_labels:
         if additional_files:
             Z = np.zeros(shape=(len(data[1:]), n_repetitions))
         else:
@@ -148,7 +171,7 @@ def game(
     else:
         Z, importances_Z = None, None
 
-    if "Av" in out_labels:
+    if 'Av' in out_labels:
         if additional_files:
             Av = np.zeros(shape=(len(data[1:]), n_repetitions))
         else:
@@ -158,7 +181,7 @@ def game(
     else:
         Av, importances_Av = None, None
 
-    if "fesc" in out_labels:
+    if 'fesc' in out_labels:
         if additional_files:
             fesc = np.zeros(shape=(len(data[1:]), n_repetitions))
         else:
@@ -197,8 +220,7 @@ def game(
 
     end_time = time.time()
     if verbose:
-        print 'Elapsed time for ML:', (end_time - start_time)
-        print 'Writing output files'
+        print END_RUN_FORMAT.format(end_time - start_time)
 
     sigmas = np.array(
         list(chain.from_iterable(np.array(results)[:, 0]))).reshape(
@@ -238,60 +260,60 @@ def game(
     for i in xrange(len(temp_model_ids)):
         model_ids[find_ids[i]] = temp_model_ids[i]
 
-    f = open(os.path.join(output_folder, 'model_ids.dat'), 'w+')
+    f = open(os.path.join(output_folder, OUTPUT_MODELS_IDS), 'w+')
 
     for i in xrange(len(sigmas)):
         f.write('##############################\n')
         f.write('Id model: %d\n' % (i + 1))
 
-        if "g0" in out_labels:
-            f.write('Standard deviation of log(G0): %.3f\n' % sigmas[i, 0])
-        if "n" in out_labels:
-            f.write('Standard deviation of log(n):  %.3f\n' % sigmas[i, 1])
-        if "NH" in out_labels:
-            f.write('Standard deviation of log(NH): %.3f\n' % sigmas[i, 2])
-        if "U" in out_labels:
-            f.write('Standard deviation of log(U):  %.3f\n' % sigmas[i, 3])
-        if "Z" in out_labels:
-            f.write('Standard deviation of log(Z):  %.3f\n' % sigmas[i, 4])
-        if "Av" in out_labels:
-            f.write('Standard deviation of log(Av):  %.3f\n' % sigmas[i, 5])
-        if "fesc" in out_labels:
-            f.write('Standard deviation of log(fesc):  %.3f\n' % sigmas[i, 6])
+        if 'g0' in out_labels:
+            f.write(STD_FORMAT.format('g0', sigmas[i, 0]))
+        if 'n' in out_labels:
+            f.write(STD_FORMAT.format('n', sigmas[i, 1]))
+        if 'NH' in out_labels:
+            f.write(STD_FORMAT.format('NH', sigmas[i, 2]))
+        if 'U' in out_labels:
+            f.write(STD_FORMAT.format('U', sigmas[i, 3]))
+        if 'Z' in out_labels:
+            f.write(STD_FORMAT.format('Z', sigmas[i, 4]))
+        if 'Av' in out_labels:
+            f.write(STD_FORMAT.format('Av', sigmas[i, 5]))
+        if 'fesc' in out_labels:
+            f.write(STD_FORMAT.format('fesc', sigmas[i, 6]))
 
-        if "g0" in out_labels:
-            f.write('Cross-validation score for G0: %.3f +- %.3f\n' % (
-                scores[i, 1], 2. * scores[i, 2]))
-        if "n" in out_labels:
-            f.write('Cross-validation score for n:  %.3f +- %.3f\n' % (
-                scores[i, 3], 2. * scores[i, 4]))
-        if "NH" in out_labels:
-            f.write('Cross-validation score for NH: %.3f +- %.3f\n' % (
-                scores[i, 5], 2. * scores[i, 6]))
-        if "U" in out_labels:
-            f.write('Cross-validation score for U:  %.3f +- %.3f\n' % (
-                scores[i, 7], 2. * scores[i, 8]))
-        if "Z" in out_labels:
-            f.write('Cross-validation score for Z:  %.3f +- %.3f\n' % (
-                scores[i, 9], 2. * scores[i, 10]))
-        if "Av" in out_labels:
-            f.write('Cross-validation score for Av:   %.3f +- %.3f\n' % (
-                scores[i, 11], 2. * scores[i, 12]))
-        if "fesc" in out_labels:
-            f.write('Cross-validation score for fesc: %.3f +- %.3f\n' % (
-                scores[i, 13], 2. * scores[i, 14]))
+        if 'g0' in out_labels:
+            f.write(
+                CROSS_VAL_FORMAT.format('g0', scores[i, 1], 2. * scores[i, 2]))
+        if 'n' in out_labels:
+            f.write(
+                CROSS_VAL_FORMAT.format('n', scores[i, 3], 2. * scores[i, 4]))
+        if 'NH' in out_labels:
+            f.write(
+                CROSS_VAL_FORMAT.format('NH', scores[i, 5], 2. * scores[i, 6]))
+        if 'U' in out_labels:
+            f.write(
+                CROSS_VAL_FORMAT.format('U', scores[i, 7], 2. * scores[i, 8]))
+        if 'Z' in out_labels:
+            f.write(
+                CROSS_VAL_FORMAT.format('Z', scores[i, 9], 2. * scores[i, 10]))
+        if 'Av' in out_labels:
+            f.write(CROSS_VAL_FORMAT.format('Av', scores[i, 11],
+                                            2. * scores[i, 12]))
+        if 'fesc' in out_labels:
+            f.write(CROSS_VAL_FORMAT.format('fesc', scores[i, 13],
+                                            2. * scores[i, 14]))
 
         f.write('List of input lines:\n')
         f.write('%s\n' % list_of_lines[i])
 
-    out_header = "id_model"
+    out_header = 'id_model'
     out_ml = [model_ids]
 
-    if "g0" in out_labels:
-        out_header += " mean[Log(G0)] median[Log(G0)] sigma[Log(G0)]"
+    if 'g0' in out_labels:
+        out_header += OUT_HEADER_FORMAT.format('g0')
         np.savetxt(os.path.join(output_folder,
-                                'output_feature_importances_G0.dat'),
-                   np.vstack((data[0], importances[0::7, :])), fmt='%.5f')
+                                OUTPUT_IMPORTANCES_FORMAT.format('g0')),
+                   np.vstack((data[0], importances[0::7, :])), fmt=NUM_FORMAT)
 
         if additional_files:
             out_ml += [
@@ -299,55 +321,55 @@ def game(
                 np.log10(np.median(10 ** matrix_ml[:, 0], axis=1)),
                 np.std(matrix_ml[:, 0], axis=1),
             ]
-    if "n" in out_labels:
-        out_header += " mean[Log(n)] median[Log(n)] sigma[Log(n)]"
+    if 'n' in out_labels:
+        out_header += OUT_HEADER_FORMAT.format('n')
         np.savetxt(os.path.join(output_folder,
-                                'output_feature_importances_n.dat'),
-                   np.vstack((data[0], importances[1::7, :])), fmt='%.5f')
+                                OUTPUT_IMPORTANCES_FORMAT.format('n')),
+                   np.vstack((data[0], importances[1::7, :])), fmt=NUM_FORMAT)
         if additional_files:
             out_ml += [
                 np.log10(np.mean(10 ** matrix_ml[:, 1], axis=1)),
                 np.log10(np.median(10 ** matrix_ml[:, 1], axis=1)),
                 np.std(matrix_ml[:, 1], axis=1)
             ]
-    if "NH" in out_labels:
-        out_header += " mean[Log(NH)] median[Log(NH)] sigma[Log(NH)]"
+    if 'NH' in out_labels:
+        out_header += OUT_HEADER_FORMAT.format('NH')
         np.savetxt(os.path.join(output_folder,
-                                'output_feature_importances_NH.dat'),
-                   np.vstack((data[0], importances[2::7, :])), fmt='%.5f')
+                                OUTPUT_IMPORTANCES_FORMAT.format('NH')),
+                   np.vstack((data[0], importances[2::7, :])), fmt=NUM_FORMAT)
         if additional_files:
             out_ml += [
                 np.log10(np.mean(10 ** matrix_ml[:, 2], axis=1)),
                 np.log10(np.median(10 ** matrix_ml[:, 2], axis=1)),
                 np.std(matrix_ml[:, 2], axis=1)
             ]
-    if "U" in out_labels:
-        out_header += " mean[Log(U)] median[Log(U)] sigma[Log(U)]"
+    if 'U' in out_labels:
+        out_header += OUT_HEADER_FORMAT.format('U')
         np.savetxt(os.path.join(output_folder,
-                                'output_feature_importances_U.dat'),
-                   np.vstack((data[0], importances[3::7, :])), fmt='%.5f')
+                                OUTPUT_IMPORTANCES_FORMAT.format('U')),
+                   np.vstack((data[0], importances[3::7, :])), fmt=NUM_FORMAT)
         if additional_files:
             out_ml += [
                 np.log10(np.mean(10 ** matrix_ml[:, 3], axis=1)),
                 np.log10(np.median(10 ** matrix_ml[:, 3], axis=1)),
                 np.std(matrix_ml[:, 3], axis=1)
             ]
-    if "Z" in out_labels:
-        out_header += " mean[Log(Z)] median[Log(Z)] sigma[Log(Z)]"
+    if 'Z' in out_labels:
+        out_header += OUT_HEADER_FORMAT.format('Z')
         np.savetxt(os.path.join(output_folder,
-                                'output_feature_importances_Z.dat'),
-                   np.vstack((data[0], importances[4::7, :])), fmt='%.5f')
+                                OUTPUT_IMPORTANCES_FORMAT.format('Z')),
+                   np.vstack((data[0], importances[4::7, :])), fmt=NUM_FORMAT)
         if additional_files:
             out_ml += [
                 np.log10(np.mean(10 ** matrix_ml[:, 4], axis=1)),
                 np.log10(np.median(10 ** matrix_ml[:, 4], axis=1)),
                 np.std(matrix_ml[:, 4], axis=1)
             ]
-    if "Av" in out_labels:
-        out_header += " mean[Log(Av)] median[Log(Av)] sigma[Log(Av)]"
+    if 'Av' in out_labels:
+        out_header += OUT_HEADER_FORMAT.format('Av')
         np.savetxt(os.path.join(output_folder,
-                                'output_feature_importances_Av.dat'),
-                   np.vstack((data[0], importances[5::7, :])), fmt='%.5f')
+                                OUTPUT_IMPORTANCES_FORMAT.format('Av')),
+                   np.vstack((data[0], importances[5::7, :])), fmt=NUM_FORMAT)
 
         if additional_files:
             out_ml += [
@@ -356,11 +378,11 @@ def game(
                 np.std(matrix_ml[:, 5], axis=1)
             ]
 
-    if "fesc" in out_labels:
-        out_header += " mean[Log(fesc)] median[Log(fesc)] sigma[Log(fesc)]"
+    if 'fesc' in out_labels:
+        out_header += OUT_HEADER_FORMAT.format('fesc')
         np.savetxt(os.path.join(output_folder,
-                                'output_feature_importances_fesc.dat'),
-                   np.vstack((data[0], importances[6::7, :])), fmt='%.5f')
+                                OUTPUT_IMPORTANCES_FORMAT.format('fesc')),
+                   np.vstack((data[0], importances[6::7, :])), fmt=NUM_FORMAT)
 
         if additional_files:
             out_ml += [
@@ -376,84 +398,104 @@ def game(
     else:
         write_output = np.column_stack((model_ids, matrix_ml))
 
-    np.savetxt(os.path.join(output_folder, 'output_ml.dat'), write_output,
-               header=out_header,
-               fmt='%.5f')
+    output_ml_file = os.path.join(output_folder, OUTPUT_ML)
+    np.savetxt(output_ml_file, write_output, header=out_header, fmt=NUM_FORMAT)
 
     if additional_files:
-        if "g0" in out_labels:
-            np.savetxt(os.path.join(output_folder, 'output_pred_G0.dat'),
+        if 'g0' in out_labels:
+            np.savetxt(os.path.join(output_folder,
+                                    OUTPUT_PRED_FORMAT.format('g0')),
                        preds[0::7, :],
-                       fmt='%.5f')
-            np.savetxt(os.path.join(output_folder, 'output_true_G0.dat'),
+                       fmt=NUM_FORMAT)
+            np.savetxt(os.path.join(output_folder,
+                                    OUTPUT_TRUE_FORMAT.format('g0')),
                        trues[0::7, :],
-                       fmt='%.5f')
-            np.savetxt(os.path.join(output_folder, 'output_pdf_G0.dat'),
+                       fmt=NUM_FORMAT)
+            np.savetxt(os.path.join(output_folder,
+                                    OUTPUT_PDF_FORMAT.format('g0')),
                        matrix_ml[:, 0],
-                       fmt='%.5f')
+                       fmt=NUM_FORMAT)
 
-        if "n" in out_labels:
-            np.savetxt(os.path.join(output_folder, 'output_pred_n.dat'),
-                       preds[1::7, :],
-                       fmt='%.5f')
-            np.savetxt(os.path.join(output_folder, 'output_true_n.dat'),
-                       trues[1::7, :],
-                       fmt='%.5f')
-            np.savetxt(os.path.join(output_folder, 'output_pdf_n.dat'),
-                       matrix_ml[:, 1],
-                       fmt='%.5f')
+        if 'n' in out_labels:
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('n')),
+                preds[1::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('n')),
+                trues[1::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('n')),
+                matrix_ml[:, 1],
+                fmt=NUM_FORMAT)
 
-        if "NH" in out_labels:
-            np.savetxt(os.path.join(output_folder, 'output_pred_NH.dat'),
-                       preds[2::7, :],
-                       fmt='%.5f')
-            np.savetxt(os.path.join(output_folder, 'output_true_NH.dat'),
-                       trues[2::7, :],
-                       fmt='%.5f')
-            np.savetxt(os.path.join(output_folder, 'output_pdf_NH.dat'),
-                       matrix_ml[:, 2],
-                       fmt='%.5f')
+        if 'NH' in out_labels:
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('NH')),
+                preds[2::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('NH')),
+                trues[2::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('NH')),
+                matrix_ml[:, 2],
+                fmt=NUM_FORMAT)
 
-        if "U" in out_labels:
-            np.savetxt(os.path.join(output_folder, 'output_pred_U.dat'),
-                       preds[3::7, :],
-                       fmt='%.5f')
-            np.savetxt(os.path.join(output_folder, 'output_true_U.dat'),
-                       trues[3::7, :],
-                       fmt='%.5f')
-            np.savetxt(os.path.join(output_folder, 'output_pdf_U.dat'),
-                       matrix_ml[:, 3],
-                       fmt='%.5f')
+        if 'U' in out_labels:
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('U')),
+                preds[3::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('U')),
+                trues[3::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('U')),
+                matrix_ml[:, 3],
+                fmt=NUM_FORMAT)
 
-        if "Z" in out_labels:
-            np.savetxt(os.path.join(output_folder, 'output_pred_Z.dat'),
-                       preds[4::7, :],
-                       fmt='%.5f')
-            np.savetxt(os.path.join(output_folder, 'output_true_Z.dat'),
-                       trues[4::7, :],
-                       fmt='%.5f')
-            np.savetxt(os.path.join(output_folder, 'output_pdf_Z.dat'),
-                       matrix_ml[:, 4],
-                       fmt='%.5f')
+        if 'Z' in out_labels:
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('Z')),
+                preds[4::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('Z')),
+                trues[4::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('Z')),
+                matrix_ml[:, 4],
+                fmt=NUM_FORMAT)
 
-        if "Av" in out_labels:
-            np.savetxt(os.path.join(output_folder, 'output_pred_Av.dat'),
-                       preds[5::2, :],
-                       fmt='%.5f')
-            np.savetxt(os.path.join(output_folder, 'output_true_Av.dat'),
-                       trues[5::2, :],
-                       fmt='%.5f')
-            np.savetxt(os.path.join(output_folder, 'output_pdf_Av.dat'),
-                       matrix_ml[:, 5],
-                       fmt='%.5f')
+        if 'Av' in out_labels:
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('Av')),
+                preds[5::2, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('Av')),
+                trues[5::2, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('Av')),
+                matrix_ml[:, 5],
+                fmt=NUM_FORMAT)
 
-        if "fesc" in out_labels:
-            np.savetxt(os.path.join(output_folder, 'output_pred_fesc.dat'),
-                       preds[6::7, :],
-                       fmt='%.5f')
-            np.savetxt(os.path.join(output_folder, 'output_true_fesc.dat'),
-                       trues[6::7, :],
-                       fmt='%.5f')
-            np.savetxt(os.path.join(output_folder, 'output_pdf_fesc.dat'),
-                       matrix_ml[:, 6],
-                       fmt='%.5f')
+        if 'fesc' in out_labels:
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('fesc')),
+                preds[6::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('fesc')),
+                trues[6::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('fesc')),
+                matrix_ml[:, 6],
+                fmt=NUM_FORMAT)
