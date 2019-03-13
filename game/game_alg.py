@@ -183,17 +183,13 @@ def main_algorithm_to_pool(i
             vector_mms[2::3] = np.std(result, axis=0)
 
             # Av and fesc do NOT require log
-            # todo proposed solution
-            vector_mms[15::3] = np.log10(np.mean(10 ** result[:, 5], axis=0))
-            vector_mms[16::3] = np.log10(np.median(10 ** result[:, 5], axis=0))
+            vector_mms[15] = np.mean(result[:, 5], axis=0)
+            vector_mms[18] = np.mean(result[:, 6], axis=0)
 
-            # todo should have been
-            # vector_mms = np.zeros(6)
-            # vector_mms[0::3] = np.mean(result, axis=0)
-            # vector_mms[1::3] = np.median(result, axis=0)
-            # vector_mms[2::3] = np.std(result, axis=0)
-            # end todo
+            vector_mms[16] = np.median(result[:, 5], axis=0)
+            vector_mms[19] = np.median(result[:, 6], axis=0)
 
+            # append new row to matrix
             matrix_mms.append(vector_mms)
 
     # Importance matrixes
