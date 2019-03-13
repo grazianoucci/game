@@ -47,6 +47,8 @@ def game(
     # Library file reading
     lib_folder = os.path.join(os.getcwd(), 'library')
     library_file = os.path.join(lib_folder, 'library.csv')
+    additional_labels_lib_file = os.path.join(lib_folder, 'additional_labels.dat')
+
     output, line_labels = read_library_file(library_file, filename_library)
     # Determination of unique models based on the missing data
     # In this case missing data are values with zero intensities
@@ -81,7 +83,7 @@ def game(
         np.zeros(shape=(labels_rows, additional_columns)),
         axis=1
     )  # make room for additional labels
-    labels[:, -2:] = np.loadtxt('library/additional_labels.dat')
+    labels[:, -2:] = np.loadtxt(additional_labels_lib_file)
 
     # This code is inserted in order to work with logarithms!
     # If there is a zero, we substitute it with 1e-9
@@ -98,6 +100,17 @@ def game(
     ######################################
     # Initialization of arrays and lists #
     ######################################
+
+    # checks to enable model    
+    if additional_files:
+        matrix_size = len(data[1:]) * n_repetitions
+        all_matrices_size = matrix_size * len(out_labels)
+        all_matrices_weight = all_matrices_size * 0.000000008  # GB
+        total_worst_weight = all_matrices_weight * 30  # max processes of GAME
+        if total_worst_weight >= 0.95 * 256:  # critical memoery saturation
+            raise ValueError('Cannot start GAME: too much memory required with {} repetitions'.format(n_repetitions))
+    else:
+        pass
 
     if "g0" in out_labels:
         if additional_files:

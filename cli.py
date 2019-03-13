@@ -39,7 +39,6 @@ def main():
 
     n_cores = 12
     driver = Game(files_config, n_cores, n_repetitions, n_estimators, labels_config)
-    driver.debug_params()
     driver.run()
 
 
