@@ -14,22 +14,19 @@ def read_config(file_path):
 
 def get_config(file_path='config.json'):
     data = read_config(file_path)
-    input_folder = data['input']
-    output_folder = data['output']
-    labels = data['labels']
-    additional_files = data['additional files']
-    n_repetitions = data['n repetitions']
-    n_estimators = data['n estimators']
+    additional_files = data['OptionalFiles']
+    n_repetitions = data['nRepetitions']
+    n_estimators = data['nEstimators']
 
     files_config = FilesConfig(
-        os.path.join(input_folder, 'lines.dat'),
-        os.path.join(input_folder, 'errors.dat'),
-        os.path.join(input_folder, 'labels.dat'),
-        output_folder,
+        data['InputFile'],
+        data['ErrorFile'],
+        data['LabelsFile'],
+        data['OutputFolder'],
         additional_files
     )
     labels_config = LabelsConfig(
-        labels
+        data['labels']
     )
 
     return files_config, labels_config, n_repetitions, n_estimators
