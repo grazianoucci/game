@@ -1,5 +1,7 @@
-import os
+# -*- coding: utf-8 -*-
+
 import json
+import os
 
 from game.prepare import stat_library
 from models import FilesConfig, LabelsConfig, Game
@@ -35,10 +37,11 @@ def get_config(file_path='config.json'):
 def main():
     this_folder = os.path.dirname(os.path.realpath(__file__))
     stat_library(this_folder)  # searches for library files in this folder
-    files_config, labels_config, n_repetitions, n_estimators = get_config()  # parses config
+    files_config, labels_config, n_repetitions, n_estimators = get_config()
 
     n_cores = 12
-    driver = Game(files_config, n_cores, n_repetitions, n_estimators, labels_config)
+    driver = Game(files_config, n_cores, n_repetitions, n_estimators,
+                  labels_config)
     driver.run()
 
 

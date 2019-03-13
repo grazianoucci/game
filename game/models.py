@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from core import game
 
 
@@ -19,7 +21,8 @@ class LabelsConfig:
 class Game:
     DEFAULT_LIB_FOLDER = '/opt/game/game/library'
 
-    def __init__(self, filename_config, n_proc, n_repetitions, n_estimators, labels_config):
+    def __init__(self, filename_config, n_proc, n_repetitions, n_estimators,
+                 labels_config):
         self.filename_config = filename_config
         self.n_proc = n_proc
         self.n_repetitions = n_repetitions

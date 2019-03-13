@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import multiprocessing
 import os
 import time
@@ -26,7 +28,8 @@ def game(
         , out_labels
         , lib_folder
 ):
-    tree_regr = tree.DecisionTreeRegressor(criterion='mse', splitter='best', max_features=None)
+    tree_regr = tree.DecisionTreeRegressor(criterion='mse', splitter='best',
+                                           max_features=None)
     regr = AdaBoostRegressor(
         tree_regr,
         n_estimators=n_estimators,
@@ -39,7 +42,8 @@ def game(
 
     # Library file reading
     library_file = os.path.join(lib_folder, 'library.csv')
-    additional_labels_lib_file = os.path.join(lib_folder, 'additional_labels.dat')
+    additional_labels_lib_file = os.path.join(lib_folder,
+                                              'additional_labels.dat')
 
     output, line_labels = read_library_file(library_file, filename_library)
     # Determination of unique models based on the missing data
@@ -53,7 +57,7 @@ def game(
     if verbose:
         print '# of input  models:', len(data[1:])
         print '# of unique models:', n_unique_models
-    
+
     start_time = time.time()
 
     features = output[:, :-5]
@@ -88,7 +92,9 @@ def game(
         all_matrices_weight = all_matrices_size * 0.000000008  # GB
         total_worst_weight = all_matrices_weight * 30  # max processes of GAME
         if total_worst_weight >= 0.95 * 256:  # critical memoery saturation
-            raise ValueError('Cannot start GAME: too much memory required with {} repetitions'.format(n_repetitions))
+            raise ValueError(
+                'Cannot start GAME: too much memory required with {} repetitions'.format(
+                    n_repetitions))
     else:
         pass
 
@@ -274,10 +280,10 @@ def game(
         if "fesc" in out_labels:
             f.write('Cross-validation score for fesc: %.3f +- %.3f\n' % (
                 scores[i, 13], 2. * scores[i, 14]))
-        
+
         f.write('List of input lines:\n')
         f.write('%s\n' % list_of_lines[i])
-    
+
     out_header = "id_model"
     out_ml = [model_ids]
 

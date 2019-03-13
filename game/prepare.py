@@ -1,9 +1,13 @@
+# -*- coding: utf-8 -*-
+
 import os
 import tarfile
 import urllib
 
 import numpy as np
 from sklearn.preprocessing import Normalizer
+
+LIB_URL = "http://cosmology.sns.it/library_game/library.tar.gz"
 
 
 def stat_library(folder):
@@ -16,9 +20,7 @@ def stat_library(folder):
         try:
             os.stat(directory)
         except:
-            urllib.urlretrieve(
-                "http://cosmology.sns.it/library_game/library.tar.gz",
-                filename="library.tar.gz")
+            urllib.urlretrieve(LIB_URL, filename="library.tar.gz")
             tar = tarfile.open("library.tar.gz")
             tar.extractall()
             tar.close()

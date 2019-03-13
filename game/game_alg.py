@@ -1,5 +1,9 @@
-import numpy as np
+# -*- coding: utf-8 -*-
+
 import datetime
+
+import numpy as np
+
 from ml import error_estimation, machine_learning, realization
 
 
@@ -36,9 +40,9 @@ def main_algorithm_to_pool(i
     # ML
     if 'g0' in out_labels:
         g0_true, g0_pred, sigma_g0 = error_estimation(features_train,
-                                                        features_test,
-                                                        labels_train[:, 0],
-                                                        labels_test[:, 0], regr)
+                                                      features_test,
+                                                      labels_train[:, 0],
+                                                      labels_test[:, 0], regr)
         model_g0, imp_g0, score_g0, std_g0 = machine_learning(
             features[:, initial[mask][0]], labels, 0, regr)
     else:
@@ -46,9 +50,10 @@ def main_algorithm_to_pool(i
             None, None, None, None, None, None, None
 
     if 'n' in out_labels:
-        n_true, n_pred, sigma_n = error_estimation(features_train, features_test,
-                                                     labels_train[:, 1],
-                                                     labels_test[:, 1], regr)
+        n_true, n_pred, sigma_n = error_estimation(features_train,
+                                                   features_test,
+                                                   labels_train[:, 1],
+                                                   labels_test[:, 1], regr)
         model_n, imp_n, score_n, std_n = machine_learning(
             features[:, initial[mask][0]], labels, 1, regr)
     else:
@@ -57,9 +62,9 @@ def main_algorithm_to_pool(i
 
     if 'NH' in out_labels:
         NH_true, NH_pred, sigma_NH = error_estimation(features_train,
-                                                        features_test,
-                                                        labels_train[:, 2],
-                                                        labels_test[:, 2], regr)
+                                                      features_test,
+                                                      labels_train[:, 2],
+                                                      labels_test[:, 2], regr)
         model_NH, imp_NH, score_NH, std_NH = machine_learning(
             features[:, initial[mask][0]], labels, 2, regr)
     else:
@@ -67,9 +72,10 @@ def main_algorithm_to_pool(i
             None, None, None, None, None, None, None
 
     if 'U' in out_labels:
-        U_true, U_pred, sigma_U = error_estimation(features_train, features_test,
-                                                     labels_train[:, 3],
-                                                     labels_test[:, 3], regr)
+        U_true, U_pred, sigma_U = error_estimation(features_train,
+                                                   features_test,
+                                                   labels_train[:, 3],
+                                                   labels_test[:, 3], regr)
         model_U, imp_U, score_U, std_U = machine_learning(
             features[:, initial[mask][0]], labels, 3, regr)
     else:
@@ -77,9 +83,10 @@ def main_algorithm_to_pool(i
             None, None, None, None, None, None, None
 
     if 'Z' in out_labels:
-        Z_true, Z_pred, sigma_Z = error_estimation(features_train, features_test,
-                                                     labels_train[:, 4],
-                                                     labels_test[:, 4], regr)
+        Z_true, Z_pred, sigma_Z = error_estimation(features_train,
+                                                   features_test,
+                                                   labels_train[:, 4],
+                                                   labels_test[:, 4], regr)
         model_Z, imp_Z, score_Z, std_Z = machine_learning(
             features[:, initial[mask][0]], labels, 4, regr)
     else:
@@ -88,9 +95,9 @@ def main_algorithm_to_pool(i
 
     if 'Av' in out_labels:
         Av_true, Av_pred, sigma_Av = error_estimation(features_train,
-                                                        features_test,
-                                                        labels_train[:, 5],
-                                                        labels_test[:, 5], regr)
+                                                      features_test,
+                                                      labels_train[:, 5],
+                                                      labels_test[:, 5], regr)
         model_Av, imp_Av, score_Av, std_Av = machine_learning(
             features[:, initial[mask][0]], labels, 5, regr)
     else:
@@ -99,10 +106,10 @@ def main_algorithm_to_pool(i
 
     if 'fesc' in out_labels:
         fesc_true, fesc_pred, sigma_fesc = error_estimation(features_train,
-                                                              features_test,
-                                                              labels_train[:, 6],
-                                                              labels_test[:, 6],
-                                                              regr)
+                                                            features_test,
+                                                            labels_train[:, 6],
+                                                            labels_test[:, 6],
+                                                            regr)
         model_fesc, imp_fesc, score_fesc, std_fesc = machine_learning(
             features[:, initial[mask][0]], labels, 6, regr)
     else:
@@ -117,19 +124,23 @@ def main_algorithm_to_pool(i
     if additional_files:
         for el in xrange(len(mask[0])):
             if model_g0 is not None:
-                g0[mask[0][el], :] = model_g0.predict(new_data[el::len(mask[0])])
+                g0[mask[0][el], :] = model_g0.predict(
+                    new_data[el::len(mask[0])])
             if model_n is not None:
                 n[mask[0][el], :] = model_n.predict(new_data[el::len(mask[0])])
             if model_NH is not None:
-                NH[mask[0][el], :] = model_NH.predict(new_data[el::len(mask[0])])
+                NH[mask[0][el], :] = model_NH.predict(
+                    new_data[el::len(mask[0])])
             if model_U is not None:
                 U[mask[0][el], :] = model_U.predict(new_data[el::len(mask[0])])
             if model_Z is not None:
                 Z[mask[0][el], :] = model_Z.predict(new_data[el::len(mask[0])])
             if model_Av is not None:
-                Av[mask[0][el], :] = model_Av.predict(new_data[el::len(mask[0])])
+                Av[mask[0][el], :] = model_Av.predict(
+                    new_data[el::len(mask[0])])
             if model_fesc is not None:
-                fesc[mask[0][el], :] = model_fesc.predict(new_data[el::len(mask[0])])
+                fesc[mask[0][el], :] = model_fesc.predict(
+                    new_data[el::len(mask[0])])
 
             # Model ids
             id_model.append(i)
@@ -276,7 +287,8 @@ def main_algorithm_to_pool(i
         scores[13] = score_fesc
         scores[14] = std_fesc
 
-    print 'Model', str(int(i)) + '/' + str(int(np.max(unique_id))), 'completed...'
+    print 'Model', str(int(i)) + '/' + str(
+        int(np.max(unique_id))), 'completed...'
 
     return sigmas, \
            scores, \
