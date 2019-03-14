@@ -36,17 +36,33 @@ CROSS_VAL_FORMAT = 'Cross-validation score for: {:.3f} +- {:.3f}\n'
 OUT_HEADER_FORMAT = ' mean[Log({0})] median[Log({0})] sigma[Log({0})]'
 
 
-def perform_checks(input_data_len, n_repetitions, additional_files, out_labels):
-    if additional_files:
-        matrix_size = input_data_len * n_repetitions
-        all_matrices_size = matrix_size * len(out_labels)
-        all_matrices_weight = all_matrices_size * MATRIX_TO_GB  # GB
-        total_worst_weight = all_matrices_weight * GAME_MAX_CORES
+def raise_if_mem_per_process_is_too_high(mem_required_per_process):
+    total_worst_weight = mem_required_per_process * GAME_MAX_CORES
 
-        if total_worst_weight >= MAX_MEM:  # critical memory saturation
-            message = TOO_MUCH_MEMORY_REQUIRED_FORMAT.format(total_worst_weight)
-            exception = GameException.build_too_much_memory_exception(message)
-            raise exception
+    if total_worst_weight >= MAX_MEM:  # critical memory saturation
+        message = TOO_MUCH_MEMORY_REQUIRED_FORMAT.format(total_worst_weight)
+        exception = GameException.build_too_much_memory_exception(message)
+        raise exception
+
+
+def raise_if_matrix_per_process_is_too_high(n_rows, n_cols, n_labels=7):
+    matrix_size = n_rows * n_cols
+    all_matrices_size = matrix_size * n_labels
+    all_matrices_weight = all_matrices_size * MATRIX_TO_GB  # GB
+    raise_if_mem_per_process_is_too_high(all_matrices_weight)
+
+
+def raise_if_mem_is_too_high(input_data_len, n_repetitions, additional_files,
+                             models, unique_id):
+    if additional_files:
+        raise_if_matrix_per_process_is_too_high(input_data_len, n_repetitions)
+    else:  # no optional files -> check big matrix used for statistics
+        all_i = np.arange(1, np.max(unique_id.astype(int)) + 1, 1)
+        for i in all_i:
+            mask = np.where(models == unique_id[i - 1])
+            n_cols = len(mask[0])
+            n_rows = 7 * 3  # mean, median, std for all labels
+            raise_if_matrix_per_process_is_too_high(n_rows, n_cols)
 
 
 def game(
@@ -119,11 +135,13 @@ def game(
     labels_test = labels[limit:, :]
 
     # checks to enable model
-    perform_checks(len(data[1:]), n_repetitions, additional_files, out_labels)
+    raise_if_mem_is_too_high(len(data[1:]), n_repetitions, additional_files,
+                             models, unique_id)
 
+    matrix_shape = len(data[1:]), n_repetitions
     if 'g0' in out_labels:
         if additional_files:
-            g0 = np.zeros(shape=(len(data[1:]), n_repetitions))
+            g0 = np.zeros(shape=matrix_shape)
         else:
             g0 = None
 
@@ -133,7 +151,7 @@ def game(
 
     if 'n' in out_labels:
         if additional_files:
-            n = np.zeros(shape=(len(data[1:]), n_repetitions))
+            n = np.zeros(shape=matrix_shape)
         else:
             n = None
 
@@ -143,7 +161,7 @@ def game(
 
     if 'NH' in out_labels:
         if additional_files:
-            NH = np.zeros(shape=(len(data[1:]), n_repetitions))
+            NH = np.zeros(shape=matrix_shape)
         else:
             NH = None
 
@@ -153,7 +171,7 @@ def game(
 
     if 'U' in out_labels:
         if additional_files:
-            U = np.zeros(shape=(len(data[1:]), n_repetitions))
+            U = np.zeros(shape=matrix_shape)
         else:
             U = None
 
@@ -163,7 +181,7 @@ def game(
 
     if 'Z' in out_labels:
         if additional_files:
-            Z = np.zeros(shape=(len(data[1:]), n_repetitions))
+            Z = np.zeros(shape=matrix_shape)
         else:
             Z = None
 
@@ -173,7 +191,7 @@ def game(
 
     if 'Av' in out_labels:
         if additional_files:
-            Av = np.zeros(shape=(len(data[1:]), n_repetitions))
+            Av = np.zeros(shape=matrix_shape)
         else:
             Av = None
 
@@ -183,7 +201,7 @@ def game(
 
     if 'fesc' in out_labels:
         if additional_files:
-            fesc = np.zeros(shape=(len(data[1:]), n_repetitions))
+            fesc = np.zeros(shape=matrix_shape)
         else:
             fesc = None
 
