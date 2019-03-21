@@ -3,6 +3,7 @@
 import multiprocessing
 import os
 import time
+import math
 from functools import partial
 from itertools import chain
 
@@ -20,7 +21,9 @@ END_RUN_FORMAT = 'Elapsed time for ML: {}'
 
 MATRIX_TO_GB = 0.000000008
 GAME_MAX_CORES = 30
-MAX_MEM = 0.95 * 256  # GB
+TOTAL_MEM = 256  # gb
+MAX_MEM_PERC = 90  # 90%
+MAX_MEM = MAX_MEM_PERC / 100.0 * TOTAL_MEM
 TOO_MUCH_MEMORY_REQUIRED_FORMAT = 'Memory required is {} GB: too much!'
 
 OUTPUT_PRED_FORMAT = 'output_pred_{}.dat'
@@ -38,31 +41,55 @@ OUT_HEADER_FORMAT = ' mean[Log({0})] median[Log({0})] sigma[Log({0})]'
 
 def raise_if_mem_per_process_is_too_high(mem_required_per_process):
     total_worst_weight = mem_required_per_process * GAME_MAX_CORES
-
+    
+    print('proc', mem_required_per_process, 'total', total_worst_weight, 'max', MAX_MEM)
     if total_worst_weight >= MAX_MEM:  # critical memory saturation
         message = TOO_MUCH_MEMORY_REQUIRED_FORMAT.format(total_worst_weight)
         exception = GameException.build_too_much_memory_exception(message)
         raise exception
 
+    raise ValueError('should proceed')
 
-def raise_if_matrix_per_process_is_too_high(n_rows, n_cols, n_labels=7):
-    matrix_size = n_rows * n_cols
+def raise_if_matrix_size_is_too_high(matrix_size, n_repetitions, n_labels=7):
     all_matrices_size = matrix_size * n_labels
-    all_matrices_weight = all_matrices_size * MATRIX_TO_GB  # GB
+    all_matrices_weight = all_matrices_size * n_repetitions * MATRIX_TO_GB  # GB
     raise_if_mem_per_process_is_too_high(all_matrices_weight)
 
 
-def raise_if_mem_is_too_high(input_data_len, n_repetitions, additional_files,
-                             models, unique_id):
+def raise_if_matrix_per_process_is_too_high(n_rows, n_cols, n_repetitions, n_labels=7):
+    matrix_size = n_rows * n_cols
+    raise_if_matrix_size_is_too_high(matrix_size, n_repetitions, n_labels)
+
+def raise_if_mem_is_too_high(input_rows, input_cols, n_repetitions, additional_files, models, unique_id):
     if additional_files:
-        raise_if_matrix_per_process_is_too_high(input_data_len, n_repetitions)
+        raise_if_matrix_per_process_is_too_high(input_rows, input_cols, n_repetitions)
     else:  # no optional files -> check big matrix used for statistics
         all_i = np.arange(1, np.max(unique_id.astype(int)) + 1, 1)
+        sub_matrix_max = 0
+        sub_matrix_min = 9999999999
+
         for i in all_i:
             mask = np.where(models == unique_id[i - 1])
-            n_cols = len(mask[0])
-            n_rows = 7 * 3  # mean, median, std for all labels
-            raise_if_matrix_per_process_is_too_high(n_rows, n_cols)
+            n_rows = len(mask[0])
+            n_cols = input_cols
+            matrix_size = n_cols * n_rows
+            if matrix_size > sub_matrix_max:
+                sub_matrix_max = matrix_size
+
+            if matrix_size < sub_matrix_min:
+                sub_matrix_min = matrix_size
+
+        try:
+            raise_if_matrix_size_is_too_high(sub_matrix_max, n_repetitions)
+        except Exception as e:
+            try:
+                raise_if_matrix_size_is_too_high(sub_matrix_min, n_repetitions)
+            except Exception as e:
+                raise e
+            
+            # min model is ok -> chunks
+            n_chunks = math.ceil(sub_matrix_max / sub_matrix_min)
+            # todo send email
 
 
 def game(
@@ -135,8 +162,29 @@ def game(
     labels_test = labels[limit:, :]
 
     # checks to enable model
-    raise_if_mem_is_too_high(len(data[1:]), n_repetitions, additional_files,
+    if additional:
+      rows = len(data)
+      cols = len(data[0])  # number of colummns in file
+      single_matrix = rows * cols * n_reps
+      all_m = single_matrix * 7
+    else:
+      for each model:
+       rows = len(data)
+       cols = len(data[0])  # number of columns in file
+       single_matrix = rows * cols
+       all_m = single_matrix * 7
+
+    n_rows = len(data)
+    n_cols = len(data[0])
+    try:
+        raise_if_mem_is_too_high(n_rows, n_cols, n_repetitions, additional_files,
                              models, unique_id)
+    except Exception as e:
+        if additional_files:
+            additional_files = False
+            # send email to notify of no output of additional
+        else:
+            raise e
 
     matrix_shape = len(data[1:]), n_repetitions
     if 'g0' in out_labels:

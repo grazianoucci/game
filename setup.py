@@ -27,7 +27,9 @@ setup(
     install_requires=[
         "numpy",
         "scipy",
-        "sklearn", 'httplib2', 'enum'
+        "sklearn",
+        'httplib2',
+        'enum'
     ],
     test_suite="tests"
 )
