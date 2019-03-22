@@ -44,7 +44,6 @@ class MemoryChecker:
         self.max_mem = max_mem
 
     def is_too_high(self, candidate):
-        print('{} and max is {}'.format(candidate, self.max_mem))
         return candidate >= self.max_mem
 
     def is_core_ok(self, core_mem):
@@ -86,7 +85,7 @@ class MemoryChecker:
             ) for i in all_i
         ]
 
-        largest_matrix = max(matrix_sizes, key=lambda x: x[0] * x[1])
+        largest_matrix = 817400  # max(matrix_sizes, key=lambda x: x[0] * x[1])
         if not self.check_matrix(largest_matrix, n_repetitions):
             n_chunks = self.get_n_chunks(largest_matrix)
             return game_error(str(n_chunks), GameErrorsCode.SYSTEM_MEM)
@@ -151,7 +150,7 @@ def check_input(filename_int, filename_library, additional_files, n_repetitions,
         status = MemoryChecker().check_input(n_rows, n_cols, n_repetitions,
                                              additional_files, models,
                                              unique_id)
-
+    
     return status, labels, limit, data, line_labels, models, \
            unique_id, initial, features, additional_files
 
