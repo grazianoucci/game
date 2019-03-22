@@ -59,10 +59,24 @@ class MemoryChecker:
         weight = size_of_all * n_repetitions * MATRIX_TO_GB  # GB
         return self.is_core_ok(weight)  # 1 matrix for each core
 
+    @staticmethod
+    def get_n_chunks(size):
+        if isinstance(size, tuple):
+            size = size[0] * size[1]
+
+        n_chunks = math.floor(size / MAX_MATRIX_SIZE) + 1
+        return game_error(str(n_chunks), GameErrorsCode.SYSTEM_MEM)
+
     def check_input(self, input_rows, input_cols, n_repetitions,
                     additional_files, models, unique_id):
         if additional_files:
-            return self.check_matrix((input_rows, input_cols), n_repetitions, 7)
+            is_ok = self.check_matrix((input_rows, input_cols),
+                                      n_repetitions, 7)
+            if not is_ok:
+                return game_error('too much memory required',
+                                  GameErrorsCode.SYSTEM_MEM)
+
+            return ok_status('input is good')
 
         all_i = np.arange(1, np.max(unique_id.astype(int)) + 1, 1)
         matrix_sizes = [
@@ -71,11 +85,10 @@ class MemoryChecker:
                 input_cols
             ) for i in all_i
         ]
-        largest_matrix = max(matrix_sizes, key=lambda x: x[0] * x[1])
 
+        largest_matrix = max(matrix_sizes, key=lambda x: x[0] * x[1])
         if not self.check_matrix(largest_matrix, n_repetitions):
-            size_of_largest_matrix = largest_matrix[0] * largest_matrix[1]
-            n_chunks = math.floor(size_of_largest_matrix / MAX_MATRIX_SIZE) + 1
+            n_chunks = self.get_n_chunks(largest_matrix)
             return game_error(str(n_chunks), GameErrorsCode.SYSTEM_MEM)
 
         return ok_status('input is good')
