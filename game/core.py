@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import math
 import multiprocessing
 import os
 import time
-import math
 from functools import partial
 from itertools import chain
 
@@ -11,7 +11,7 @@ import numpy as np
 from sklearn import tree
 from sklearn.ensemble import AdaBoostRegressor
 
-from errors import GameException
+from behaviour import ok_status, game_error, GameErrorsCode
 from game_alg import main_algorithm_to_pool
 from ml import determination_models
 from prepare import read_emission_line_file, read_library_file
@@ -20,6 +20,7 @@ MODELS_FORMAT = '# of input  models: {}\n# of unique models: {}'
 END_RUN_FORMAT = 'Elapsed time for ML: {}'
 
 MATRIX_TO_GB = 0.000000008
+MAX_MATRIX_SIZE = 15000
 GAME_MAX_CORES = 30
 TOTAL_MEM = 256  # gb
 MAX_MEM_PERC = 90  # 90%
@@ -39,82 +40,52 @@ CROSS_VAL_FORMAT = 'Cross-validation score for: {:.3f} +- {:.3f}\n'
 OUT_HEADER_FORMAT = ' mean[Log({0})] median[Log({0})] sigma[Log({0})]'
 
 
-def raise_if_mem_per_process_is_too_high(mem_required_per_process):
-    total_worst_weight = mem_required_per_process * GAME_MAX_CORES
-    print('{} GB VS {} GB'.format(total_worst_weight, MAX_MEM))
-    if total_worst_weight >= MAX_MEM:  # critical memory saturation
-        message = TOO_MUCH_MEMORY_REQUIRED_FORMAT.format(total_worst_weight)
-        exception = GameException.build_too_much_memory_exception(message)
-        raise exception
+class MemoryChecker:
+    def __init__(self, n_cores=GAME_MAX_CORES, max_mem=MAX_MEM):
+        self.n_cores = n_cores
+        self.max_mem = max_mem
 
-    raise ValueError('should proceed')
+    def is_too_high(self, candidate):
+        return candidate >= self.max_mem
 
-def raise_if_matrix_size_is_too_high(matrix_size, n_repetitions, n_labels=7):
-    all_matrices_size = matrix_size * n_labels
-    all_matrices_weight = all_matrices_size * n_repetitions * MATRIX_TO_GB  # GB
-    raise_if_mem_per_process_is_too_high(all_matrices_weight)
+    def check_core(self, core_mem):
+        total_worst_weight = core_mem * self.n_cores
+        return self.is_too_high(total_worst_weight)
 
+    def check_matrix(self, size, n_repetitions, n_labels=1):
+        if isinstance(size, tuple):
+            size = size[0] * size[1]
 
-def raise_if_matrix_per_process_is_too_high(n_rows, n_cols, n_repetitions, n_labels=7):
-    matrix_size = n_rows * n_cols
-    print(matrix_size)
-    raise_if_matrix_size_is_too_high(matrix_size, n_repetitions, n_labels)
+        size_of_all = size * n_labels
+        weight = size_of_all * n_repetitions * MATRIX_TO_GB  # GB
+        return self.check_core(weight)  # 1 matrix for each core
 
-def raise_if_mem_is_too_high(input_rows, input_cols, n_repetitions, additional_files, models, unique_id):
-    if additional_files:
-        raise_if_matrix_per_process_is_too_high(input_rows, input_cols, n_repetitions)
-    else:  # no optional files -> check big matrix used for statistics
+    def check_input(self, input_rows, input_cols, n_repetitions,
+                    additional_files, models, unique_id):
+        if additional_files:
+            return self.check_matrix((input_rows, input_cols), n_repetitions)
+
         all_i = np.arange(1, np.max(unique_id.astype(int)) + 1, 1)
-        sub_matrix_max = 0
-        sub_matrix_min = 9999999999
-        all_rows = input_rows
- 
-        for i in all_i:
-            mask = np.where(models == unique_id[i - 1])
-            n_rows = len(mask[0])
-            n_cols = input_cols
-            matrix_size = n_cols * n_rows
-            print('model #{} -> matrix size: {} (rows = {})'.format(i, matrix_size, n_rows))
-            if matrix_size > sub_matrix_max:
-                sub_matrix_max = matrix_size
+        matrix_sizes = [
+            (
+                len(np.where(models == unique_id[i - 1])[0]),
+                input_cols
+            ) for i in all_i
+        ]
+        largest_matrix = max(matrix_sizes, key=lambda x: x[0] * x[1])
 
-            if matrix_size < sub_matrix_min:
-                sub_matrix_min = matrix_size
+        if not self.check_matrix(largest_matrix, n_repetitions, 1):
+            size_of_largest_matrix = largest_matrix[0] * largest_matrix[1]
+            n_chunks = math.floor(size_of_largest_matrix / MAX_MATRIX_SIZE) + 1
+            return game_error(str(n_chunks), GameErrorsCode.SYSTEM_MEM)
 
-        try:
-            raise_if_matrix_size_is_too_high(sub_matrix_max, n_repetitions)
-        except Exception as e:
-            try:
-                # raise_if_matrix_size_is_too_high(sub_matrix_min, n_repetitions)
-                n_chunks = math.ceil((all_rows * n_cols) / sub_matrix_max)
-                print('should chunkize files into {}'.format(n_chunks))
-                # todo send email
-            except Exception as e:
-                raise e
-            
+        return ok_status()
 
-def game(
-        filename_int
-        , filename_err
-        , filename_library
-        , additional_files
-        , n_proc
-        , n_repetitions
-        , n_estimators
-        , output_folder
-        , verbose
-        , out_labels
-        , lib_folder
-):
-    tree_regr = tree.DecisionTreeRegressor(criterion='mse', splitter='best',
-                                           max_features=None)
-    regr = AdaBoostRegressor(
-        tree_regr,
-        n_estimators=n_estimators,
-        random_state=0
-    )
+
+def check_input(filename_int, filename_library, additional_files, n_repetitions,
+                output_folder, verbose, lib_folder):
     if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
+        os.makedirs(output_folder)
 
     data, lower, upper = read_emission_line_file(filename_int)
 
@@ -134,8 +105,6 @@ def game(
 
     if verbose:
         print MODELS_FORMAT.format(len(data[1:]), n_unique_models)
-
-    start_time = time.time()
 
     features = output[:, :-5]
     labels = np.double(output[:, len(output[0]) - 5:len(output[0])])
@@ -159,23 +128,29 @@ def game(
 
     # Limit data
     limit = int((1. - test_size) * len(features))
-    labels_train = labels[:limit, :]
-    labels_test = labels[limit:, :]
 
     n_rows = len(data)
     n_cols = len(data[0])
-    raise_if_mem_is_too_high(n_rows, n_cols, n_repetitions, additional_files,
-                             models, unique_id)
+    status = MemoryChecker().check_input(n_rows, n_cols, n_repetitions,
+                                         additional_files, models, unique_id)
 
-    try:
-        raise_if_mem_is_too_high(n_rows, n_cols, n_repetitions, additional_files,
-                             models, unique_id)
-    except Exception as e:
-        if additional_files:
-            additional_files = False
-            # send email to notify of no output of additional
-        else:
-            raise e
+    return status, labels, limit, data
+
+
+def game(labels, limit, data, line_labels, n_estimators, n_repetitions,
+         out_labels, additional_files, models, unique_id, initial, features,
+         filename_int, filename_err, output_folder, n_proc, verbose):
+    start_time = time.time()
+
+    labels_train = labels[:limit, :]
+    labels_test = labels[limit:, :]
+    tree_regr = tree.DecisionTreeRegressor(criterion='mse', splitter='best',
+                                           max_features=None)
+    regr = AdaBoostRegressor(
+        tree_regr,
+        n_estimators=n_estimators,
+        random_state=0
+    )
 
     matrix_shape = len(data[1:]), n_repetitions
     if 'g0' in out_labels:
