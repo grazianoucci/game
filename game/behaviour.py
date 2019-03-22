@@ -24,6 +24,9 @@ class GameErrorsCode(Enum):
     # memory
     SYSTEM_MEM = 225
 
+    # unknown
+    UNKNOWN = 201
+
 
 class GameBehaviour(Exception):
     OUTPUT_FORMAT = '{} (code {})'
@@ -50,6 +53,19 @@ class GameBehaviour(Exception):
     @abc.abstractmethod
     def build(message, code):
         return GameBehaviour(message, code)
+
+    @staticmethod
+    def from_exception(exception):
+        message = str(exception)
+        code = GameErrorsCode.UNKNOWN
+
+        if isinstance(exception, OSError):
+            code = GameErrorsCode.FILES  # todo other codes
+
+        return GameBehaviour(message, code)
+
+    def is_error(self):
+        return self.code != GameErrorsCode.OK
 
 
 class GameStatus(GameBehaviour):

@@ -3,7 +3,6 @@
 import math
 import multiprocessing
 import os
-import time
 from functools import partial
 from itertools import chain
 
@@ -17,7 +16,6 @@ from ml import determination_models
 from prepare import read_emission_line_file, read_library_file
 
 MODELS_FORMAT = '# of input  models: {}\n# of unique models: {}'
-END_RUN_FORMAT = 'Elapsed time for ML: {}'
 
 MATRIX_TO_GB = 0.000000008
 MAX_MATRIX_SIZE = 15000
@@ -134,14 +132,19 @@ def check_input(filename_int, filename_library, additional_files, n_repetitions,
     status = MemoryChecker().check_input(n_rows, n_cols, n_repetitions,
                                          additional_files, models, unique_id)
 
-    return status, labels, limit, data
+    if additional_files and status.is_error():
+        additional_files = False  # try without additional files
+        status = MemoryChecker().check_input(n_rows, n_cols, n_repetitions,
+                                             additional_files, models,
+                                             unique_id)
+
+    return status, labels, limit, data, line_labels, models, \
+           unique_id, initial, features, additional_files
 
 
 def game(labels, limit, data, line_labels, n_estimators, n_repetitions,
          out_labels, additional_files, models, unique_id, initial, features,
-         filename_int, filename_err, output_folder, n_proc, verbose):
-    start_time = time.time()
-
+         filename_int, filename_err, output_folder, n_proc):
     labels_train = labels[:limit, :]
     labels_test = labels[limit:, :]
     tree_regr = tree.DecisionTreeRegressor(criterion='mse', splitter='best',
@@ -249,10 +252,6 @@ def game(labels, limit, data, line_labels, n_estimators, n_repetitions,
                        np.arange(1, np.max(unique_id.astype(int)) + 1, 1))
     pool.close()
     pool.join()
-
-    end_time = time.time()
-    if verbose:
-        print END_RUN_FORMAT.format(end_time - start_time)
 
     sigmas = np.array(
         list(chain.from_iterable(np.array(results)[:, 0]))).reshape(

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from core import game
+from behaviour import ok_status
+from core import check_input
 
 
 class FilesConfig:
@@ -30,28 +31,46 @@ class Game:
         self.labels_config = labels_config
         self.lib_folder = self.DEFAULT_LIB_FOLDER
 
-    def debug_params(self):
-        print 'labels', self.labels_config.output
-        print 'inputs', self.filename_config.filename_int
-        print 'errors', self.filename_config.filename_err
-        print 'library', self.filename_config.filename_library
-        print 'output', self.filename_config.output_folder
-        print 'additional files?', self.filename_config.additional_files
-        print 'n processors', self.n_proc
-        print 'n repetitions', self.n_repetitions
-        print 'n estimators', self.n_estimators
-
     def run(self):
-        game(
-            filename_int=self.filename_config.filename_int,
-            filename_err=self.filename_config.filename_err,
-            filename_library=self.filename_config.filename_library,
-            additional_files=self.filename_config.additional_files,
-            n_proc=self.n_proc,
-            n_repetitions=self.n_repetitions,
-            n_estimators=self.n_estimators,
-            output_folder=self.filename_config.output_folder,
-            verbose=True,  # debug
-            out_labels=self.labels_config.output,
-            lib_folder=self.lib_folder
+        status, labels, limit, data, line_labels, models, \
+        unique_id, initial, features, additional_files = check_input(
+            self.filename_config.filename_int,
+            self.filename_config.filename_library,
+            self.filename_config.additional_files,
+            self.n_repetitions,
+            self.filename_config.output_folder,
+            True,
+            self.lib_folder
         )
+
+        if status.is_error():
+            return status
+
+        return ok_status()  # todo test only
+
+        # timer = time.time()
+        #
+        # try:
+        #     game(
+        #         labels,
+        #         limit,
+        #         data,
+        #         line_labels,
+        #         self.n_estimators,
+        #         self.n_repetitions,
+        #         self.labels_config.out_labels,
+        #         additional_files,
+        #         models,
+        #         unique_id,
+        #         initial,
+        #         features,
+        #         self.filename_config.filename_int,
+        #         self.filename_config.filename_err,
+        #         self.filename_config.output_folder,
+        #         self.n_proc
+        #     )
+        # except Exception as e:
+        #     return GameBehaviour.from_exception(e)
+        #
+        # timer = time.time() - timer
+        # return ok_status(str(timer))
