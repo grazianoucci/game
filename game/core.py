@@ -41,8 +41,7 @@ OUT_HEADER_FORMAT = ' mean[Log({0})] median[Log({0})] sigma[Log({0})]'
 
 def raise_if_mem_per_process_is_too_high(mem_required_per_process):
     total_worst_weight = mem_required_per_process * GAME_MAX_CORES
-    
-    print('proc', mem_required_per_process, 'total', total_worst_weight, 'max', MAX_MEM)
+    print('{} GB VS {} GB'.format(total_worst_weight, MAX_MEM))
     if total_worst_weight >= MAX_MEM:  # critical memory saturation
         message = TOO_MUCH_MEMORY_REQUIRED_FORMAT.format(total_worst_weight)
         exception = GameException.build_too_much_memory_exception(message)
@@ -58,6 +57,7 @@ def raise_if_matrix_size_is_too_high(matrix_size, n_repetitions, n_labels=7):
 
 def raise_if_matrix_per_process_is_too_high(n_rows, n_cols, n_repetitions, n_labels=7):
     matrix_size = n_rows * n_cols
+    print(matrix_size)
     raise_if_matrix_size_is_too_high(matrix_size, n_repetitions, n_labels)
 
 def raise_if_mem_is_too_high(input_rows, input_cols, n_repetitions, additional_files, models, unique_id):
@@ -67,12 +67,14 @@ def raise_if_mem_is_too_high(input_rows, input_cols, n_repetitions, additional_f
         all_i = np.arange(1, np.max(unique_id.astype(int)) + 1, 1)
         sub_matrix_max = 0
         sub_matrix_min = 9999999999
-
+        all_rows = input_rows
+ 
         for i in all_i:
             mask = np.where(models == unique_id[i - 1])
             n_rows = len(mask[0])
             n_cols = input_cols
             matrix_size = n_cols * n_rows
+            print('model #{} -> matrix size: {} (rows = {})'.format(i, matrix_size, n_rows))
             if matrix_size > sub_matrix_max:
                 sub_matrix_max = matrix_size
 
@@ -83,14 +85,13 @@ def raise_if_mem_is_too_high(input_rows, input_cols, n_repetitions, additional_f
             raise_if_matrix_size_is_too_high(sub_matrix_max, n_repetitions)
         except Exception as e:
             try:
-                raise_if_matrix_size_is_too_high(sub_matrix_min, n_repetitions)
+                # raise_if_matrix_size_is_too_high(sub_matrix_min, n_repetitions)
+                n_chunks = math.ceil((all_rows * n_cols) / sub_matrix_max)
+                print('should chunkize files into {}'.format(n_chunks))
+                # todo send email
             except Exception as e:
                 raise e
             
-            # min model is ok -> chunks
-            n_chunks = math.ceil(sub_matrix_max / sub_matrix_min)
-            # todo send email
-
 
 def game(
         filename_int
@@ -161,21 +162,11 @@ def game(
     labels_train = labels[:limit, :]
     labels_test = labels[limit:, :]
 
-    # checks to enable model
-    if additional:
-      rows = len(data)
-      cols = len(data[0])  # number of colummns in file
-      single_matrix = rows * cols * n_reps
-      all_m = single_matrix * 7
-    else:
-      for each model:
-       rows = len(data)
-       cols = len(data[0])  # number of columns in file
-       single_matrix = rows * cols
-       all_m = single_matrix * 7
-
     n_rows = len(data)
     n_cols = len(data[0])
+    raise_if_mem_is_too_high(n_rows, n_cols, n_repetitions, additional_files,
+                             models, unique_id)
+
     try:
         raise_if_mem_is_too_high(n_rows, n_cols, n_repetitions, additional_files,
                              models, unique_id)
