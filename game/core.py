@@ -44,11 +44,12 @@ class MemoryChecker:
         self.max_mem = max_mem
 
     def is_too_high(self, candidate):
+        print('{} and max is {}'.format(candidate, self.max_mem))
         return candidate >= self.max_mem
 
-    def check_core(self, core_mem):
+    def is_core_ok(self, core_mem):
         total_worst_weight = core_mem * self.n_cores
-        return self.is_too_high(total_worst_weight)
+        return not self.is_too_high(total_worst_weight)
 
     def check_matrix(self, size, n_repetitions, n_labels=1):
         if isinstance(size, tuple):
@@ -56,12 +57,12 @@ class MemoryChecker:
 
         size_of_all = size * n_labels
         weight = size_of_all * n_repetitions * MATRIX_TO_GB  # GB
-        return self.check_core(weight)  # 1 matrix for each core
+        return self.is_core_ok(weight)  # 1 matrix for each core
 
     def check_input(self, input_rows, input_cols, n_repetitions,
                     additional_files, models, unique_id):
         if additional_files:
-            return self.check_matrix((input_rows, input_cols), n_repetitions)
+            return self.check_matrix((input_rows, input_cols), n_repetitions, 7)
 
         all_i = np.arange(1, np.max(unique_id.astype(int)) + 1, 1)
         matrix_sizes = [
@@ -72,12 +73,12 @@ class MemoryChecker:
         ]
         largest_matrix = max(matrix_sizes, key=lambda x: x[0] * x[1])
 
-        if not self.check_matrix(largest_matrix, n_repetitions, 1):
+        if not self.check_matrix(largest_matrix, n_repetitions):
             size_of_largest_matrix = largest_matrix[0] * largest_matrix[1]
             n_chunks = math.floor(size_of_largest_matrix / MAX_MATRIX_SIZE) + 1
             return game_error(str(n_chunks), GameErrorsCode.SYSTEM_MEM)
 
-        return ok_status()
+        return ok_status('input is good')
 
 
 def check_input(filename_int, filename_library, additional_files, n_repetitions,
