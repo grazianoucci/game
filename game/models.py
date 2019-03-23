@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+import time
 
-from behaviour import ok_status
-from core import check_input
+from behaviour import ok_status, GameBehaviour
+from core import check_input, game
 
 
 class FilesConfig:
@@ -46,31 +47,29 @@ class Game:
         if status.is_error():
             return status
 
-        return ok_status()  # todo test only
+        timer = time.time()
 
-        # timer = time.time()
-        #
-        # try:
-        #     game(
-        #         labels,
-        #         limit,
-        #         data,
-        #         line_labels,
-        #         self.n_estimators,
-        #         self.n_repetitions,
-        #         self.labels_config.out_labels,
-        #         additional_files,
-        #         models,
-        #         unique_id,
-        #         initial,
-        #         features,
-        #         self.filename_config.filename_int,
-        #         self.filename_config.filename_err,
-        #         self.filename_config.output_folder,
-        #         self.n_proc
-        #     )
-        # except Exception as e:
-        #     return GameBehaviour.from_exception(e)
-        #
-        # timer = time.time() - timer
-        # return ok_status(str(timer))
+        try:
+            game(
+                labels,
+                limit,
+                data,
+                line_labels,
+                self.n_estimators,
+                self.n_repetitions,
+                self.labels_config.out_labels,
+                additional_files,
+                models,
+                unique_id,
+                initial,
+                features,
+                self.filename_config.filename_int,
+                self.filename_config.filename_err,
+                self.filename_config.output_folder,
+                self.n_proc
+            )
+        except Exception as e:
+            return GameBehaviour.from_exception(e)
+
+        timer = time.time() - timer
+        return ok_status(str(timer))

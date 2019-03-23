@@ -18,7 +18,7 @@ from prepare import read_emission_line_file, read_library_file
 MODELS_FORMAT = '# of input  models: {}\n# of unique models: {}'
 
 MATRIX_TO_GB = 0.000000008
-MAX_MATRIX_SIZE = 15000
+MAX_MATRIX_SIZE = 100000
 GAME_MAX_CORES = 30
 TOTAL_MEM = 256  # gb
 MAX_MEM_PERC = 90  # 90%
@@ -85,7 +85,7 @@ class MemoryChecker:
             ) for i in all_i
         ]
 
-        largest_matrix = 817400  # max(matrix_sizes, key=lambda x: x[0] * x[1])
+        largest_matrix = max(matrix_sizes, key=lambda x: x[0] * x[1])
         if not self.check_matrix(largest_matrix, n_repetitions):
             n_chunks = self.get_n_chunks(largest_matrix)
             return game_error(str(n_chunks), GameErrorsCode.SYSTEM_MEM)
