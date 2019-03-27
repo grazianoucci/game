@@ -34,7 +34,7 @@ OUTPUT_MODELS_IDS = 'model_ids.dat'
 NUM_FORMAT = '%.5f'
 
 STD_FORMAT = 'Standard deviation of log({}): {:.3f}\n'
-CROSS_VAL_FORMAT = 'Cross-validation score for: {:.3f} +- {:.3f}\n'
+CROSS_VAL_FORMAT = 'Cross-validation score for {}: {:.3f} +- {:.3f}\n'
 OUT_HEADER_FORMAT = ' mean[Log({0})] median[Log({0})] sigma[Log({0})]'
 
 
