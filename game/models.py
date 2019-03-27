@@ -57,7 +57,7 @@ class Game:
                 line_labels,
                 self.n_estimators,
                 self.n_repetitions,
-                self.labels_config.out_labels,
+                self.labels_config.output,
                 additional_files,
                 models,
                 unique_id,
