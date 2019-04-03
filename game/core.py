@@ -348,7 +348,9 @@ def game(labels, limit, data, line_labels, n_estimators, n_repetitions,
                                             2. * scores[i, 14]))
 
         f.write('List of input lines:\n')
-        f.write('%s\n' % list_of_lines[i])
+        input_line = ' '.join(list_of_lines[i].split(' ')[:-1])  # no details
+        input_line = input_line.replace('"', '').replace('\'', '')  # brackets
+        f.write('%s\n' % input_line)
 
     out_header = 'id_model'
     out_ml = [model_ids]
