@@ -26,8 +26,8 @@ MAX_MEM = MAX_MEM_PERC / 100.0 * TOTAL_MEM
 TOO_MUCH_MEMORY_REQUIRED_FORMAT = 'Memory required is {} GB: too much!'
 
 OUTPUT_PRED_FORMAT = 'output_pred_{}.dat'
-OUTPUT_TRUE_FORMAT = 'output_pred_{}.dat'
-OUTPUT_PDF_FORMAT = 'output_pred_{}.dat'
+OUTPUT_TRUE_FORMAT = 'output_true_{}.dat'
+OUTPUT_PDF_FORMAT = 'output_pdf_{}.dat'
 OUTPUT_IMPORTANCES_FORMAT = 'output_feature_importances_{}.dat'
 OUTPUT_ML = 'output_ml.dat'
 OUTPUT_MODELS_IDS = 'model_ids.dat'
@@ -365,6 +365,20 @@ def game(labels, limit, data, line_labels, n_estimators, n_repetitions,
                 np.log10(np.median(10 ** matrix_ml[:, 0], axis=1)),
                 np.std(matrix_ml[:, 0], axis=1),
             ]
+
+            np.savetxt(os.path.join(output_folder,
+                                    OUTPUT_PRED_FORMAT.format('g0')),
+                       preds[0::7, :],
+                       fmt=NUM_FORMAT)
+            np.savetxt(os.path.join(output_folder,
+                                    OUTPUT_TRUE_FORMAT.format('g0')),
+                       trues[0::7, :],
+                       fmt=NUM_FORMAT)
+            np.savetxt(os.path.join(output_folder,
+                                    OUTPUT_PDF_FORMAT.format('g0')),
+                       matrix_ml[:, 0],
+                       fmt=NUM_FORMAT)
+
     if 'n' in out_labels:
         out_header += OUT_HEADER_FORMAT.format('n')
         np.savetxt(os.path.join(output_folder,
@@ -376,6 +390,20 @@ def game(labels, limit, data, line_labels, n_estimators, n_repetitions,
                 np.log10(np.median(10 ** matrix_ml[:, 1], axis=1)),
                 np.std(matrix_ml[:, 1], axis=1)
             ]
+
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('n')),
+                preds[1::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('n')),
+                trues[1::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('n')),
+                matrix_ml[:, 1],
+                fmt=NUM_FORMAT)
+
     if 'NH' in out_labels:
         out_header += OUT_HEADER_FORMAT.format('NH')
         np.savetxt(os.path.join(output_folder,
@@ -387,6 +415,20 @@ def game(labels, limit, data, line_labels, n_estimators, n_repetitions,
                 np.log10(np.median(10 ** matrix_ml[:, 2], axis=1)),
                 np.std(matrix_ml[:, 2], axis=1)
             ]
+
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('NH')),
+                preds[2::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('NH')),
+                trues[2::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('NH')),
+                matrix_ml[:, 2],
+                fmt=NUM_FORMAT)
+
     if 'U' in out_labels:
         out_header += OUT_HEADER_FORMAT.format('U')
         np.savetxt(os.path.join(output_folder,
@@ -398,6 +440,20 @@ def game(labels, limit, data, line_labels, n_estimators, n_repetitions,
                 np.log10(np.median(10 ** matrix_ml[:, 3], axis=1)),
                 np.std(matrix_ml[:, 3], axis=1)
             ]
+
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('U')),
+                preds[3::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('U')),
+                trues[3::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('U')),
+                matrix_ml[:, 3],
+                fmt=NUM_FORMAT)
+
     if 'Z' in out_labels:
         out_header += OUT_HEADER_FORMAT.format('Z')
         np.savetxt(os.path.join(output_folder,
@@ -409,6 +465,20 @@ def game(labels, limit, data, line_labels, n_estimators, n_repetitions,
                 np.log10(np.median(10 ** matrix_ml[:, 4], axis=1)),
                 np.std(matrix_ml[:, 4], axis=1)
             ]
+
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('Z')),
+                preds[4::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('Z')),
+                trues[4::7, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('Z')),
+                matrix_ml[:, 4],
+                fmt=NUM_FORMAT)
+
     if 'Av' in out_labels:
         out_header += OUT_HEADER_FORMAT.format('Av')
         np.savetxt(os.path.join(output_folder,
@@ -421,6 +491,19 @@ def game(labels, limit, data, line_labels, n_estimators, n_repetitions,
                 np.median(matrix_ml[:, 5], axis=1),
                 np.std(matrix_ml[:, 5], axis=1)
             ]
+
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('Av')),
+                preds[5::2, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('Av')),
+                trues[5::2, :],
+                fmt=NUM_FORMAT)
+            np.savetxt(
+                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('Av')),
+                matrix_ml[:, 5],
+                fmt=NUM_FORMAT)
 
     if 'fesc' in out_labels:
         out_header += OUT_HEADER_FORMAT.format('fesc')
@@ -435,102 +518,6 @@ def game(labels, limit, data, line_labels, n_estimators, n_repetitions,
                 np.std(matrix_ml[:, 6], axis=1)
             ]
 
-    f.close()
-
-    if additional_files:
-        write_output = np.vstack(tuple(out_ml)).T
-    else:
-        write_output = np.column_stack((model_ids, matrix_ml))
-
-    output_ml_file = os.path.join(output_folder, OUTPUT_ML)
-    np.savetxt(output_ml_file, write_output, header=out_header, fmt=NUM_FORMAT)
-
-    if additional_files:
-        if 'g0' in out_labels:
-            np.savetxt(os.path.join(output_folder,
-                                    OUTPUT_PRED_FORMAT.format('g0')),
-                       preds[0::7, :],
-                       fmt=NUM_FORMAT)
-            np.savetxt(os.path.join(output_folder,
-                                    OUTPUT_TRUE_FORMAT.format('g0')),
-                       trues[0::7, :],
-                       fmt=NUM_FORMAT)
-            np.savetxt(os.path.join(output_folder,
-                                    OUTPUT_PDF_FORMAT.format('g0')),
-                       matrix_ml[:, 0],
-                       fmt=NUM_FORMAT)
-
-        if 'n' in out_labels:
-            np.savetxt(
-                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('n')),
-                preds[1::7, :],
-                fmt=NUM_FORMAT)
-            np.savetxt(
-                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('n')),
-                trues[1::7, :],
-                fmt=NUM_FORMAT)
-            np.savetxt(
-                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('n')),
-                matrix_ml[:, 1],
-                fmt=NUM_FORMAT)
-
-        if 'NH' in out_labels:
-            np.savetxt(
-                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('NH')),
-                preds[2::7, :],
-                fmt=NUM_FORMAT)
-            np.savetxt(
-                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('NH')),
-                trues[2::7, :],
-                fmt=NUM_FORMAT)
-            np.savetxt(
-                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('NH')),
-                matrix_ml[:, 2],
-                fmt=NUM_FORMAT)
-
-        if 'U' in out_labels:
-            np.savetxt(
-                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('U')),
-                preds[3::7, :],
-                fmt=NUM_FORMAT)
-            np.savetxt(
-                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('U')),
-                trues[3::7, :],
-                fmt=NUM_FORMAT)
-            np.savetxt(
-                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('U')),
-                matrix_ml[:, 3],
-                fmt=NUM_FORMAT)
-
-        if 'Z' in out_labels:
-            np.savetxt(
-                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('Z')),
-                preds[4::7, :],
-                fmt=NUM_FORMAT)
-            np.savetxt(
-                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('Z')),
-                trues[4::7, :],
-                fmt=NUM_FORMAT)
-            np.savetxt(
-                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('Z')),
-                matrix_ml[:, 4],
-                fmt=NUM_FORMAT)
-
-        if 'Av' in out_labels:
-            np.savetxt(
-                os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('Av')),
-                preds[5::2, :],
-                fmt=NUM_FORMAT)
-            np.savetxt(
-                os.path.join(output_folder, OUTPUT_TRUE_FORMAT.format('Av')),
-                trues[5::2, :],
-                fmt=NUM_FORMAT)
-            np.savetxt(
-                os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('Av')),
-                matrix_ml[:, 5],
-                fmt=NUM_FORMAT)
-
-        if 'fesc' in out_labels:
             np.savetxt(
                 os.path.join(output_folder, OUTPUT_PRED_FORMAT.format('fesc')),
                 preds[6::7, :],
@@ -543,3 +530,13 @@ def game(labels, limit, data, line_labels, n_estimators, n_repetitions,
                 os.path.join(output_folder, OUTPUT_PDF_FORMAT.format('fesc')),
                 matrix_ml[:, 6],
                 fmt=NUM_FORMAT)
+
+    f.close()
+
+    if additional_files:
+        write_output = np.vstack(tuple(out_ml)).T
+    else:
+        write_output = np.column_stack((model_ids, matrix_ml))
+
+    output_ml_file = os.path.join(output_folder, OUTPUT_ML)
+    np.savetxt(output_ml_file, write_output, header=out_header, fmt=NUM_FORMAT)
