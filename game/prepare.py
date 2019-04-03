@@ -52,6 +52,7 @@ def read_library_file(library_csv, filename_library):
 
     columns = []
     for element in input_labels:
+        element = ' '.join(element.split(' ')[:-1])
         element = JUST_ALPHANUM.sub('', element).lower()
         columns.append(np.where(lines == element)[0][0])
 
